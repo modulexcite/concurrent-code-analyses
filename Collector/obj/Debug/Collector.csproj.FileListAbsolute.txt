@@ -1,0 +1,10 @@
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Collector.exe.config
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Collector.exe
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Collector.pdb
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Analysis.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Utilities.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Analysis.pdb
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Utilities.pdb
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\obj\Debug\Collector.exe
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\obj\Debug\Collector.pdb

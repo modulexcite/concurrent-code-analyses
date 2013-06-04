@@ -1,0 +1,4 @@
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\RefactoringReadability.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Utilities.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\extension.vsixmanifest
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Utilities.pdb

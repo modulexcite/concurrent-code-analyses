@@ -1,0 +1,15 @@
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\RefactoringReadability.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Roslyn.Compilers.CSharp.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Roslyn.Compilers.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Roslyn.Services.CSharp.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Roslyn.Services.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Roslyn.Utilities.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Utilities.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\extension.vsixmanifest
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\System.ComponentModel.Composition.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Microsoft.Build.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Microsoft.Build.Framework.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\System.Runtime.Remoting.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\System.Windows.Forms.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Microsoft.Build.Tasks.v4.0.dll
+C:\Users\Semih\AppData\Local\Microsoft\VisualStudio\11.0Roslyn\Extensions\Semih Okur\RefactoringReadability\1.0\\Utilities.pdb

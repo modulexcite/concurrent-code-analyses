@@ -1,0 +1,5 @@
+c:\users\semih\documents\visual studio 2012\Projects\RefactoringReadability\Utilities\bin\Release\Utilities.dll
+c:\users\semih\documents\visual studio 2012\Projects\RefactoringReadability\Utilities\bin\Release\Utilities.pdb
+c:\users\semih\documents\visual studio 2012\Projects\RefactoringReadability\Utilities\obj\Release\Utilities.csprojResolveAssemblyReference.cache
+c:\users\semih\documents\visual studio 2012\Projects\RefactoringReadability\Utilities\obj\Release\Utilities.dll
+c:\users\semih\documents\visual studio 2012\Projects\RefactoringReadability\Utilities\obj\Release\Utilities.pdb

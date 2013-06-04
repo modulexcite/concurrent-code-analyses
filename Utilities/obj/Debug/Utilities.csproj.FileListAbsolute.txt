@@ -1,0 +1,16 @@
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Utilities.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Utilities.pdb
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Compilers.CSharp.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Compilers.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Services.CSharp.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Services.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Utilities.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Compilers.xml
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Compilers.CSharp.xml
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Services.xml
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Services.CSharp.xml
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\bin\Debug\Roslyn.Utilities.xml
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\obj\Debug\Utilities.Properties.Resources.resources
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\obj\Debug\Utilities.csproj.GenerateResource.Cache
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\obj\Debug\Utilities.dll
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Utilities\obj\Debug\Utilities.pdb

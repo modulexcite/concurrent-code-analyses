@@ -1,0 +1,2 @@
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\AnalyzeRepository\obj\Debug\AnalyzeRepository.csprojResolveAssemblyReference.cache
+C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\AnalyzeRepository\bin\Debug\AnalyzeRepository.exe.config
