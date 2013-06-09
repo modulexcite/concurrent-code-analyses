@@ -8,3 +8,26 @@ C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Coll
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\bin\Debug\Utilities.pdb
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\obj\Debug\Collector.exe
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Collector\obj\Debug\Collector.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Collector.exe.config
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Debug\Collector.exe
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Debug\Collector.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Collector.exe
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Collector.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Analysis.dll
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Utilities.dll
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Analysis.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Utilities.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache
+D:\C#PROJECTS\RefactoringReadability\Collector\bin\Debug\Collector.exe.config
+D:\C#PROJECTS\RefactoringReadability\Collector\obj\Debug\Collector.exe
+D:\C#PROJECTS\RefactoringReadability\Collector\obj\Debug\Collector.pdb
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Collector.exe.config
+D:\C#PROJECTS\RoslynAnalysis\Collector\obj\Debug\Collector.exe
+D:\C#PROJECTS\RoslynAnalysis\Collector\obj\Debug\Collector.pdb
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Collector.exe
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Collector.pdb
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Analysis.dll
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Utilities.dll
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Analysis.pdb
+D:\C#PROJECTS\RoslynAnalysis\Collector\bin\Debug\Utilities.pdb
+D:\C#PROJECTS\RoslynAnalysis\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache

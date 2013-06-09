@@ -1,0 +1,10 @@
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Collector.exe.config
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Collector.exe
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Collector.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Analysis.dll
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Utilities.dll
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Analysis.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\bin\Release\Utilities.pdb
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Release\Collector.csprojResolveAssemblyReference.cache
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Release\Collector.exe
+Z:\C#PROJECTS\RefactoringReadability\Collector\obj\Release\Collector.pdb

@@ -52,7 +52,7 @@ namespace Analysis
 
 
 
-        public override void analyzeDocument(IDocument document)
+        public override void AnalyzeDocument(IDocument document)
         {
             var syntaxTree = document.GetSyntaxTree();
 
@@ -67,7 +67,7 @@ namespace Analysis
             loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
         }
 
-        public override void onAnalysisCompleted()
+        public override void OnAnalysisCompleted()
         {
 
             Helper.WriteLogger(appsFile, appName + "," + isTPL + "," + isThreading + "," + isDataflow + "," + numberOfTaskInstances + "," + numberOfThreadInstances + "," + (numberOfThreadInstances + numberOfTaskInstances) + "\n");     

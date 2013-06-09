@@ -1,1 +1,0 @@
-C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\AsyncAnalysis\bin\Debug\AsyncAnalysis.exe.config

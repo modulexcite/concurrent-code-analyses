@@ -28,10 +28,12 @@ namespace Utilities
 
         public static void WriteLogger(String file, String s)
         {
+#if DEBUG
             using (var log = new StreamWriter(file, true))
             {
                 log.Write(s);
             }
+#endif
         }
 
         public static void WriteInstance(string file, string id, string ex )

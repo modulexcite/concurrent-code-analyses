@@ -25,13 +25,13 @@ namespace Analysis
         static void Main(string[] args)
         {
             Start(args);
-            //Test(); ;
+            //Test();
         }
 
         static void Initialize()
         {
             numAnalyzedApps = 1000;
-            dir = @"D:\C#PROJECTS\GUICodeCorpus";
+            dir = @"D:\C#PROJECTS\XAMLProjects";
             if (File.Exists(logFile))
                 analyzedProjects = System.IO.File.ReadAllLines(logFile).Select(a => a.Split(',')[0]).ToList();
             else
@@ -60,43 +60,26 @@ namespace Analysis
                 
                 Console.WriteLine(appName);
 
-                
-                //try
-                //{
-                app.load();
+
+                app.loadSolutions();
                 app.analyze();
-                //Helper.WriteLogger(logFile, app.appName + "," + app.numTotalProjects + "," + app.numUnloadedProjects + "," + app.numUnanalyzedProjects + "\r\n");
+                Helper.WriteLogger(logFile, app.appName + "," + app.numTotalProjects + "," + app.numUnloadedProjects + "," + app.numUnanalyzedProjects + "\r\n");
 
-                //}
+                
                 //catch (Exception e)
+                //catch(EntryPointNotFoundException e)
                 //{
-                //    Helper.WriteLogger(logFile,app.appName + "EXCEPTION\r\n");
+                //    Helper.WriteLogger(logFile, app.appName + "EXCEPTION\r\n");
                 //}
-            }
-            Console.ReadLine();
-            
-        }
-
-        static void FilterMoveGUIApps(string dir,string appName)
-        {
-            var xamlFiles = Directory.GetFiles(dir, "*.xaml", SearchOption.AllDirectories);
-
-            if (xamlFiles.Count() > 0)
-            {
-                Console.WriteLine(appName);
-                Directory.Move(dir, @"D:\C#PROJECTS\GUIApplications\" + appName);
-
-            }
-
+            }          
         }
 
         static void Test()
         {
-            IAnalysis app = new ThreadTaskAnalysis("ravendb-ravendb", @"Z:\GithubMostWatched990Projects\acken-AutoTest.Net");
-
-            app.load();
+            // C:\Users\Semih\Documents\Visual Studio 2012\Projects\TestApplication
+            IAnalysis app = new AsyncAnalysis("testApp", @"C:\Users\Semih\Documents\Visual Studio 2012\Projects\TestApplication");
+            app.loadSolutions();
             app.analyze();
-
             Console.ReadLine();
         }
     }

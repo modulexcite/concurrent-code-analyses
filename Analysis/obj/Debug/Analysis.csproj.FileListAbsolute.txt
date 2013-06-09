@@ -20,3 +20,47 @@ C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Anal
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Analysis\bin\Debug\Roslyn.Utilities.xml
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Analysis\obj\Debug\Analysis.dll
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Analysis\obj\Debug\Analysis.pdb
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Analysis.dll.config
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Analysis.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Analysis.pdb
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.CSharp.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.VisualBasic.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.CSharp.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.VisualBasic.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Utilities.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Utilities.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Utilities.pdb
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.CSharp.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Compilers.VisualBasic.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.CSharp.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Services.VisualBasic.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\bin\Debug\Roslyn.Utilities.xml
+Z:\C#PROJECTS\RefactoringReadability\Analysis\obj\Debug\Analysis.csprojResolveAssemblyReference.cache
+Z:\C#PROJECTS\RefactoringReadability\Analysis\obj\Debug\Analysis.dll
+Z:\C#PROJECTS\RefactoringReadability\Analysis\obj\Debug\Analysis.pdb
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Analysis.dll.config
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Analysis.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Analysis.pdb
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.CSharp.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.VisualBasic.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.CSharp.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.VisualBasic.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Utilities.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Utilities.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Utilities.pdb
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.CSharp.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Compilers.VisualBasic.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.CSharp.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Services.VisualBasic.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\bin\Debug\Roslyn.Utilities.xml
+D:\C#PROJECTS\RoslynAnalysis\Analysis\obj\Debug\Analysis.csprojResolveAssemblyReference.cache
+D:\C#PROJECTS\RoslynAnalysis\Analysis\obj\Debug\Analysis.dll
+D:\C#PROJECTS\RoslynAnalysis\Analysis\obj\Debug\Analysis.pdb
