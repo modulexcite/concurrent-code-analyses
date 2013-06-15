@@ -19,9 +19,12 @@ namespace Analysis
         public int NumAsyncMethods;
         public int[] NumPatternUsages;
 
-        public AsyncAnalysis(string appName, string dirName)
-            : base(appName, dirName)
+        private AsyncAnalysisSummary _summary;
+
+        public AsyncAnalysis(string appName, string dirName, AsyncAnalysisSummary summary)
+            : base(appName, dirName, summary)
         {
+            _summary = summary;
             Helper.WriteLogger(InterestingCallsFile, " #################\r\n" + appName + "\r\n#################\r\n");
             NumPatternUsages = new int[11];
         }
@@ -41,12 +44,12 @@ namespace Analysis
                 NumTotalProjects + "," +
                 NumUnloadedProjects + "," +
                 NumUnanalyzedProjects + "," +
-                NumAzureProjects + "," +
-                NumPhoneProjects + "," +
-                NumPhone8Projects + "," +
-                NumNet4Projects + "," +
-                NumNet45Projects + "," +
-                NumOtherNetProjects + ",");
+                _summary.NumAzureProjects + "," +
+                _summary.NumPhoneProjects + "," +
+                _summary.NumPhone8Projects + "," +
+                _summary.NumNet4Projects + "," +
+                _summary.NumNet45Projects + "," +
+                _summary.NumOtherNetProjects + ",");
 
             foreach (var pattern in NumPatternUsages)
                 Helper.WriteLogger(AppsFile, pattern + ",");

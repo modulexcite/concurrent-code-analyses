@@ -15,32 +15,30 @@ namespace Analysis
         private readonly Dictionary<ISolution, List<IProject>> _projectsBySolutions;
         private bool _isUsingSolutionFiles;
 
-        public string AppName;
+        protected string AppName;
 
-        public ISolution CurrentSolution;
+        protected ISolution CurrentSolution;
 
-        public int NumUnloadedProjects;
-        public int NumTotalProjects;
-        public int NumUnanalyzedProjects;
+        protected int NumUnloadedProjects;
+        protected int NumTotalProjects;
+        protected int NumUnanalyzedProjects;
 
-        public int NumPhoneProjects;
-        public int NumPhone8Projects;
-        public int NumAzureProjects;
-        public int NumNet4Projects;
-        public int NumNet45Projects;
-        public int NumOtherNetProjects;
+        private AnalysisSummary _summary;
 
-        protected AnalysisBase(string appName, string dirName)
+        protected AnalysisBase(string appName, string dirName, AnalysisSummary summary)
         {
             AppName = appName;
             _dirName = dirName;
             _projects = new List<IProject>();
             _projectsBySolutions = new Dictionary<ISolution, List<IProject>>();
+
+            _summary = summary;
         }
 
         public void LoadSolutions()
         {
             _isUsingSolutionFiles = true;
+
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
@@ -48,7 +46,6 @@ namespace Analysis
                 _projectsBySolutions.Add(solution, solution.Projects.ToList());
                 NumTotalProjects += solution.Projects.Count();
             }
-
         }
 
         public void Analyze()
@@ -71,7 +68,6 @@ namespace Analysis
 
         public void AnalyzeProject(IProject project)
         {
-
             if (!project.IsCSProject())
                 return;
 
@@ -108,30 +104,30 @@ namespace Analysis
         {
             if (project.IsWPProject())
             {
-                NumPhoneProjects++;
+                _summary.NumPhoneProjects++;
             }
 
             if (project.IsWP8Project())
             {
-                NumPhone8Projects++;
+                _summary.NumPhone8Projects++;
             }
 
             if (project.IsAzureProject())
             {
-                NumAzureProjects++;
+                _summary.NumAzureProjects++;
             }
 
             if (project.IsNet40Project())
             {
-                NumNet4Projects++;
+                _summary.NumNet4Projects++;
             }
             else if (project.IsNet45Project())
             {
-                NumNet45Projects++;
+                _summary.NumNet45Projects++;
             }
             else
             {
-                NumOtherNetProjects++;
+                _summary.NumOtherNetProjects++;
             }
         }
 
@@ -141,9 +137,10 @@ namespace Analysis
 
         public void WriteResults(String logFile)
         {
-            var logText = AppName + "," + NumTotalProjects + "," + NumUnloadedProjects + "," +
-                          NumUnanalyzedProjects + "\r\n";
+            var logText = AppName + "," + NumTotalProjects + "," + NumUnloadedProjects + "," + NumUnanalyzedProjects + "\r\n";
+
             Helper.WriteLogger(logFile, logText);
         }
+
     }
 }

@@ -37,8 +37,16 @@ namespace Analysis
         public int NumberOfThreadInstances;
 
         public ThreadTaskAnalysis(string appName, string dirName)
-            : base(appName, dirName)
+            : base(appName, dirName, new ThreadTaskAnalysisSummary())
         {
+        }
+
+        public class ThreadTaskAnalysisSummary : AnalysisSummary
+        {
+            protected override string AnalysisSpecificText()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public override void AnalyzeDocument(IDocument document)

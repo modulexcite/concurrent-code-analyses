@@ -83,6 +83,6 @@ C:\Users\david\Projects\codeanalysis\Analysis\bin\Debug\Roslyn.Services.xml
 C:\Users\david\Projects\codeanalysis\Analysis\bin\Debug\Roslyn.Services.CSharp.xml
 C:\Users\david\Projects\codeanalysis\Analysis\bin\Debug\Roslyn.Services.VisualBasic.xml
 C:\Users\david\Projects\codeanalysis\Analysis\bin\Debug\Roslyn.Utilities.xml
-C:\Users\david\Projects\codeanalysis\Analysis\obj\Debug\Analysis.csprojResolveAssemblyReference.cache
 C:\Users\david\Projects\codeanalysis\Analysis\obj\Debug\Analysis.dll
 C:\Users\david\Projects\codeanalysis\Analysis\obj\Debug\Analysis.pdb
+C:\Users\david\Projects\codeanalysis\Analysis\obj\Debug\Analysis.csprojResolveAssemblyReference.cache

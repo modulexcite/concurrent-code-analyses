@@ -36,7 +36,8 @@ namespace Collector
             foreach (var subdir in _subdirsToAnalyze)
             {
                 var appName = subdir.Split('\\').Last();
-                var app = new AsyncAnalysis(appName, subdir);
+                var appSummary = new AsyncAnalysisSummary();
+                var app = new AsyncAnalysis(appName, subdir, appSummary);
 
                 Console.WriteLine(appName);
 

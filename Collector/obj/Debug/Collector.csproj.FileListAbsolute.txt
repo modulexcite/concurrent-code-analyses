@@ -35,11 +35,11 @@ C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Collector.exe.config
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Collector.exe
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Collector.pdb
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Analysis.dll
+C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\NLog.dll
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Utilities.dll
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Analysis.pdb
 C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\Utilities.pdb
+C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\NLog.xml
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.exe
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.pdb
-C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\NLog.dll
-C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\NLog.xml
