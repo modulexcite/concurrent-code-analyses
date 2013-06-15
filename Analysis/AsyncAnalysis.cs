@@ -1,99 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.Compilers;
-using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
-using Roslyn.Services.Editor;
 using System.IO;
-using Microsoft;
-using Microsoft.Build;
 using Microsoft.Build.Exceptions;
-using Microsoft.Build.Evaluation;
 using Utilities;
 
 namespace Analysis
 {
     public class AsyncAnalysis : AnalysisBase
     {
-        static string[] otherFingerprints = { "begininvoke", "async", "threadpool" };
+        private const string AppsFile = @"C:\Users\david\Desktop\UIStatistics.txt";
+        private const string InterestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
 
-
-        static string appsFile = @"C:\Users\david\Desktop\UIStatistics.txt";
-        static string interestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
-
-
-        public int numUIClasses;
-        public int numEventHandlerMethods;
-        public int numAsyncMethods;
-        public int[] numPatternUsages;
-
-
+        public int NumUIClasses;
+        public int NumEventHandlerMethods;
+        public int NumAsyncMethods;
+        public int[] NumPatternUsages;
 
         public AsyncAnalysis(string appName, string dirName)
             : base(appName, dirName)
         {
-            Helper.WriteLogger(interestingCallsFile, " #################\r\n" + appName + "\r\n#################\r\n");
-            numPatternUsages = new int[11];
+            Helper.WriteLogger(InterestingCallsFile, " #################\r\n" + appName + "\r\n#################\r\n");
+            NumPatternUsages = new int[11];
         }
-
-
-
 
         public override void AnalyzeDocument(IDocument document)
         {
             var syntaxTree = document.GetSyntaxTree();
-            var loopWalker = new Walker()
-            {
-                Outer = this,
-                Id = appName + " " + document.Id
-            };
+            var loopWalker = new Walker(this);
 
             loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
         }
 
         public override void OnAnalysisCompleted()
         {
-            Helper.WriteLogger(appsFile,
-                appName + "," +
-                numTotalProjects + "," +
-                numUnloadedProjects + "," +
-                numUnanalyzedProjects + "," +
-                numAzureProjects + "," +
-                numPhoneProjects + "," +
-                numPhone8Projects + "," +
-                numNet4Projects + "," +
-                numNet45Projects + "," +
-                numOtherNetProjects + ",");
+            Helper.WriteLogger(AppsFile,
+                AppName + "," +
+                NumTotalProjects + "," +
+                NumUnloadedProjects + "," +
+                NumUnanalyzedProjects + "," +
+                NumAzureProjects + "," +
+                NumPhoneProjects + "," +
+                NumPhone8Projects + "," +
+                NumNet4Projects + "," +
+                NumNet45Projects + "," +
+                NumOtherNetProjects + ",");
 
-            foreach (var pattern in numPatternUsages)
-                Helper.WriteLogger(appsFile, pattern + ",");
+            foreach (var pattern in NumPatternUsages)
+                Helper.WriteLogger(AppsFile, pattern + ",");
 
-            Helper.WriteLogger(appsFile, numAsyncMethods + ", " + numEventHandlerMethods + "," + numUIClasses + "\r\n");
-
+            Helper.WriteLogger(AppsFile, NumAsyncMethods + ", " + NumEventHandlerMethods + "," + NumUIClasses + "\r\n");
         }
-
-
 
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
         {
-            List<MethodDeclarationSyntax> newMethods = new List<MethodDeclarationSyntax>();
-            for (int i = 0; i < n; i++)
-                Helper.WriteLogger(interestingCallsFile, " "); ;
-            Helper.WriteLogger(interestingCallsFile, node.Identifier + " " + n + "\r\n");
+            var newMethods = new List<MethodDeclarationSyntax>();
+            for (var i = 0; i < n; i++)
+                Helper.WriteLogger(InterestingCallsFile, " "); ;
+            Helper.WriteLogger(InterestingCallsFile, node.Identifier + " " + n + "\r\n");
 
-
-            IDocument doc = currentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
+            var doc = CurrentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
 
             try
             {
                 var semanticModel = doc.GetSemanticModel();
                 foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                 {
-                    MethodSymbol methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
+                    var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
                     DetectAsyncPatternUsages(methodCall, methodCallSymbol);
 
@@ -107,7 +82,7 @@ namespace Analysis
                     ProcessMethodCallsInMethod(newMethod, n + 1);
 
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 if (ex is InvalidProjectFileException ||
                         ex is FormatException ||
@@ -117,13 +92,9 @@ namespace Analysis
                 else
                     throw;
             }
-
-
-
         }
 
-
-        private MethodDeclarationSyntax FindMethodDeclarationNode(MethodSymbol methodCallSymbol)
+        private static MethodDeclarationSyntax FindMethodDeclarationNode(MethodSymbol methodCallSymbol)
         {
             if (methodCallSymbol == null)
                 return null;
@@ -137,136 +108,112 @@ namespace Analysis
                 return (MethodDeclarationSyntax)nodes.First();
 
             return null;
-            //var def = methodCallSymbol.FindSourceDefinition(currentSolution);
-
-            //if (def != null && def.Locations != null && def.Locations.Count > 0)
-            //{
-            //    //methodCallSymbol.DeclaringSyntaxNodes.Firs
-            //    var loc = def.Locations.First();
-            //    var node = loc.SourceTree.GetRoot().FindToken(loc.SourceSpan.Start).Parent;
-            //    if (node is MethodDeclarationSyntax)
-            //        return (MethodDeclarationSyntax)node; 
-            //}
-
         }
 
         public void DetectAsyncPatternUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
-
-            string methodCallName = methodCall.Expression.ToString().ToLower();
+            var methodCallName = methodCall.Expression.ToString().ToLower();
 
             if (methodCallSymbol == null)
             {
                 if (methodCallName.Contains("begininvoke") || methodCallName.Contains("async"))
                 {
-                    numPatternUsages[10]++;
-                    Helper.WriteLogger(interestingCallsFile, " //Unresolved// " + methodCallName + " \\\\\\\\\\\r\n");
+                    NumPatternUsages[10]++;
+                    Helper.WriteLogger(InterestingCallsFile, " //Unresolved// " + methodCallName + " \\\\\\\\\\\r\n");
                 }
                 return;
             }
 
             var methodSymbolString = methodCallSymbol.ToString();
 
-            if (methodSymbolString.Contains("Dispatcher.BeginInvoke")) // DispatcherOperation BeginInvoke(Delegate method,params Object[] args)
+            if (methodCallSymbol.IsDispatcherBeginInvoke())
             {
-                Helper.WriteLogger(interestingCallsFile, " //Dispatcher// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[0]++;
+                Helper.WriteLogger(InterestingCallsFile, " //Dispatcher// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[0]++;
             }
-            else if (methodSymbolString.Contains("Control.BeginInvoke"))  // a kind of APM public IAsyncResult BeginInvoke(Delegate method)
+            else if (methodCallSymbol.IsControlBeginInvoke())
             {
-                Helper.WriteLogger(interestingCallsFile, " //Form.Control// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[1]++;
+                Helper.WriteLogger(InterestingCallsFile, " //Form.Control// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[1]++;
             }
-            else if (methodSymbolString.Contains("ThreadPool.QueueUserWorkItem") && methodCall.ToString().Contains("BeginInvoke")) // look at the synchronization context
+            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsBeginInvoke()) // look at the synchronization context
             {
-                Helper.WriteLogger(interestingCallsFile, " //ThreadPool with Dispatcher// " + methodCall + " \\\\\\\\\\\r\n");
-                numPatternUsages[2]++;
+                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool with Dispatcher// " + methodCall + " \\\\\\\\\\\r\n");
+                NumPatternUsages[2]++;
             }
-            else if (methodSymbolString.Contains("ThreadPool.QueueUserWorkItem") && methodCall.ToString().Contains("SynchronizationContext")) // look at the synchronization context
+            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsSynchronizationContext()) // look at the synchronization context
             {
-                Helper.WriteLogger(interestingCallsFile, " //ThreadPool with Context// " + methodCall + " \\\\\\\\\\\r\n");
-                numPatternUsages[3]++;
+                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool with Context// " + methodCall + " \\\\\\\\\\\r\n");
+                NumPatternUsages[3]++;
             }
-            else if (methodSymbolString.Contains("ThreadPool.QueueUserWorkItem"))
+            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
             {
-                Helper.WriteLogger(interestingCallsFile, " //ThreadPool// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[4]++;
+                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[4]++;
             }
-            else if (methodSymbolString.Contains("BackgroundWorker.RunWorkerAsync"))
+            else if (methodCallSymbol.IsBackgroundWorkerRunWorkerAsync())
             {
-                Helper.WriteLogger(interestingCallsFile, " //BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[5]++;
+                Helper.WriteLogger(InterestingCallsFile, " //BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[5]++;
             }
-            else if (methodSymbolString.Contains("Thread.Start"))
+            else if (methodCallSymbol.IsThreadStart())
             {
-                Helper.WriteLogger(interestingCallsFile, " //Thread// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[6]++;
+                Helper.WriteLogger(InterestingCallsFile, " //Thread// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[6]++;
             }
             else if (methodSymbolString.Contains("System.IAsyncResult") || (!methodCallSymbol.ReturnsVoid && methodCallSymbol.ReturnType.ToString().Contains("System.IAsyncResult")))
             {
-                Helper.WriteLogger(interestingCallsFile, " //APM// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[7]++;
+                Helper.WriteLogger(InterestingCallsFile, " //APM// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[7]++;
             }
-            else if (!methodCallSymbol.ReturnsVoid && methodCallSymbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task"))
+            else if (methodCallSymbol.ReturnsTask())
             {
-                Helper.WriteLogger(interestingCallsFile, " //TAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                numPatternUsages[8]++;
+                Helper.WriteLogger(InterestingCallsFile, " //TAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                NumPatternUsages[8]++;
             }
-            else if (methodCallName.EndsWith("async") && methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString().Contains("Completed"))
+            else if (methodCall.CallsAsyncMethod() && methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().IsEAPCompletedMethod())
             {
-                Helper.WriteLogger(interestingCallsFile, " //EAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                Helper.WriteLogger(@"C:\Users\david\Desktop\temp.txt", methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString() + "\\\\\\\\\\\r\n");
-                numPatternUsages[9]++;
+                Helper.WriteLogger(InterestingCallsFile, " //EAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                Helper.WriteLogger(@"C:\Users\david\Desktop\temp.txt", methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First() + "\\\\\\\\\\\r\n");
+                NumPatternUsages[9]++;
             }
         }
     }
 
-
-
-
     internal class Walker : SyntaxWalker
     {
-        public AsyncAnalysis Outer;
-        public String Id;
+        private readonly AsyncAnalysis _outer;
+        private bool _ui;
 
-        public bool UI;
-
+        public Walker(AsyncAnalysis outer)
+        {
+            _outer = outer;
+        }
 
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
         {
-            string name = node.Name.ToString();
-            if (name.StartsWith("System.Windows"))
+            if (node.IsInSystemWindows() && !_ui)
             {
-                if (!UI)
-                {
-                    UI = true;
-                    Outer.numUIClasses++;
-                }
+                _ui = true;
+                _outer.NumUIClasses++;
             }
+
             base.VisitUsingDirective(node);
         }
-
-
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             if (node.ParameterList.Parameters.Any(param => param.Type.ToString().EndsWith("EventArgs")))
             {
-                Outer.numEventHandlerMethods++;
-                Outer.ProcessMethodCallsInMethod(node, 0);
+                _outer.NumEventHandlerMethods++;
+                _outer.ProcessMethodCallsInMethod(node, 0);
             }
             // detect async methods
             if (node.Modifiers.ToString().Contains("async"))
-                Outer.numAsyncMethods++;
+                _outer.NumAsyncMethods++;
 
             base.VisitMethodDeclaration(node);
         }
 
     }
-
-
-
-
-
-
 }

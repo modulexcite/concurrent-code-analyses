@@ -9,42 +9,41 @@ namespace Collector
 {
     internal class Collector
     {
-        private const string LogFile = @"C:\Users\david\Desktop\collector.log";
+        public const string LogFile = @"C:\Users\david\Desktop\collector.log";
 
         private readonly List<string> _analyzedProjects;
         private readonly IEnumerable<string> _subdirsToAnalyze;
 
         public Collector(String topDir, int batchSize)
         {
-            if (File.Exists(LogFile))
-            {
-                _analyzedProjects = Collector.AnalyzedProjectsFromLogFileContents();
-            }
-            else
-            {
-                _analyzedProjects = new List<string>();
-            }
+            _analyzedProjects = File.Exists(LogFile)
+                ? Collector.AnalyzedProjectsFromLogFileContents()
+                : new List<string>();
 
             _subdirsToAnalyze = Directory.GetDirectories(topDir)
-                                         .Where(subdir => !_analyzedProjects.Any(s => subdir.Split('\\').Last().Equals(s)))
+                                         .Where(IsNotYetAnalyzed)
                                          .OrderBy(s => s)
                                          .Take(batchSize);
+        }
+
+        private bool IsNotYetAnalyzed(string subdir)
+        {
+            return !_analyzedProjects.Any(s => subdir.Split('\\').Last().Equals(s));
         }
 
         public void Run()
         {
             foreach (var subdir in _subdirsToAnalyze)
             {
-                String appName = subdir.Split('\\').Last();
-                AnalysisBase app = new AsyncAnalysis(appName, subdir);
+                var appName = subdir.Split('\\').Last();
+                var app = new AsyncAnalysis(appName, subdir);
 
                 Console.WriteLine(appName);
 
                 app.LoadSolutions();
                 app.Analyze();
 
-                var logText = app.appName + "," + app.numTotalProjects + "," + app.numUnloadedProjects + "," + app.numUnanalyzedProjects + "\r\n";
-                Helper.WriteLogger(LogFile, logText);
+                app.WriteResults(LogFile);
             }
         }
 

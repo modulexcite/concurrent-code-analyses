@@ -1,112 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.Compilers;
-using Roslyn.Compilers.Common;
-using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
-using Roslyn.Services.Editor;
 using System.IO;
-using Microsoft;
-using Microsoft.Build;
 using Microsoft.Build.Exceptions;
-using Microsoft.Build.Evaluation;
 using Utilities;
 
 namespace Analysis
 {
     public abstract class AnalysisBase
     {
-        public string appName;
-        string dirName;
-        public int numUnloadedProjects;
-        public int numTotalProjects;
-        public int numUnanalyzedProjects;
+        private readonly string _dirName;
+        private readonly List<IProject> _projects;
+        private readonly Dictionary<ISolution, List<IProject>> _projectsBySolutions;
+        private bool _isUsingSolutionFiles;
 
-        List<IProject> projects;
-        Dictionary<ISolution, List<IProject>> projectsBySolutions;
-        bool isUsingSolutionFiles;
-        public ISolution currentSolution;
-        public CommonCompilation currentCompilation;
-        public int numPhoneProjects;
-        public int numPhone8Projects;
-        public int numAzureProjects;
-        public int numNet4Projects;
-        public int numNet45Projects;
-        public int numOtherNetProjects;
+        public string AppName;
 
+        public ISolution CurrentSolution;
 
+        public int NumUnloadedProjects;
+        public int NumTotalProjects;
+        public int NumUnanalyzedProjects;
 
-        public AnalysisBase(string appName, string dirName)
+        public int NumPhoneProjects;
+        public int NumPhone8Projects;
+        public int NumAzureProjects;
+        public int NumNet4Projects;
+        public int NumNet45Projects;
+        public int NumOtherNetProjects;
+
+        protected AnalysisBase(string appName, string dirName)
         {
-            this.appName = appName;
-            this.dirName = dirName;
-            projects = new List<IProject>();
-            projectsBySolutions = new Dictionary<ISolution, List<IProject>>();
+            AppName = appName;
+            _dirName = dirName;
+            _projects = new List<IProject>();
+            _projectsBySolutions = new Dictionary<ISolution, List<IProject>>();
         }
 
         public void LoadSolutions()
         {
-            isUsingSolutionFiles = true;
-            var solutionPaths = Directory.GetFiles(dirName, "*.sln", SearchOption.AllDirectories);
-            foreach (string solutionPath in solutionPaths)
+            _isUsingSolutionFiles = true;
+            var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
+            foreach (var solutionPath in solutionPaths)
             {
-                var solution = Roslyn.Services.Solution.Load(solutionPath);
-                projectsBySolutions.Add(solution, solution.Projects.ToList());
-                numTotalProjects += solution.Projects.Count();
+                var solution = Solution.Load(solutionPath);
+                _projectsBySolutions.Add(solution, solution.Projects.ToList());
+                NumTotalProjects += solution.Projects.Count();
             }
 
         }
-        public void LoadProjects()
-        {
-            isUsingSolutionFiles = false;
-            // if (b.EndsWith("tags") || b.EndsWith("branch"))
-            var projectPaths = Directory.GetFiles(dirName, "*.csproj", SearchOption.AllDirectories);
-            numTotalProjects = projectPaths.Count();
-
-            foreach (string projectPath in projectPaths)
-            {
-
-                try
-                {
-                    var project = Roslyn.Services.Solution.LoadStandAloneProject(projectPath);
-                    projects.Add(project);
-                }
-                catch (Exception ex)
-                {
-                    if (ex is InvalidProjectFileException ||
-                        ex is FormatException ||
-                        ex is ArgumentException ||
-                        ex is PathTooLongException)
-                    {
-                        numUnloadedProjects++;
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-
-        }
-
 
         public void Analyze()
         {
-            if (isUsingSolutionFiles)
+            if (_isUsingSolutionFiles)
             {
-                foreach (ISolution solution in projectsBySolutions.Keys)
+                foreach (var solution in _projectsBySolutions.Keys)
                 {
-                    currentSolution = solution;
-                    foreach (IProject project in projectsBySolutions[solution])
+                    foreach (var project in _projectsBySolutions[solution])
                         AnalyzeProject(project);
                 }
             }
             else
             {
-                foreach (IProject project in projects)
+                foreach (var project in _projects)
                     AnalyzeProject(project);
             }
             OnAnalysisCompleted();
@@ -121,8 +78,7 @@ namespace Analysis
             IEnumerable<IDocument> documents = null;
             try
             {
-                if (!DetectTarget(project))
-                    return;
+                DetectTarget(project);
                 documents = project.Documents;
                 if (documents == null)
                     return;
@@ -134,7 +90,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    numUnanalyzedProjects++;
+                    NumUnanalyzedProjects++;
                 }
                 else
                 {
@@ -148,43 +104,46 @@ namespace Analysis
             //ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
         }
 
-        private Boolean DetectTarget(IProject project)
+        private void DetectTarget(IProject project)
         {
             if (project.IsWPProject())
             {
-                numPhoneProjects++;
+                NumPhoneProjects++;
             }
 
             if (project.IsWP8Project())
             {
-                numPhone8Projects++;
+                NumPhone8Projects++;
             }
 
             if (project.IsAzureProject())
             {
-                numAzureProjects++;
+                NumAzureProjects++;
             }
 
             if (project.IsNet40Project())
             {
-                numNet4Projects++;
+                NumNet4Projects++;
             }
             else if (project.IsNet45Project())
             {
-                numNet45Projects++;
+                NumNet45Projects++;
             }
             else
             {
-                numOtherNetProjects++;
+                NumOtherNetProjects++;
             }
-
-            return false;
         }
-
 
         public abstract void AnalyzeDocument(IDocument document);
 
-
         public abstract void OnAnalysisCompleted();
+
+        public void WriteResults(String logFile)
+        {
+            var logText = AppName + "," + NumTotalProjects + "," + NumUnloadedProjects + "," +
+                          NumUnanalyzedProjects + "\r\n";
+            Helper.WriteLogger(logFile, logText);
+        }
     }
 }
