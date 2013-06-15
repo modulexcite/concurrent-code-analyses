@@ -18,7 +18,7 @@ namespace Collector
         {
             if (File.Exists(LogFile))
             {
-                _analyzedProjects = Collector.OldAnalyzedProjectsLogFileContents();
+                _analyzedProjects = Collector.AnalyzedProjectsFromLogFileContents();
             }
             else
             {
@@ -48,7 +48,7 @@ namespace Collector
             }
         }
 
-        private static List<string> OldAnalyzedProjectsLogFileContents()
+        private static List<string> AnalyzedProjectsFromLogFileContents()
         {
             return File.ReadAllLines(LogFile)
                        .Select(a => a.Split(',')[0])
