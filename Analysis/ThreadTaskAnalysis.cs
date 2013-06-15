@@ -17,7 +17,7 @@ using Utilities;
 
 namespace Analysis
 {
-    public class ThreadTaskAnalysis : IAnalysis
+    public class ThreadTaskAnalysis : AnalysisBase
     {
         static string[] threadpoolSignatures = { "ThreadPool.QueueUserWorkItem", "ThreadPool.RegisterWaitForSingleObject", "ThreadPool.UnsafeRegisterWaitForSingleObject", "ThreadPool.UnsafeQueueUserWorkItem", "ThreadPool.UnsafeQueueNativeOverlapped" };
 

@@ -17,13 +17,13 @@ using Utilities;
 
 namespace Analysis
 {
-    public class AsyncAnalysis : IAnalysis
+    public class AsyncAnalysis : AnalysisBase
     {
         static string[] otherFingerprints = { "begininvoke", "async", "threadpool" };
 
 
-        static string appsFile = @"C:\Users\Semih\Desktop\UIStatistics.txt";
-        static string interestingCallsFile = @"C:\Users\Semih\Desktop\callsFromEventHandlers.txt";
+        static string appsFile = @"C:\Users\david\Desktop\UIStatistics.txt";
+        static string interestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
 
 
         public int numUIClasses;
@@ -215,7 +215,7 @@ namespace Analysis
             else if (methodCallName.EndsWith("async") && methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString().Contains("Completed"))
             {
                 Helper.WriteLogger(interestingCallsFile, " //EAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                Helper.WriteLogger(@"C:\Users\Semih\Desktop\temp.txt", methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString() + "\\\\\\\\\\\r\n");
+                Helper.WriteLogger(@"C:\Users\david\Desktop\temp.txt", methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString() + "\\\\\\\\\\\r\n");
                 numPatternUsages[9]++;
             }
         }

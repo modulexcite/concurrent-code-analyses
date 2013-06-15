@@ -18,3 +18,23 @@ C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\Refa
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\RefactoringReadability\obj\Debug\RefactoringReadability.dll
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\RefactoringReadability\obj\Debug\RefactoringReadability.pdb
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\RefactoringReadability\obj\Debug\extension.vsixmanifest
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\RefactoringReadability.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\RefactoringReadability.pdb
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\RefactoringReadability.vsix
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\extension.vsixmanifest
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Compilers.CSharp.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Compilers.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Services.CSharp.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Services.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Utilities.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Utilities.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Utilities.pdb
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Compilers.xml
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Compilers.CSharp.xml
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Services.xml
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Services.CSharp.xml
+C:\Users\david\Projects\codeanalysis\ForRefactoring\bin\Debug\Roslyn.Utilities.xml
+C:\Users\david\Projects\codeanalysis\ForRefactoring\obj\Debug\ForRefactoring.csprojResolveAssemblyReference.cache
+C:\Users\david\Projects\codeanalysis\ForRefactoring\obj\Debug\RefactoringReadability.dll
+C:\Users\david\Projects\codeanalysis\ForRefactoring\obj\Debug\RefactoringReadability.pdb
+C:\Users\david\Projects\codeanalysis\ForRefactoring\obj\Debug\extension.vsixmanifest

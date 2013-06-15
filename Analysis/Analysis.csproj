@@ -75,7 +75,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IAnalysis.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="AnalysisBase.cs" />
     <Compile Include="AsyncAnalysis.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ThreadTaskAnalysis.cs" />

@@ -18,3 +18,23 @@ C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\ForE
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\ForEeachRefactoring\obj\Debug\ForEeachRefactoring.dll
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\ForEeachRefactoring\obj\Debug\ForEeachRefactoring.pdb
 C:\Users\Semih\Documents\Visual Studio 2012\Projects\RefactoringReadability\ForEeachRefactoring\obj\Debug\extension.vsixmanifest
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\ForEeachRefactoring.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\ForEeachRefactoring.pdb
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\ForEeachRefactoring.vsix
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\extension.vsixmanifest
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Compilers.CSharp.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Compilers.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Services.CSharp.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Services.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Utilities.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Utilities.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Utilities.pdb
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Compilers.xml
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Compilers.CSharp.xml
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Services.xml
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Services.CSharp.xml
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\bin\Debug\Roslyn.Utilities.xml
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\obj\Debug\ForEeachRefactoring.csprojResolveAssemblyReference.cache
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\obj\Debug\ForEeachRefactoring.dll
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\obj\Debug\ForEeachRefactoring.pdb
+C:\Users\david\Projects\codeanalysis\ForEeachRefactoring\obj\Debug\extension.vsixmanifest
