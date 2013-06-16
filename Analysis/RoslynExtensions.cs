@@ -120,5 +120,15 @@ namespace Analysis
         {
             return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult");
         }
+
+        public static bool HasEventArgsParameter(this MethodDeclarationSyntax method)
+        {
+            return method.ParameterList.Parameters.Any(param => param.Type.ToString().EndsWith("EventArgs"));
+        }
+
+        public static bool HasAsyncModifier(this MethodDeclarationSyntax method)
+        {
+            return method.Modifiers.ToString().Contains("async");
+        }
     }
 }
