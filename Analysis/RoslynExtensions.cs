@@ -115,5 +115,10 @@ namespace Analysis
         {
             return node.Name.ToString().StartsWith("System.Windows");
         }
+
+        public static bool ReturnsIAsyncResult(this MethodSymbol symbol)
+        {
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult");
+        }
     }
 }

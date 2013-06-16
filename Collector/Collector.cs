@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Analysis;
-using Utilities;
 
 namespace Collector
 {
@@ -36,8 +35,8 @@ namespace Collector
             foreach (var subdir in _subdirsToAnalyze)
             {
                 var appName = subdir.Split('\\').Last();
-                var appSummary = new AsyncAnalysisSummary();
-                var app = new AsyncAnalysis(appName, subdir, appSummary);
+                var appSummary = new AsyncProjectAnalysisSummary(appName);
+                var app = new AsyncProjectAnalysis(appName, subdir, appSummary);
 
                 Console.WriteLine(appName);
 

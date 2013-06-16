@@ -75,13 +75,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisSummary.cs" />
-    <Compile Include="AsyncAnalysisSummary.cs" />
+    <Compile Include="ProjectAnalysisSummary.cs" />
+    <Compile Include="AsyncProjectAnalysisSummary.cs" />
     <Compile Include="RoslynExtensions.cs" />
-    <Compile Include="AnalysisBase.cs" />
-    <Compile Include="AsyncAnalysis.cs" />
+    <Compile Include="ProjectAnalysisBase.cs" />
+    <Compile Include="AsyncProjectAnalysis.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadTaskAnalysis.cs" />
+    <Compile Include="ThreadTaskProjectAnalysis.cs" />
+    <Compile Include="AsyncAnalysisWalker.cs" />
+    <Compile Include="ThreadTaskProjectAnalysisSummary.cs" />
+    <Compile Include="ThreadTaskProjectAnalysisWalker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

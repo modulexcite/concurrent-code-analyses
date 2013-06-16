@@ -1,4 +1,6 @@
-﻿namespace Collector
+﻿using System;
+
+namespace Collector
 {
     class CollectMain
     {
@@ -22,6 +24,9 @@
                 var collector = new Collector(@"C:\Users\david\Downloads\C# Projects\Candidates", 1000);
                 collector.Run();
             }
+
+            Console.WriteLine(@"Program finished. Press any key to quit ...");
+            Console.ReadKey();
         }
     }
 }
