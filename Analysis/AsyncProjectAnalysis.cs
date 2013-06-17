@@ -11,15 +11,20 @@ namespace Analysis
 {
     public class AsyncProjectAnalysis : ProjectAnalysisBase
     {
-        private const string InterestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
-
         private readonly AsyncProjectAnalysisSummary _summary;
+        private readonly InterestingCallsCollector _interestingCalls;
+        private readonly StreamWriter _interestingCallsWriter;
+        private readonly StreamWriter _callTraceWriter;
 
-        public AsyncProjectAnalysis(string appName, string dirName, AsyncProjectAnalysisSummary summary)
+        public AsyncProjectAnalysis(string dirName, AsyncProjectAnalysisSummary summary, StreamWriter interestingCallsWriter, StreamWriter callTraceWriter)
             : base(dirName, summary)
         {
             _summary = summary;
-            Helper.WriteLogger(InterestingCallsFile, " #################\r\n" + appName + "\r\n#################\r\n");
+            _interestingCalls = new InterestingCallsCollector(interestingCallsWriter);
+            _interestingCallsWriter = interestingCallsWriter;
+            _callTraceWriter = callTraceWriter;
+
+            _interestingCalls.PrintAppNameHeader(_summary.AppName);
         }
 
         public override void AnalyzeDocument(IDocument document)
@@ -39,8 +44,8 @@ namespace Analysis
         {
             var newMethods = new List<MethodDeclarationSyntax>();
             for (var i = 0; i < n; i++)
-                Helper.WriteLogger(InterestingCallsFile, " ");
-            Helper.WriteLogger(InterestingCallsFile, node.Identifier + " " + n + "\r\n");
+                _interestingCallsWriter.Write(" ");
+            _interestingCallsWriter.Write(node.Identifier + " " + n + "\r\n");
 
             var doc = CurrentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
 
@@ -98,7 +103,7 @@ namespace Analysis
                 if (methodCallName.Contains("begininvoke") || methodCallName.Contains("async"))
                 {
                     _summary.NumPatternUsages[10]++;
-                    Helper.WriteLogger(InterestingCallsFile, " //Unresolved// " + methodCallName + " \\\\\\\\\\\r\n");
+                    _interestingCalls.PrintUnresolvedMethod(methodCallName);
                 }
                 return;
             }
@@ -107,55 +112,60 @@ namespace Analysis
 
             if (methodCallSymbol.IsDispatcherBeginInvoke())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //Dispatcher// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintDispatcherOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[0]++;
             }
             else if (methodCallSymbol.IsControlBeginInvoke())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //Form.Control// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintControlInvokeOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[1]++;
             }
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsBeginInvoke()) // look at the synchronization context
             {
-                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool with Dispatcher// " + methodCall + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintThreadPoolQueueUserWorkItemWithDispatcherOccurrence(methodCall);
                 _summary.NumPatternUsages[2]++;
             }
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsSynchronizationContext()) // look at the synchronization context
             {
-                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool with Context// " + methodCall + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintThreadPoolQueueUserWorkItemWithSynchronizationContextOccurrence(methodCall);
                 _summary.NumPatternUsages[3]++;
             }
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //ThreadPool// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintThreadPoolQueueUserWorkItemOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[4]++;
             }
             else if (methodCallSymbol.IsBackgroundWorkerRunWorkerAsync())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintBackgroundWorkerRunWorkerAsyncOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[5]++;
             }
             else if (methodCallSymbol.IsThreadStart())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //Thread// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintThreadStartOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[6]++;
             }
             else if (methodSymbolString.Contains("System.IAsyncResult") || (methodCallSymbol.ReturnsIAsyncResult()))
             {
-                Helper.WriteLogger(InterestingCallsFile, " //APM// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintAPMCallOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[7]++;
             }
             else if (methodCallSymbol.ReturnsTask())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //TAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
+                _interestingCalls.PrintTAPCallOccurrence(methodCallSymbol);
                 _summary.NumPatternUsages[8]++;
             }
             else if (methodCall.CallsAsyncMethod() && methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().IsEAPCompletedMethod())
             {
-                Helper.WriteLogger(InterestingCallsFile, " //EAP// " + methodCallSymbol + " \\\\\\\\\\\r\n");
-                Helper.WriteLogger(@"C:\Users\david\Desktop\temp.txt", methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First() + "\\\\\\\\\\\r\n");
+                _interestingCalls.PrintEAPCallOccurrence(methodCallSymbol);
+                WriteCallTraceToTempFile(methodCall);
                 _summary.NumPatternUsages[9]++;
             }
+        }
+
+        private void WriteCallTraceToTempFile(InvocationExpressionSyntax methodCall)
+        {
+            _callTraceWriter.Write(methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First() + "\\\\\\\\\\\r\n");
         }
     }
 }

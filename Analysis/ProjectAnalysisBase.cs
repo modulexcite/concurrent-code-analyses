@@ -131,11 +131,11 @@ namespace Analysis
 
         public abstract void OnAnalysisCompleted();
 
-        public void WriteResults(String logFile)
+        public void WriteResults(StreamWriter logFileWriter)
         {
             var logText = _summary.AppName + "," + _summary.NumTotalProjects + "," + _summary.NumUnloadedProjects + "," + _summary.NumUnanalyzedProjects + "\r\n";
 
-            Helper.WriteLogger(logFile, logText);
+            logFileWriter.Write(logText);
         }
 
     }

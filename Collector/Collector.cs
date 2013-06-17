@@ -10,6 +10,11 @@ namespace Collector
     {
         public const string LogFile = @"C:\Users\david\Desktop\collector.log";
 
+        private const string InterestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
+        private const string AppsFile = @"C:\Users\david\Desktop\UIStatistics.txt";
+
+        private const string TempFile = @"C:\Users\david\Desktop\temp.txt";
+
         private readonly List<string> _analyzedProjects;
         private readonly IEnumerable<string> _subdirsToAnalyze;
 
@@ -34,16 +39,27 @@ namespace Collector
         {
             foreach (var subdir in _subdirsToAnalyze)
             {
+                var interestingCallsWriter = new StreamWriter(InterestingCallsFile, true);
+                var appsFileWriter = new StreamWriter(AppsFile, true);
+                var logFileWriter = new StreamWriter(LogFile, true);
+                var callTraceWriter = new StreamWriter(TempFile, true);
+
                 var appName = subdir.Split('\\').Last();
-                var appSummary = new AsyncProjectAnalysisSummary(appName);
-                var app = new AsyncProjectAnalysis(appName, subdir, appSummary);
+                var appSummary = new AsyncProjectAnalysisSummary(appName, appsFileWriter);
+
+                var app = new AsyncProjectAnalysis(subdir, appSummary, interestingCallsWriter, callTraceWriter);
 
                 Console.WriteLine(appName);
 
                 app.LoadSolutions();
                 app.Analyze();
 
-                app.WriteResults(LogFile);
+                app.WriteResults(logFileWriter);
+
+                interestingCallsWriter.Dispose();
+                appsFileWriter.Dispose();
+                logFileWriter.Dispose();
+                callTraceWriter.Dispose();
             }
         }
 
