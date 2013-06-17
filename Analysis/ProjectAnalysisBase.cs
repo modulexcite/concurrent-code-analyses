@@ -11,11 +11,6 @@ namespace Analysis
     public abstract class ProjectAnalysisBase
     {
         private readonly string _dirName;
-        private readonly List<IProject> _projects;
-        private readonly Dictionary<ISolution, List<IProject>> _projectsBySolutions;
-        private bool _isUsingSolutionFiles;
-
-        //protected string AppName;
 
         protected ISolution CurrentSolution;
 
@@ -24,53 +19,35 @@ namespace Analysis
         protected ProjectAnalysisBase(string dirName, ProjectAnalysisSummary summary)
         {
             _dirName = dirName;
-            _projects = new List<IProject>();
-            _projectsBySolutions = new Dictionary<ISolution, List<IProject>>();
-
             _summary = summary;
-        }
-
-        public void LoadSolutions()
-        {
-            _isUsingSolutionFiles = true;
-
-            var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
-            foreach (var solutionPath in solutionPaths)
-            {
-                var solution = Solution.Load(solutionPath);
-                _projectsBySolutions.Add(solution, solution.Projects.ToList());
-                _summary.NumTotalProjects += solution.Projects.Count();
-            }
         }
 
         public void Analyze()
         {
-            if (_isUsingSolutionFiles)
+            var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
+            foreach (var solutionPath in solutionPaths)
             {
-                foreach (var solution in _projectsBySolutions.Keys)
+                CurrentSolution = Solution.Load(solutionPath);
+                foreach (var project in CurrentSolution.Projects)
                 {
-                    CurrentSolution = solution;
-                    foreach (var project in _projectsBySolutions[solution])
-                        AnalyzeProject(project);
+                    AnalyzeProject(project);
                 }
             }
-            else
-            {
-                foreach (var project in _projects)
-                    AnalyzeProject(project);
-            }
+
             OnAnalysisCompleted();
         }
 
         public void AnalyzeProject(IProject project)
         {
+            _summary.NumTotalProjects++;
+
             if (!project.IsCSProject())
                 return;
 
             IEnumerable<IDocument> documents;
             try
             {
-                DetectTarget(project);
+                AddProject(project);
                 documents = project.Documents;
                 if (documents == null)
                     return;
@@ -93,10 +70,9 @@ namespace Analysis
 
             foreach (var document in documents)
                 AnalyzeDocument(document);
-            //ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
         }
 
-        private void DetectTarget(IProject project)
+        public void DetectProject(IProject project)
         {
             if (project.IsWPProject())
             {

@@ -42,6 +42,7 @@ C:\Users\david\Projects\codeanalysis\Utilities\bin\Debug\Roslyn.Compilers.CSharp
 C:\Users\david\Projects\codeanalysis\Utilities\bin\Debug\Roslyn.Services.xml
 C:\Users\david\Projects\codeanalysis\Utilities\bin\Debug\Roslyn.Services.CSharp.xml
 C:\Users\david\Projects\codeanalysis\Utilities\bin\Debug\Roslyn.Utilities.xml
+C:\Users\david\Projects\codeanalysis\Utilities\obj\Debug\Utilities.csprojResolveAssemblyReference.cache
 C:\Users\david\Projects\codeanalysis\Utilities\obj\Debug\Utilities.Properties.Resources.resources
 C:\Users\david\Projects\codeanalysis\Utilities\obj\Debug\Utilities.csproj.GenerateResource.Cache
 C:\Users\david\Projects\codeanalysis\Utilities\obj\Debug\Utilities.dll

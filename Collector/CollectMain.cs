@@ -4,12 +4,10 @@ namespace Collector
 {
     class CollectMain
     {
-        static void Main(string[] args)
-        {
-            Start(args);
-        }
+        const string Candidates = @"C:\Users\david\Downloads\C# Projects\Candidates";
+        //const string Candidates = @"C:\Users\david\Downloads\C# Projects\Codeplex1000MostDownloadedProjects";
 
-        static void Start(string[] args)
+        static void Main(string[] args)
         {
             if (args.Length > 0)
             {
@@ -21,7 +19,7 @@ namespace Collector
             }
             else
             {
-                var collector = new Collector(@"C:\Users\david\Downloads\C# Projects\Candidates", 1000);
+                var collector = new Collector(Candidates, 1000);
                 collector.Run();
             }
 

@@ -58,7 +58,7 @@ namespace Analysis
 
                     DetectAsyncPatternUsages(methodCall, methodCallSymbol);
 
-                    var methodDeclarationNode = FindMethodDeclarationNode(methodCallSymbol);
+                    var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
                     if (methodDeclarationNode != null && n < 5 && methodDeclarationNode != node)
                         newMethods.Add(methodDeclarationNode);
@@ -76,22 +76,6 @@ namespace Analysis
                       ex is PathTooLongException))
                     throw;
             }
-        }
-
-        private static MethodDeclarationSyntax FindMethodDeclarationNode(MethodSymbol methodCallSymbol)
-        {
-            if (methodCallSymbol == null)
-                return null;
-
-            var nodes = methodCallSymbol.DeclaringSyntaxNodes;
-
-            if (nodes == null || nodes.Count == 0)
-                return null;
-
-            if (nodes.First() is MethodDeclarationSyntax)
-                return (MethodDeclarationSyntax)nodes.First();
-
-            return null;
         }
 
         public void DetectAsyncPatternUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)

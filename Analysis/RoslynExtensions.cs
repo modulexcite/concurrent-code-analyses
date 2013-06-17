@@ -130,5 +130,21 @@ namespace Analysis
         {
             return method.Modifiers.ToString().Contains("async");
         }
+
+        public static MethodDeclarationSyntax FindMethodDeclarationNode(this MethodSymbol methodCallSymbol)
+        {
+            if (methodCallSymbol == null)
+                return null;
+
+            var nodes = methodCallSymbol.DeclaringSyntaxNodes;
+
+            if (nodes == null || nodes.Count == 0)
+                return null;
+
+            if (nodes.First() is MethodDeclarationSyntax)
+                return (MethodDeclarationSyntax)nodes.First();
+
+            return null;
+        }
     }
 }

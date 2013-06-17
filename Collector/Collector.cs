@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Analysis;
+using Microsoft.Build.Evaluation;
 
 namespace Collector
 {
@@ -27,7 +28,7 @@ namespace Collector
             _subdirsToAnalyze = Directory.GetDirectories(topDir)
                                          .Where(IsNotYetAnalyzed)
                                          .OrderBy(s => s)
-                                         .Take(batchSize);
+                                         /*.Take(batchSize)*/;
         }
 
         private bool IsNotYetAnalyzed(string subdir)
@@ -37,13 +38,13 @@ namespace Collector
 
         public void Run()
         {
+            var interestingCallsWriter = new StreamWriter(InterestingCallsFile, true);
+            var appsFileWriter = new StreamWriter(AppsFile, true);
+            var logFileWriter = new StreamWriter(LogFile, true);
+            var callTraceWriter = new StreamWriter(TempFile, true);
+
             foreach (var subdir in _subdirsToAnalyze)
             {
-                var interestingCallsWriter = new StreamWriter(InterestingCallsFile, true);
-                var appsFileWriter = new StreamWriter(AppsFile, true);
-                var logFileWriter = new StreamWriter(LogFile, true);
-                var callTraceWriter = new StreamWriter(TempFile, true);
-
                 var appName = subdir.Split('\\').Last();
                 var appSummary = new AsyncProjectAnalysisSummary(appName, appsFileWriter);
 
@@ -51,16 +52,17 @@ namespace Collector
 
                 Console.WriteLine(appName);
 
-                app.LoadSolutions();
                 app.Analyze();
 
                 app.WriteResults(logFileWriter);
 
-                interestingCallsWriter.Dispose();
-                appsFileWriter.Dispose();
-                logFileWriter.Dispose();
-                callTraceWriter.Dispose();
+                ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
             }
+
+            interestingCallsWriter.Dispose();
+            appsFileWriter.Dispose();
+            logFileWriter.Dispose();
+            callTraceWriter.Dispose();
         }
 
         private static List<string> AnalyzedProjectsFromLogFileContents()
