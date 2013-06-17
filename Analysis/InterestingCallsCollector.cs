@@ -14,9 +14,12 @@ namespace Analysis
 
         public void WriteCallTrace(MethodDeclarationSyntax node, int n)
         {
+            var path = node.SyntaxTree.FilePath;
+            var start = node.Span.Start;
+
             for (var i = 0; i < n; i++)
                 _writer.Write(" ");
-            _writer.Write(node.Identifier + " " + n + "\r\n");
+            _writer.Write(node.Identifier + " " + n + " @ " + path + ":" + start + "\r\n");
         }
 
         public void PrintAppNameHeader(string appName)

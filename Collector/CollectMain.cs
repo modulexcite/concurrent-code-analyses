@@ -4,8 +4,8 @@ namespace Collector
 {
     class CollectMain
     {
-        const string Candidates = @"C:\Users\david\Downloads\C# Projects\Candidates";
-        //const string Candidates = @"C:\Users\david\Downloads\C# Projects\Codeplex1000MostDownloadedProjects";
+        //const string Candidates = @"C:\Users\david\Downloads\C# Projects\Candidates";
+        const string Candidates = @"C:\Users\david\Downloads\C# Projects\Codeplex1000MostDownloadedProjects";
 
         static void Main(string[] args)
         {
