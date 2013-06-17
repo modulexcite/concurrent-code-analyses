@@ -37,14 +37,14 @@ namespace Analysis
 
         public void AnalyzeProject(IProject project)
         {
-            _summary.AddProject(project);
-
-            if (!project.IsCSProject())
-                return;
-
             IEnumerable<IDocument> documents;
             try
             {
+                _summary.AddProject(project);
+
+                if (!project.IsCSProject())
+                    return;
+
                 documents = project.Documents;
                 if (documents == null)
                     return;

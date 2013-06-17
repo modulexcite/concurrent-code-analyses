@@ -43,6 +43,7 @@ namespace Collector
             var logFileWriter = new StreamWriter(LogFile, true);
             var callTraceWriter = new StreamWriter(TempFile, true);
 
+            var index = 0;
             foreach (var subdir in _subdirsToAnalyze)
             {
                 var appName = subdir.Split('\\').Last();
@@ -50,13 +51,20 @@ namespace Collector
 
                 var app = new AsyncProjectAnalysis(subdir, appSummary, interestingCallsWriter, callTraceWriter);
 
-                Console.WriteLine(appName);
+                Console.WriteLine(@"{0}: {1}", index, appName);
 
                 app.Analyze();
 
                 appSummary.WriteResults(logFileWriter);
 
                 ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
+
+                interestingCallsWriter.Flush();
+                appsFileWriter.Flush();
+                logFileWriter.Flush();
+                callTraceWriter.Flush();
+
+                index++;
             }
 
             interestingCallsWriter.Dispose();
