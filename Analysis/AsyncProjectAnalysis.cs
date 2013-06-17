@@ -27,7 +27,7 @@ namespace Analysis
             _interestingCalls.PrintAppNameHeader(_summary.AppName);
         }
 
-        public override void AnalyzeDocument(IDocument document)
+        protected override void AnalyzeDocument(IDocument document)
         {
             var syntaxTree = document.GetSyntaxTree();
             var loopWalker = new AsyncAnalysisWalker(this, _summary);
@@ -35,7 +35,7 @@ namespace Analysis
             loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
         }
 
-        public override void OnAnalysisCompleted()
+        protected override void OnAnalysisCompleted()
         {
             _summary.WriteResults();
         }
@@ -43,9 +43,7 @@ namespace Analysis
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
         {
             var newMethods = new List<MethodDeclarationSyntax>();
-            for (var i = 0; i < n; i++)
-                _interestingCallsWriter.Write(" ");
-            _interestingCallsWriter.Write(node.Identifier + " " + n + "\r\n");
+            _interestingCalls.WriteCallTrace(node, n);
 
             var doc = CurrentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
 
@@ -66,7 +64,6 @@ namespace Analysis
 
                 foreach (var newMethod in newMethods)
                     ProcessMethodCallsInMethod(newMethod, n + 1);
-
             }
             catch (Exception ex)
             {
@@ -78,7 +75,7 @@ namespace Analysis
             }
         }
 
-        public void DetectAsyncPatternUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        private void DetectAsyncPatternUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 

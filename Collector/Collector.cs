@@ -28,7 +28,7 @@ namespace Collector
             _subdirsToAnalyze = Directory.GetDirectories(topDir)
                                          .Where(IsNotYetAnalyzed)
                                          .OrderBy(s => s)
-                                         /*.Take(batchSize)*/;
+                /*.Take(batchSize)*/;
         }
 
         private bool IsNotYetAnalyzed(string subdir)
@@ -54,7 +54,7 @@ namespace Collector
 
                 app.Analyze();
 
-                app.WriteResults(logFileWriter);
+                appSummary.WriteResults(logFileWriter);
 
                 ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
             }

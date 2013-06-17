@@ -26,7 +26,6 @@ namespace Utilities
             return null;
         }
 
-        [Obsolete]
         public static void WriteLogger(String file, String s)
         {
 #if DEBUG
@@ -37,7 +36,6 @@ namespace Utilities
 #endif
         }
 
-        [Obsolete]
         public static void WriteInstance(string file, string id, string ex )
         {
             Helper.WriteLogger(file, id + "\r\n\r\n" + ex + "\r\n------------------------\r\n");

@@ -13,7 +13,7 @@ namespace Analysis
             _summary = summary;
         }
 
-        public override void AnalyzeDocument(IDocument document)
+        protected override void AnalyzeDocument(IDocument document)
         {
             var syntaxTree = document.GetSyntaxTree();
 
@@ -28,7 +28,7 @@ namespace Analysis
             loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
         }
 
-        public override void OnAnalysisCompleted()
+        protected override void OnAnalysisCompleted()
         {
             _summary.WriteResults();
         }

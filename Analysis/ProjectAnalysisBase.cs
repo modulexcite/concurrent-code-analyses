@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Roslyn.Services;
 using System.IO;
 using Microsoft.Build.Exceptions;
-using Utilities;
 
 namespace Analysis
 {
@@ -39,7 +37,7 @@ namespace Analysis
 
         public void AnalyzeProject(IProject project)
         {
-            _summary.NumTotalProjects++;
+            _summary.AddProject(project);
 
             if (!project.IsCSProject())
                 return;
@@ -47,7 +45,6 @@ namespace Analysis
             IEnumerable<IDocument> documents;
             try
             {
-                AddProject(project);
                 documents = project.Documents;
                 if (documents == null)
                     return;
@@ -59,7 +56,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    _summary.NumUnanalyzedProjects++;
+                    _summary.AddUnanalyzedProject();
                 }
                 else
                 {
@@ -69,50 +66,13 @@ namespace Analysis
             }
 
             foreach (var document in documents)
+            {
                 AnalyzeDocument(document);
-        }
-
-        public void DetectProject(IProject project)
-        {
-            if (project.IsWPProject())
-            {
-                _summary.NumPhoneProjects++;
-            }
-
-            if (project.IsWP8Project())
-            {
-                _summary.NumPhone8Projects++;
-            }
-
-            if (project.IsAzureProject())
-            {
-                _summary.NumAzureProjects++;
-            }
-
-            if (project.IsNet40Project())
-            {
-                _summary.NumNet4Projects++;
-            }
-            else if (project.IsNet45Project())
-            {
-                _summary.NumNet45Projects++;
-            }
-            else
-            {
-                _summary.NumOtherNetProjects++;
             }
         }
 
-        public abstract void AnalyzeDocument(IDocument document);
+        protected abstract void AnalyzeDocument(IDocument document);
 
-        public abstract void OnAnalysisCompleted();
-
-        public void WriteResults(StreamWriter logFileWriter)
-        {
-            var logText = _summary.AppName + "," + _summary.NumTotalProjects + "," + _summary.NumUnloadedProjects + "," + _summary.NumUnanalyzedProjects + "\r\n";
-
-            logFileWriter.Write(logText);
-        }
-
+        protected abstract void OnAnalysisCompleted();
     }
 }
