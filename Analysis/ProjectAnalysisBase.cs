@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NLog;
 using Roslyn.Services;
 using System.IO;
 using Microsoft.Build.Exceptions;
@@ -8,6 +9,8 @@ namespace Analysis
 {
     public abstract class ProjectAnalysisBase
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly string _dirName;
 
         protected ISolution CurrentSolution;
@@ -46,7 +49,7 @@ namespace Analysis
             }
             catch (Exception e)
             {
-                Console.WriteLine(@"Caught exception while loading solution file - skipping it: {0}\n{1}", solutionPath, e);
+                Log.Info("Caught exception while loading solution file - skipping it: {0}", solutionPath, e);
                 return null;
             }
         }
@@ -72,6 +75,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
+                    Log.Info("Project not analyzed: {0}", project.FilePath, ex);
                     _summary.AddUnanalyzedProject();
                 }
                 else

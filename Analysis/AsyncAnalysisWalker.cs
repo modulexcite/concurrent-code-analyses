@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Roslyn.Compilers.CSharp;
+﻿using Roslyn.Compilers.CSharp;
 
 namespace Analysis
 {

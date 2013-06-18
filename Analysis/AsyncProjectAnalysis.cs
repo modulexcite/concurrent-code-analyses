@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System.IO;
@@ -11,6 +12,8 @@ namespace Analysis
 {
     public class AsyncProjectAnalysis : ProjectAnalysisBase
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         private readonly AsyncProjectAnalysisSummary _summary;
         private readonly InterestingCallsCollector _interestingCalls;
         private readonly StreamWriter _interestingCallsWriter;
@@ -67,6 +70,8 @@ namespace Analysis
             }
             catch (Exception ex)
             {
+                Log.Warn("Caught exception while processing method call node: {0} @ {1}:{2}", node, doc.FilePath, node.Span.Start, ex);
+
                 if (!(ex is InvalidProjectFileException ||
                       ex is FormatException ||
                       ex is ArgumentException ||

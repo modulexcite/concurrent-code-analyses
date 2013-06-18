@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using Analysis;
 using Microsoft.Build.Evaluation;
+using NLog;
 
 namespace Collector
 {
     internal class Collector
     {
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
         public const string LogFile = @"C:\Users\david\Desktop\collector.log";
 
         private const string InterestingCallsFile = @"C:\Users\david\Desktop\callsFromEventHandlers.txt";
@@ -51,7 +54,7 @@ namespace Collector
 
                 var app = new AsyncProjectAnalysis(subdir, appSummary, interestingCallsWriter, callTraceWriter);
 
-                Console.WriteLine(@"{0}: {1}", index, appName);
+                Log.Info(@"{0}: {1}", index, appName);
 
                 app.Analyze();
 
