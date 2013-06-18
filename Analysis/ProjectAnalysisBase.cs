@@ -25,7 +25,10 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                CurrentSolution = Solution.Load(solutionPath);
+                CurrentSolution = TryLoadSolution(solutionPath);
+
+                if (CurrentSolution == null) continue;
+
                 foreach (var project in CurrentSolution.Projects)
                 {
                     AnalyzeProject(project);
@@ -33,6 +36,19 @@ namespace Analysis
             }
 
             OnAnalysisCompleted();
+        }
+
+        private static ISolution TryLoadSolution(string solutionPath)
+        {
+            try
+            {
+                return Solution.Load(solutionPath);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(@"Caught exception while loading solution file - skipping it: {0}\n{1}", solutionPath, e);
+                return null;
+            }
         }
 
         public void AnalyzeProject(IProject project)
