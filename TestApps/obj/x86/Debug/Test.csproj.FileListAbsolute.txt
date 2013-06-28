@@ -1,9 +1,0 @@
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\TestApps.exe
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\TestApps.pdb
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\Analysis.dll
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\Utilities.dll
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\Analysis.pdb
-C:\Users\david\Projects\codeanalysis\TestApps\bin\Debug\Utilities.pdb
-C:\Users\david\Projects\codeanalysis\TestApps\obj\x86\Debug\Test.csprojResolveAssemblyReference.cache
-C:\Users\david\Projects\codeanalysis\TestApps\obj\x86\Debug\TestApps.exe
-C:\Users\david\Projects\codeanalysis\TestApps\obj\x86\Debug\TestApps.pdb
