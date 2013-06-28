@@ -4,15 +4,15 @@ namespace Analysis
 {
     internal class AsyncAnalysisWalker : SyntaxWalker
     {
-        private readonly AsyncProjectAnalysis _analysis;
-        private readonly AsyncProjectAnalysisSummary _summary;
+        private readonly AsyncAnalysis _analysis;
+        private readonly AsyncAnalysisResult _result;
 
         private bool _ui;
 
-        public AsyncAnalysisWalker(AsyncProjectAnalysis analysis, AsyncProjectAnalysisSummary summary)
+        public AsyncAnalysisWalker(AsyncAnalysis analysis, AsyncAnalysisResult result)
         {
             _analysis = analysis;
-            _summary = summary;
+            _result = result;
         }
 
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
@@ -20,7 +20,7 @@ namespace Analysis
             if (node.IsInSystemWindows() && !_ui)
             {
                 _ui = true;
-                _summary.NumUIClasses++;
+                _result.NumUIClasses++;
             }
         }
 
@@ -28,13 +28,13 @@ namespace Analysis
         {
             if (node.HasEventArgsParameter())
             {
-                _summary.NumEventHandlerMethods++;
+                _result.NumEventHandlerMethods++;
                 _analysis.ProcessMethodCallsInMethod(node, 0);
             }
 
             if (node.HasAsyncModifier())
             {
-                _summary.NumAsyncMethods++;
+                _result.NumAsyncMethods++;
             }
         }
     }

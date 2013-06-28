@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Configuration;
 
 namespace Collector
 {
     class CollectMain
     {
-        //const string Candidates = @"C:\Users\david\Downloads\C# Projects\Candidates";
-        const string Candidates = @"C:\Users\david\Downloads\C# Projects\CodeplexMostDownloaded1000Projects";
+        private static string AppsPath = ConfigurationManager.AppSettings["AppsPath"];
 
         static void Main(string[] args)
         {
@@ -19,7 +19,7 @@ namespace Collector
             }
             else
             {
-                var collector = new Collector(Candidates, 1000);
+                var collector = new Collector(AppsPath, 1);
                 collector.Run();
             }
 

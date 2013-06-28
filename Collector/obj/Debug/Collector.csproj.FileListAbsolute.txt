@@ -43,3 +43,15 @@ C:\Users\david\Projects\codeanalysis\Collector\bin\Debug\NLog.xml
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.exe
 C:\Users\david\Projects\codeanalysis\Collector\obj\Debug\Collector.pdb
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Collector.exe.config
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\obj\Debug\Collector.exe
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\obj\Debug\Collector.pdb
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\obj\Debug\Collector.csprojResolveAssemblyReference.cache
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Collector.exe
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Collector.pdb
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Analysis.dll
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\NLog.dll
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Utilities.dll
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Analysis.pdb
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\Utilities.pdb
+Z:\C#PROJECTS\NewRoslynAnalysis\Collector\bin\Debug\NLog.xml
