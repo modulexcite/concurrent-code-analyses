@@ -80,7 +80,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InterestingCallsCollector.cs" />
     <Compile Include="AnalysisResultBase.cs" />
     <Compile Include="AsyncAnalysisResult.cs" />
     <Compile Include="AnalysisBase.cs" />
