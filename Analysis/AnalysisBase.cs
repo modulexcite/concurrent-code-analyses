@@ -61,7 +61,10 @@ namespace Analysis
                 documents = project.Documents;
 
                 if (documents == null)
+                {
+                    Result.AddUnanalyzedProject();
                     return;
+                }
             }
             catch (Exception ex)
             {

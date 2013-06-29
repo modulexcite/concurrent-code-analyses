@@ -58,6 +58,7 @@ namespace Analysis
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
+                    // go down only 5 deep levels
                     if (methodDeclarationNode != null && n < 5 && methodDeclarationNode != node)
                         newMethods.Add(methodDeclarationNode);
                 }

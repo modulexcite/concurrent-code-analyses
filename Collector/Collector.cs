@@ -12,21 +12,21 @@ namespace Collector
     internal class Collector
     {
         private static readonly Logger Log = LogManager.GetLogger("Console");
-        private static string LogFileName = ConfigurationManager.AppSettings["LogFile"];
+        private static string SummaryLogFileName = ConfigurationManager.AppSettings["SummaryLogFile"];
 
         private readonly List<string> _analyzedProjects;
         private readonly IEnumerable<string> _subdirsToAnalyze;
 
         public Collector(String topDir, int batchSize)
         {
-            _analyzedProjects = File.Exists(LogFileName)
+            _analyzedProjects = File.Exists(SummaryLogFileName)
                 ? Collector.AnalyzedProjectsFromLogFileContents()
                 : new List<string>();
 
             _subdirsToAnalyze = Directory.GetDirectories(topDir)
                                          .Where(IsNotYetAnalyzed)
                                          .OrderBy(s => s)
-                /*.Take(batchSize)*/;
+                                         .Take(batchSize);
         }
 
         private bool IsNotYetAnalyzed(string subdir)
@@ -36,7 +36,7 @@ namespace Collector
 
         public void Run()
         {
-            var index = 0;
+            var index = 1;
 
             foreach (var subdir in _subdirsToAnalyze)
             {
@@ -56,7 +56,7 @@ namespace Collector
 
         private static List<string> AnalyzedProjectsFromLogFileContents()
         {
-            return File.ReadAllLines(LogFileName)
+            return File.ReadAllLines(SummaryLogFileName)
                        .Select(a => a.Split(',')[0])
                        .ToList();
         }
