@@ -19,7 +19,7 @@ namespace Collector
             }
             else
             {
-                var collector = new Collector(AppsPath, 1);
+                var collector = new Collector(AppsPath, 1000);
                 collector.Run();
             }
 

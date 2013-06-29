@@ -20,6 +20,8 @@ namespace Analysis
             : base(appName)
         {
             NumPatternUsages = new int[11];
+
+            PrintAppNameHeader(appName);
         }
 
         
