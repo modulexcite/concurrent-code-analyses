@@ -54,7 +54,7 @@ namespace Analysis
         public void WriteCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;
-            var start = node.Span.Start;
+            var start = node.GetLocation().GetLineSpan(true).StartLinePosition;
 
             string message="";
             for (var i = 0; i < n; i++)
