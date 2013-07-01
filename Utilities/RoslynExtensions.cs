@@ -17,6 +17,7 @@ namespace Analysis
 
         public static bool IsWPProject(this IProject project)
         {
+            
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone") || a.Display.Contains("WindowsPhone"));
         }
 

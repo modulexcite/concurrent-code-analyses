@@ -27,7 +27,6 @@ namespace Analysis
             : base(dirName,appName)
         {
             result = new AsyncAnalysisResult(appName);
-            Result.PrintAppNameHeader(appName);
         }
 
 

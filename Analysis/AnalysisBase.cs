@@ -37,7 +37,15 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                CurrentSolution = Solution.Load(solutionPath);
+                try
+                {
+                    CurrentSolution = Solution.Load(solutionPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Info("Solution not analyzed: {0}",solutionPath);
+                    continue;
+                }
 
                 foreach (var project in CurrentSolution.Projects)
                 {
