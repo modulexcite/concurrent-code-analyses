@@ -13,9 +13,8 @@ namespace Analysis
 
         protected static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
 
-        protected int NumPhoneProjects;
+        protected int NumPhone7Projects;
         protected int NumPhone8Projects;
-        protected int NumAzureProjects;
         protected int NumNet4Projects;
         protected int NumNet45Projects;
         protected int NumOtherNetProjects;
@@ -33,33 +32,18 @@ namespace Analysis
         {
             NumTotalProjects++;
 
-            if (project.IsWPProject())
-            {
-                NumPhoneProjects++;
-            }
-
-            if (project.IsWP8Project())
-            {
+            var result = project.IsWindowsPhoneProject();
+            if (result == 1)
+                NumPhone7Projects++;
+            else if (result == 2)
                 NumPhone8Projects++;
-            }
-
-            if (project.IsAzureProject())
-            {
-                NumAzureProjects++;
-            }
 
             if (project.IsNet40Project())
-            {
                 NumNet4Projects++;
-            }
             else if (project.IsNet45Project())
-            {
                 NumNet45Projects++;
-            }
             else
-            {
                 NumOtherNetProjects++;
-            }
         }
 
         public void AddUnanalyzedProject()

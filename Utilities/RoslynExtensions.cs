@@ -2,6 +2,7 @@
 using System.Linq;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System.Xml;
 
 namespace Analysis
 {
@@ -15,20 +16,38 @@ namespace Analysis
             return project.LanguageServices.Language.Equals("C#");
         }
 
+        // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1. 
+        public static int IsWindowsPhoneProject(this IProject project)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(project.FilePath);
+
+            XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
+            mgr.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
+
+            var node = doc.SelectSingleNode("//x:TargetFrameworkIdentifier", mgr);
+            if (node != null)
+            {
+                if (node.InnerText.ToString().Equals("WindowsPhone"))
+                    return 2;
+                else if (node.InnerText.ToString().Equals("Silverlight"))
+                {
+                    var profileNode = doc.SelectSingleNode("//x:TargetFrameworkProfile", mgr);
+                    if (profileNode != null && profileNode.InnerText.ToString().Contains("WindowsPhone"))
+                        return 1;
+                }
+            }
+            return 0;
+        }
+
         public static bool IsWPProject(this IProject project)
         {
-            
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone") || a.Display.Contains("WindowsPhone"));
         }
 
         public static bool IsWP8Project(this IProject project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone\\v8"));
-        }
-
-        public static bool IsAzureProject(this IProject project)
-        {
-            return project.MetadataReferences.Any(a => a.Display.Contains("Azure"));
         }
 
         public static bool IsNet40Project(this IProject project)

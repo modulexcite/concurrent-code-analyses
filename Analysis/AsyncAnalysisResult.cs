@@ -32,8 +32,7 @@ namespace Analysis
                                NumTotalProjects + "," +
                                NumUnloadedProjects + "," +
                                NumUnanalyzedProjects + "," +
-                               NumAzureProjects + "," +
-                               NumPhoneProjects + "," +
+                               NumPhone7Projects + "," +
                                NumPhone8Projects + "," +
                                NumNet4Projects + "," +
                                NumNet45Projects + "," +

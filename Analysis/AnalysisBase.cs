@@ -93,7 +93,7 @@ namespace Analysis
 
             foreach (var document in documents)
             {
-                AnalyzeDocument(document);
+                //AnalyzeDocument(document);
             }
         }
 
