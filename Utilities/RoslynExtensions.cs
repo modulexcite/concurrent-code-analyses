@@ -60,31 +60,40 @@ namespace Analysis
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.5") || a.Display.Contains(".NETCore\\v4.5"));
         }
 
-        /// <summary>
-        /// Test whether method is Control.BeginInvoke(...), a kind of APM public IAsyncResult BeginInvoke(Delegate method).
-        /// </summary>
-        /// <param name="symbol">Method to test</param>
-        /// <returns>true if it is an instance of Control.BeginInvoke(...), otherwise false.</returns>
+
+
+        public static bool ReturnsTask(this MethodSymbol symbol)
+        {
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
+        }
+
+        public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
+        {
+            return invocation.Expression.ToString().ToLower().EndsWith("async") && 
+                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().First()
+                                                                           .DescendantNodes()
+                                                                           .OfType<InvocationExpressionSyntax>()
+                                                                           .Any(a => a.Expression.ToString().ToLower().EndsWith("completed"));
+        }
+        public static bool IsAPMBeginMethod(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("System.AsyncCallback") || (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
+        }
+
+
+
+
+        // comments will be added to these methods later after we understand them well. 
         public static bool IsControlBeginInvoke(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Control.BeginInvoke");
         }
 
-        /// <summary>
-        /// Test for DispatcherOperation BeginInvoke(Delegate method,params Object[] args).
-        /// </summary>
-        /// <param name="symbol">Method to test</param>
-        /// <returns>true if it is an instance of Dispatcher.BeginInvoke(...), otherwise false.</returns>
         public static bool IsDispatcherBeginInvoke(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
 
-        /// <summary>
-        /// Test for ThreadPool.QueueUserWorkItem(...).
-        /// </summary>
-        /// <param name="symbol">Method to test</param>
-        /// <returns>true if 'symbol' is an instance of ThreadPool.QueueUserWorkItem(...), otherwise false.</returns>
         public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("ThreadPool.QueueUserWorkItem");
@@ -110,36 +119,18 @@ namespace Analysis
             return symbol.ToString().Contains("Thread.Start");
         }
 
-        public static bool HasNonVoidReturnType(this MethodSymbol symbol)
+        // System.ComponentModel.ISynchronizeInvoke.BeginInvoke(System.Delegate, object[]). it is not called anywhere else
+        public static bool IsISynchronizeInvokeMethod(this MethodSymbol symbol)
         {
-            return symbol.ReturnsVoid;
+            return symbol.ToString().Contains("System.ComponentModel.ISynchronizeInvoke");
         }
 
-        public static bool ReturnsTask(this MethodSymbol symbol)
-        {
-            return symbol.HasNonVoidReturnType() && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
-        }
-
-        public static bool CallsAsyncMethod(this InvocationExpressionSyntax invocation)
-        {
-            return invocation.Expression.ToString().ToLower().EndsWith("async");
-        }
-
-        public static Boolean IsEAPCompletedMethod(this MethodDeclarationSyntax methodDeclaration)
-        {
-            // TODO: Shouldn't this be EndsWith instead of Contains?
-            return methodDeclaration.ToString().Contains("Completed");
-        }
 
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
         {
             return node.Name.ToString().StartsWith("System.Windows");
         }
 
-        public static bool IsAPMMethod(this MethodSymbol symbol)
-        {
-            return symbol.ToString().Contains("System.IAsyncResult") || (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
-        }
 
         public static bool HasEventArgsParameter(this MethodDeclarationSyntax method)
         {

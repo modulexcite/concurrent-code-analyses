@@ -41,7 +41,7 @@ namespace Analysis
             foreach (var pattern in NumPatternUsages)
                 summary+=pattern + ",";
 
-            summary += NumAsyncMethods + ", " + NumEventHandlerMethods + "," + NumUIClasses;
+            summary += NumAsyncMethods + "," + NumEventHandlerMethods + "," + NumUIClasses;
             SummaryLog.Info(summary);
 
         }
@@ -82,7 +82,7 @@ namespace Analysis
 
         public void PrintControlInvokeOccurrence(MethodSymbol methodCallSymbol)
         {
-            var controlInvoke = " //Form.Control// " + methodCallSymbol + " \\\\\\\\\\";
+            var controlInvoke = " //Control// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(controlInvoke);
         }
 

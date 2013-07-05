@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace Test
 {
-    class Program
+    class Test1
     {
         static void Main(string[] args)
         {

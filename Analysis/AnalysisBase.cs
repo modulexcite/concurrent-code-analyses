@@ -4,7 +4,6 @@ using NLog;
 using System.IO;
 using System.Linq;
 using Roslyn.Services;
-
 using Microsoft.Build.Exceptions;
 
 namespace Analysis
@@ -64,9 +63,16 @@ namespace Analysis
                 if (!project.IsCSProject())
                     return;
 
-                Result.AddProject(project);
+                AnalysisResultBase.ProjectType type= Result.AddProject(project);
 
                 documents = project.Documents;
+
+                // If the project is not WP, ignore it! 
+                if (type != AnalysisResultBase.ProjectType.WP7 || type != AnalysisResultBase.ProjectType.WP8)
+                {
+                    Result.AddUnanalyzedProject();
+                    return;
+                }
 
                 if (documents == null)
                 {
@@ -93,7 +99,7 @@ namespace Analysis
 
             foreach (var document in documents)
             {
-                //AnalyzeDocument(document);
+               AnalyzeDocument(document);
             }
         }
 

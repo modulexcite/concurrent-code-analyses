@@ -12,9 +12,9 @@ using Analysis;
 
 namespace TestApps
 {
-    class Program
+    class Test2
     {
-        static void Main(string[] args)
+        static void methodMain(string[] args)
         {
             //const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\CodeplexMostDownloaded1000Projects";
             const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\Candidates";
@@ -72,7 +72,8 @@ namespace TestApps
         {
             try
             {
-                return project.IsCSProject() && project.IsWP8Project();
+                //return project.IsCSProject() && project.IsWP8Project();
+                return true;
             }
             catch (InvalidProjectFileException)
             {

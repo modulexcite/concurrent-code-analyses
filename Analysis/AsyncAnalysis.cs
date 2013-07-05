@@ -58,8 +58,8 @@ namespace Analysis
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
-                    // go down only 5 deep levels
-                    if (methodDeclarationNode != null && n < 5 && methodDeclarationNode != node)
+                    // go down only 3 deep levels
+                    if (methodDeclarationNode != null && n < 3 && methodDeclarationNode != node)
                         newMethods.Add(methodDeclarationNode);
                 }
 
@@ -127,7 +127,7 @@ namespace Analysis
                 Result.PrintThreadStartOccurrence(methodCallSymbol);
                 Result.NumPatternUsages[6]++;
             }
-            else if (methodCallSymbol.IsAPMMethod())
+            else if (methodCallSymbol.IsAPMBeginMethod())
             {
                 Result.PrintAPMCallOccurrence(methodCallSymbol);
                 Result.NumPatternUsages[7]++;
@@ -137,10 +137,9 @@ namespace Analysis
                 Result.PrintTAPCallOccurrence(methodCallSymbol);
                 Result.NumPatternUsages[8]++;
             }
-            else if (methodCall.CallsAsyncMethod() && methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First().IsEAPCompletedMethod())
+            else if (methodCall.IsEAPMethod())
             {
                 Result.PrintEAPCallOccurrence(methodCallSymbol);
-                // methodCall.Ancestors().OfType<MethodDeclarationSyntax>().First() + "\\\\\\\\\\\r\n"
                 Result.NumPatternUsages[9]++;
             }
         }
