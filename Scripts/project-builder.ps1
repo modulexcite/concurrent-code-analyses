@@ -1,4 +1,36 @@
-# Build all solutions in the directory tree under this directory, grouped per subdirectory.
+# This script reads the file solutions.txt in the current working directory, and builds
+# every solution (*.sln) or project (*.csproj) file with msbuild.
+
+# The solutions.txt file should only contain filenames, one on each line.
+
+# Log files can be found in logs/ in the current working directory.
+# The log file prefixed with "0-" contains the general results of the build (i.e., success/failure per solution file.
+# The rest of the files in the logs/ directory contain the output of msbuild for each solution file respectively.
+
+# Build a solution, logging to a solution-specific log file in the logs/ directory.
+Function Build-Solution ($solution)
+{
+    $solutionSplitted = $solution.Split("\")
+    $solutionName = $solutionSplitted[$solutionSplitted.Length - 1]
+
+    $solutionLogFile = [System.IO.Path]::GetFullPath($cwd + "\logs\" + $solutionName + ".log")
+
+    Write-Host -NoNewline "${solution}: "
+
+    msbuild /m $solution | Out-File -Append -FilePath $solutionLogFile
+
+    if ($?) {
+        Write-Host "success"
+        Write-Output "${solution}: success" | Out-File -Append -FilePath $logFile
+    } else {
+        Write-Host "failed"
+        Write-Output "${solution}: failed" | Out-File -Append -FilePath $logFile
+    }
+}
+
+###
+### Actual start of the script
+###
 
 $pwd = pwd
 $cwd = $pwd.Path
@@ -17,33 +49,8 @@ $logFile = [System.IO.Path]::GetFullPath($cwd + "\logs\0-build.main.log")
 
 echo "Logging to: ${logFile}"
 
-$dirs = ls
+$solutions = Get-Content "solutions.txt"
 
-foreach ($dir in $dirs) {
-    cd $dir
-
-    $solutions = Get-ChildItem -Recurse -Filter "*.sln" | foreach { echo $_.FullName }
-    
-    foreach ($solution in $solutions) {
-        $solutionSplitted = $solution.Split("\")
-        $solutionBase = $solutionSplitted[$solutionSplitted.Length - 1]
-        $solutionName = $solutionBase.Remove($solutionBase.Length - 4, 4)
-        $logFileName = $cwd + "\logs\" + $dir.Name + "." + $solutionName + ".log"
-
-        $solutionLogFile = [System.IO.Path]::GetFullPath($cwd + "\logs\" + $dir + "." + $solutionName + ".log")
-
-        Write-Host -NoNewline "${dir}: ${solution}: "
-        
-        msbuild /m $solution | Out-File -Append -FilePath $solutionLogFile
-
-        if ($?) {
-            Write-Host "success"
-            Write-Output "${dir}: ${solution}: success" | Out-File -Append -FilePath $logFile
-        } else {
-            Write-Host "failed"
-            Write-Output "${dir}: ${solution}: failed" | Out-File -Append -FilePath $logFile
-        }
-    }
-
-    cd ..
+foreach ($solution in $solutions) {
+    Build-Solution $solution
 }
