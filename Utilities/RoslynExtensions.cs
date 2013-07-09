@@ -3,6 +3,8 @@ using System.Linq;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System.Xml;
+using System.Diagnostics;
+using System.IO;
 
 namespace Analysis
 {
@@ -11,6 +13,7 @@ namespace Analysis
     /// </summary>
     public static class RoslynExtensions
     {
+
         public static bool IsCSProject(this IProject project)
         {
             return project.LanguageServices.Language.Equals("C#");

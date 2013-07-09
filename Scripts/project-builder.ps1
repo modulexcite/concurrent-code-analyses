@@ -17,7 +17,8 @@ Function Build-Solution ($solution)
 
     Write-Host -NoNewline "${solution}: "
 
-    msbuild /m $solution | Out-File -Append -FilePath $solutionLogFile
+	SET EnableNuGetPackageRestore=true
+	devenv $solution /rebuild "Debug" /out $solutionLogFile
 
     if ($?) {
         Write-Host "success"

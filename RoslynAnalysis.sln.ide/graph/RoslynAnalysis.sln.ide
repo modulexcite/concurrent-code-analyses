@@ -1,3 +1,14 @@
 ﻿<Solution Format="0.0.0.3">
-  <Version>0001-01-01T00:00:00Z</Version>
+  <Version>2013-07-05T21:56:36Z</Version>
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Collector\Collector.csproj">
+    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
+    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Analysis\Analysis.csproj" />
+  </Project>
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Analysis\Analysis.csproj">
+    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
+  </Project>
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Test\Test.csproj">
+    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Analysis\Analysis.csproj" />
+  </Project>
 </Solution>

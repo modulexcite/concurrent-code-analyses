@@ -5,18 +5,21 @@ using System.IO;
 using System.Linq;
 using Roslyn.Services;
 using Microsoft.Build.Exceptions;
+using System.Diagnostics;
 
 namespace Analysis
 {
     public abstract class AnalysisBase
     {
         protected static readonly Logger Log = LogManager.GetLogger("Console");
- 
+        protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
+        protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
 
         private readonly string _dirName;
         private readonly string _appName;
 
         protected ISolution CurrentSolution;
+        protected bool hasPhoneProjectInThisSolution;
 
         public AnalysisResultBase Result
         {
@@ -38,7 +41,9 @@ namespace Analysis
             {
                 try
                 {
+                    UpgradeToVS2012(solutionPath);
                     CurrentSolution = Solution.Load(solutionPath);
+                    hasPhoneProjectInThisSolution = false;
                 }
                 catch (Exception ex)
                 {
@@ -68,10 +73,18 @@ namespace Analysis
                 documents = project.Documents;
 
                 // If the project is not WP, ignore it! 
-                if (type != AnalysisResultBase.ProjectType.WP7 || type != AnalysisResultBase.ProjectType.WP8)
+                if (type != AnalysisResultBase.ProjectType.WP7 && type != AnalysisResultBase.ProjectType.WP8)
                 {
                     Result.AddUnanalyzedProject();
                     return;
+                }
+                else
+                {
+                    phoneProjectListLog.Info(project.FilePath);
+                    if (!hasPhoneProjectInThisSolution)
+                        phoneSolutionListLog.Info(CurrentSolution.FilePath);
+                    hasPhoneProjectInThisSolution = true;
+
                 }
 
                 if (documents == null)
@@ -101,6 +114,15 @@ namespace Analysis
             {
                AnalyzeDocument(document);
             }
+        }
+
+
+        public void UpgradeToVS2012(string path)
+        {
+            Process.Start(@"devenv " + path + @" \upgrade");
+            string dir = Path.GetDirectoryName(path) + @"\Backup\";
+            if (Directory.Exists(dir))
+                Directory.Delete(dir);
         }
 
         protected abstract void AnalyzeDocument(IDocument document);

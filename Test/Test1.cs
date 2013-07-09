@@ -1,5 +1,7 @@
 ﻿using Analysis;
+using Microsoft.Win32;
 using Roslyn.Services;
+using Roslyn.Services.CSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +16,10 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            string dir = @"C:\Users\Semih\Desktop\WindowsPhoneTestFramework-master";
+            string dir = @"Z:\C#PROJECTS\Unused\wphonecommands";
+            
+
+            
 
             //var app = new AsyncAnalysis(@"C:\Users\Semih\Desktop\facebook-windows-phone-sample-master","facebook"); 
             
@@ -23,11 +28,15 @@ namespace Test
             {
 
                     var solution = Solution.Load(solutionPath);
+                    int a = 0;
                     foreach (var project in solution.Projects)
                     {
-
-                        Console.WriteLine(IsWindowsPhoneProject(project));
-
+                        a++;
+                        Console.WriteLine(a+ " project: " + project.FilePath);
+                        if (project.Documents == null)
+                            Console.WriteLine("****************");
+                        //IDocument doc = project.Documents.First();
+                        doc.LanguageServices.GetService<IExtractMethodService>();
                         
                     }
                 
