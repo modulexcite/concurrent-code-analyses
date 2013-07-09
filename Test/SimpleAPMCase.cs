@@ -22,4 +22,14 @@ namespace Test
             request.EndGetResponse(result);
         }
     }
+
+    class SimpleAPMCaseWithoutCallback
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create("http://www.google.com");
+            IAsyncResult result = request.BeginGetResponse(null, request);
+            var response = request.EndGetResponse(result);
+        }
+    }
 }
