@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Test
 {
@@ -17,7 +13,7 @@ namespace Test
         public void FireAndForget()
         {
             var request = WebRequest.Create(Constants.GoogleUrl);
-            request.BeginGetResponse(new AsyncCallback(CallBack), request);
+            request.BeginGetResponse(CallBack, request);
 
             // Do something while GET request is in progress.
         }
