@@ -36,7 +36,7 @@ namespace Test
                         if (project.Documents == null)
                             Console.WriteLine("****************");
                         //IDocument doc = project.Documents.First();
-                        doc.LanguageServices.GetService<IExtractMethodService>();
+                        //doc.LanguageServices.GetService<IExtractMethodService>();
                         
                     }
                 
