@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SimpleAPMTestCase.cs" />
     <Compile Include="Test2.cs" />
     <Compile Include="Test1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
