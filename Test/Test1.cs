@@ -1,5 +1,4 @@
-﻿using Analysis;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Roslyn.Services;
 using Roslyn.Services.CSharp;
 using System;

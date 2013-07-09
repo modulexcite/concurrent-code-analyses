@@ -8,7 +8,6 @@ using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using Roslyn.Services.CSharp;
-using Analysis;
 
 namespace TestApps
 {
