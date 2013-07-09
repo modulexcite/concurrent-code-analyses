@@ -47,7 +47,7 @@ namespace Analysis
                 }
                 catch (Exception ex)
                 {
-                    Log.Info("Solution not analyzed: {0}",solutionPath);
+                    Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
                     continue;
                 }
 
