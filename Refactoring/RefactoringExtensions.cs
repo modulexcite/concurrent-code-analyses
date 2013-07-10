@@ -15,29 +15,22 @@ namespace Refactoring
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation)
         {
             var method = invocation.ContainingMethod();
-
-            if (invocation.Expression.Kind != SyntaxKind.MemberAccessExpression)
-            {
-                throw new NotImplementedException("Only member access expressions are supported");
-            }
-
             var expression = (MemberAccessExpressionSyntax)invocation.Expression;
-
-            if (!expression.Name.ToString().StartsWith("Begin"))
-            {
-                throw new NotImplementedException("Only invocations of methods starting with Begin are supported");
-            }
 
 
             // Check whether there is a callback parameter 
             if (HasCallbackParameter(invocation))
             {
-                // do transformation
+                // annotate invocation expression
+                CreateNewCallbackMethod(invocation);
+                
+                //reassign invocation 
+                TransformCallerMethod(invocation);
+
             }
             else
             { 
-                // find the blocking call in the project where the endxxx is called. 
-                Console.WriteLine(invocation.Expression);
+                // find the blocking call in the project where the endxxx is called.
             }
 
 
@@ -51,6 +44,8 @@ namespace Refactoring
 
             return syntax.ReplaceNode(expression, newExpression);
         }
+
+       
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -78,6 +73,16 @@ namespace Refactoring
         /// <returns>Returns true if it satisfies the preconditions, false if not</returns>
         public static bool IsAPMCandidateForAsync(this InvocationExpressionSyntax invocation)
         {
+            var expression = (MemberAccessExpressionSyntax)invocation.Expression;
+            if (invocation.Expression.Kind != SyntaxKind.MemberAccessExpression)
+            {
+                throw new NotImplementedException("Only member access expressions are supported");
+            }
+
+            if (!expression.Name.ToString().StartsWith("Begin"))
+            {
+                throw new NotImplementedException("Only invocations of methods starting with Begin are supported");
+            }
             //throw new NotImplementedException(); 
             return true;
         }
@@ -93,5 +98,26 @@ namespace Refactoring
             //throw new NotImplementedException(); //commented out just because it should not cause exceptions in the toy transformation trials. 
             return true;
         }
+
+
+        private static void TransformCallerMethod(InvocationExpressionSyntax invocation)
+        {
+            throw new NotImplementedException();
+        }
+
+
+
+
+
+
+
+
+
+
+        private static void CreateNewCallbackMethod(InvocationExpressionSyntax invocation)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }
