@@ -72,10 +72,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MainTest.cs" />
     <Compile Include="SimpleAPMTestCase.cs" />
     <Compile Include="Test2.cs" />
     <Compile Include="Test1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToyTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

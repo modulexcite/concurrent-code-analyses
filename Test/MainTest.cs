@@ -8,7 +8,7 @@ namespace Test
 {
     class MainTest
     {
-        public static void main(String[] args)
+        public static void Main(String[] args)
         {
             //Test1.execute();
             //ToyTest.execute();
