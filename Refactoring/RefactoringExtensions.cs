@@ -28,6 +28,20 @@ namespace Refactoring
                 throw new NotImplementedException("Only invocations of methods starting with Begin are supported");
             }
 
+
+            // Check whether there is a callback parameter 
+            if (HasCallbackParameter(invocation))
+            {
+                // do transformation
+            }
+            else
+            { 
+                // find the blocking call in the project where the endxxx is called. 
+                Console.WriteLine(invocation.Expression);
+            }
+
+
+
             Console.WriteLine("Method: {0}", method);
             Console.WriteLine("Expression: {0}: {1}", expression, expression.Kind);
             Console.WriteLine("Name: {0}", expression.Name);
@@ -55,6 +69,29 @@ namespace Refactoring
             }
 
             return (MethodDeclarationSyntax)node;
+        }
+
+        /// <summary>
+        /// Checks whether the invocation satisfies the preconditions needed for async transformation
+        /// </summary>
+        /// <param name="invocation">The invocation statement</param>
+        /// <returns>Returns true if it satisfies the preconditions, false if not</returns>
+        public static bool IsAPMCandidateForAsync(this InvocationExpressionSyntax invocation)
+        {
+            //throw new NotImplementedException(); 
+            return true;
+        }
+
+
+        /// <summary>
+        /// Checks whether the APM invocation has a callback function as a parameter to be called after the completion
+        /// </summary>
+        /// <param name="invocation">The APM invocation statement</param>
+        /// <returns>Returns true if it has a callback function as a param, false if not</returns>
+        public static bool HasCallbackParameter(this InvocationExpressionSyntax apmInvocation)
+        {
+            //throw new NotImplementedException(); //commented out just because it should not cause exceptions in the toy transformation trials. 
+            return true;
         }
     }
 }
