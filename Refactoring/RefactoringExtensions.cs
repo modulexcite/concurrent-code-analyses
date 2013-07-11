@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
@@ -103,3 +103,4 @@ namespace Refactoring
         }
     }
 }
+
