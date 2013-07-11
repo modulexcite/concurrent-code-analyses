@@ -13,7 +13,7 @@ namespace TestApps
 {
     class Test2
     {
-        static void methodMain(string[] args)
+        public static void execute()
         {
             //const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\CodeplexMostDownloaded1000Projects";
             const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\Candidates";

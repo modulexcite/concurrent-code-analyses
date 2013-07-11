@@ -1,5 +1,5 @@
 ﻿<Solution Format="0.0.0.3">
-  <Version>2013-07-05T21:56:36Z</Version>
+  <Version>2013-07-10T17:16:40Z</Version>
   <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
   <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Collector\Collector.csproj">
     <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
@@ -8,7 +8,9 @@
   <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Analysis\Analysis.csproj">
     <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Utilities\Utilities.csproj" />
   </Project>
-  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Test\Test.csproj">
-    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Analysis\Analysis.csproj" />
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Test\Test.csproj" />
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Refactoring\Refactoring.csproj" />
+  <Project Path="Z:\C#PROJECTS\RoslynAnalysis\Refactoring-Tests\Refactoring-Tests.csproj">
+    <Reference Path="Z:\C#PROJECTS\RoslynAnalysis\Refactoring\Refactoring.csproj" />
   </Project>
 </Solution>

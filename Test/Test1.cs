@@ -13,7 +13,7 @@ namespace Test
 {
     class Test1
     {
-        static void Main(string[] args)
+        public static void execute()
         {
             string dir = @"Z:\C#PROJECTS\Unused\wphonecommands";
             
