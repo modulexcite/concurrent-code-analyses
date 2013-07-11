@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
@@ -17,7 +17,6 @@ namespace Refactoring
             var method = invocation.ContainingMethod();
             var expression = (MemberAccessExpressionSyntax)invocation.Expression;
 
-
             // Check whether there is a callback parameter 
             if (HasCallbackParameter(invocation))
             {
@@ -26,14 +25,11 @@ namespace Refactoring
                 
                 //reassign invocation 
                 TransformCallerMethod(invocation);
-
             }
             else
             { 
                 // find the blocking call in the project where the endxxx is called.
             }
-
-
 
             Console.WriteLine("Method: {0}", method);
             Console.WriteLine("Expression: {0}: {1}", expression, expression.Kind);
@@ -44,8 +40,6 @@ namespace Refactoring
 
             return syntax.ReplaceNode(expression, newExpression);
         }
-
-       
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -87,7 +81,6 @@ namespace Refactoring
             return true;
         }
 
-
         /// <summary>
         /// Checks whether the APM invocation has a callback function as a parameter to be called after the completion
         /// </summary>
@@ -99,25 +92,15 @@ namespace Refactoring
             return true;
         }
 
-
         private static void TransformCallerMethod(InvocationExpressionSyntax invocation)
         {
             throw new NotImplementedException();
         }
 
-
-
-
-
-
-
-
-
-
         private static void CreateNewCallbackMethod(InvocationExpressionSyntax invocation)
         {
             throw new NotImplementedException();
         }
-
     }
 }
+
