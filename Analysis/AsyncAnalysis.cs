@@ -54,7 +54,7 @@ namespace Analysis
                 {
                     var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
-                    DetectAsyncPatternUsages(methodCall, methodCallSymbol);
+                    DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
@@ -78,7 +78,7 @@ namespace Analysis
             }
         }
 
-        private void DetectAsyncPatternUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        private void DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
@@ -86,62 +86,74 @@ namespace Analysis
             {
                 if (methodCallName.Contains("begininvoke") || methodCallName.Contains("async"))
                 {
-                    Result.NumPatternUsages[10]++;
+                    Result.NumAsyncProgrammingUsages[11]++;
                     Result.PrintUnresolvedMethod(methodCallName);
                 }
                 return;
             }
 
-            if (methodCallSymbol.IsDispatcherBeginInvoke())
-            {
-                Result.PrintDispatcherOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[0]++;
-            }
-            else if (methodCallSymbol.IsControlBeginInvoke())
-            {
-                Result.PrintControlInvokeOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[1]++;
-            }
-            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsBeginInvoke())
-            {
-                Result.PrintThreadPoolQueueUserWorkItemWithDispatcherOccurrence(methodCall);
-                Result.NumPatternUsages[2]++;
-            }
-            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem() && methodCall.ContainsSynchronizationContext()) // look at the synchronization context
-            {
-                Result.PrintThreadPoolQueueUserWorkItemWithSynchronizationContextOccurrence(methodCall);
-                Result.NumPatternUsages[3]++;
-            }
-            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
-            {
-                Result.PrintThreadPoolQueueUserWorkItemOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[4]++;
-            }
-            else if (methodCallSymbol.IsBackgroundWorkerRunWorkerAsync())
-            {
-                Result.PrintBackgroundWorkerRunWorkerAsyncOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[5]++;
-            }
-            else if (methodCallSymbol.IsThreadStart())
-            {
-                Result.PrintThreadStartOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[6]++;
-            }
-            else if (methodCallSymbol.IsAPMBeginMethod())
+            // DETECT PATTERNS
+            if (methodCallSymbol.IsAPMBeginMethod())
             {
                 Result.PrintAPMCallOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[7]++;
-            }
-            else if (methodCallSymbol.ReturnsTask())
-            {
-                Result.PrintTAPCallOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[8]++;
+                Result.NumAsyncProgrammingUsages[0]++;
             }
             else if (methodCall.IsEAPMethod())
             {
                 Result.PrintEAPCallOccurrence(methodCallSymbol);
-                Result.NumPatternUsages[9]++;
+                Result.NumAsyncProgrammingUsages[1]++;
             }
+            else if (methodCallSymbol.IsTAPMethod())
+            {
+                Result.PrintTAPCallOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[2]++;
+            }
+
+            // DETECT ASYNC CALLS
+            else if (methodCallSymbol.IsThreadStart())
+            {
+                Result.PrintThreadStartOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[3]++;
+            }
+            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
+            {
+                Result.PrintThreadPoolQueueUserWorkItemOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[4]++;
+            }
+            else if (methodCallSymbol.IsAsyncDelegate())
+            {
+                Result.PrintAsyncDelegateOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[5]++;
+            }
+            else if (methodCallSymbol.IsBackgroundWorkerMethod())
+            {
+                Result.PrintBackgroundWorkerOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[6]++;
+            }
+            else if (methodCallSymbol.IsTPLMethod())
+            {
+                Result.PrintTPLMethodOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[7]++;
+            }
+
+            // DETECT GUI UPDATE CALLS
+            else if (methodCallSymbol.IsISynchronizeInvokeMethod())
+            {
+                Result.PrintISynchronizeInvokeOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[8]++;
+            }
+            else if (methodCallSymbol.IsControlBeginInvoke())
+            {
+                Result.PrintControlInvokeOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[9]++;
+            }
+            else if (methodCallSymbol.IsDispatcherBeginInvoke())
+            {
+                Result.PrintDispatcherOccurrence(methodCallSymbol);
+                Result.NumAsyncProgrammingUsages[10]++;
+            }
+
+            
         }
     }
 }

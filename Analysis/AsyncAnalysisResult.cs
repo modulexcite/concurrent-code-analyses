@@ -12,14 +12,14 @@ namespace Analysis
         public int NumUIClasses;
         public int NumEventHandlerMethods;
         public int NumAsyncMethods;
-        public int[] NumPatternUsages;
+        public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
 
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
-            NumPatternUsages = new int[11];
+            NumAsyncProgrammingUsages = new int[11];
 
             PrintAppNameHeader(appName);
         }
@@ -38,7 +38,7 @@ namespace Analysis
                                NumNet45Projects + "," +
                                NumOtherNetProjects + ",";
 
-            foreach (var pattern in NumPatternUsages)
+            foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
             summary += NumAsyncMethods + "," + NumEventHandlerMethods + "," + NumUIClasses;
@@ -76,62 +76,69 @@ namespace Analysis
 
         public void PrintDispatcherOccurrence(MethodSymbol methodCallSymbol)
         {
-            var dispatcher = " //Dispatcher// " + methodCallSymbol + " \\\\\\\\\\";
+            var dispatcher = " //GUI:Dispatcher// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(dispatcher);
         }
 
         public void PrintControlInvokeOccurrence(MethodSymbol methodCallSymbol)
         {
-            var controlInvoke = " //Control// " + methodCallSymbol + " \\\\\\\\\\";
+            var controlInvoke = " //GUI:Control// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(controlInvoke);
         }
 
+        public void PrintISynchronizeInvokeOccurrence(MethodSymbol methodCallSymbol)
+        {
+            var text = " //GUI:ISynchronizeInvoke// " + methodCallSymbol + " \\\\\\\\\\";
+            CallTraceLog.Info(text);
+        }
+
+        
+
+
         public void PrintEAPCallOccurrence(MethodSymbol methodCallSymbol)
         {
-            var eap = " //EAP// " + methodCallSymbol + " \\\\\\\\\\";
+            var eap = " //Pattern:EAP// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(eap);
         }
 
         public void PrintTAPCallOccurrence(MethodSymbol methodCallSymbol)
         {
-            var tap = " //TAP// " + methodCallSymbol + " \\\\\\\\\\";
+            var tap = " //Pattern:TAP// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(tap);
         }
 
         public void PrintAPMCallOccurrence(MethodSymbol methodCallSymbol)
         {
-            var apm = " //APM// " + methodCallSymbol + " \\\\\\\\\\";
+            var apm = " //Pattern:APM// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(apm);
         }
 
         public void PrintThreadStartOccurrence(MethodSymbol methodCallSymbol)
         {
-            var threadStart = " //Thread// " + methodCallSymbol + " \\\\\\\\\\";
+            var threadStart = " //Async:Thread// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(threadStart);
         }
 
-        public void PrintBackgroundWorkerRunWorkerAsyncOccurrence(MethodSymbol methodCallSymbol)
+        public void PrintBackgroundWorkerOccurrence(MethodSymbol methodCallSymbol)
         {
-            var backgroundWorker = " //BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\";
+            var backgroundWorker = " //Async:BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(backgroundWorker);
         }
 
         public void PrintThreadPoolQueueUserWorkItemOccurrence(MethodSymbol methodCallSymbol)
         {
-            var threadpool = " //ThreadPool// " + methodCallSymbol + " \\\\\\\\\\";
+            var threadpool = " //Async:ThreadPool// " + methodCallSymbol + " \\\\\\\\\\";
             CallTraceLog.Info(threadpool);
         }
-
-        public void PrintThreadPoolQueueUserWorkItemWithSynchronizationContextOccurrence(InvocationExpressionSyntax methodCall)
+        public void PrintTPLMethodOccurrence(MethodSymbol methodCallSymbol)
         {
-            var threadpoolContext = " //ThreadPool with Context// " + methodCall + " \\\\\\\\\\";
-            CallTraceLog.Info(threadpoolContext);
+            var text = " //Async:TPL// " + methodCallSymbol + " \\\\\\\\\\";
+            CallTraceLog.Info(text);
         }
-
-        public void PrintThreadPoolQueueUserWorkItemWithDispatcherOccurrence(InvocationExpressionSyntax methodCall)
+        public void PrintAsyncDelegateOccurrence(MethodSymbol methodCallSymbol)
         {
-            var threadpoolDispatcher = " //ThreadPool with Dispatcher// " + methodCall + " \\\\\\\\\\";
-            CallTraceLog.Info(threadpoolDispatcher);
+            var text = " //Async:AsyncDelegate// " + methodCallSymbol + " \\\\\\\\\\";
+            CallTraceLog.Info(text);
         }
     }
 }

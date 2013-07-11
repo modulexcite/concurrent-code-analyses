@@ -64,10 +64,11 @@ namespace Analysis
         }
 
 
-
-        public static bool ReturnsTask(this MethodSymbol symbol)
+        // (1) MAIN PATTERNS: TAP, EAP, APM
+        public static bool IsTAPMethod(this MethodSymbol symbol)
         {
-            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task") 
+                                       && symbol.ToString().ToLower().Contains("async(");
         }
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
@@ -75,18 +76,53 @@ namespace Analysis
             return invocation.Expression.ToString().ToLower().EndsWith("async") && 
                    invocation.Ancestors().OfType<MethodDeclarationSyntax>().First()
                                                                            .DescendantNodes()
-                                                                           .OfType<InvocationExpressionSyntax>()
-                                                                           .Any(a => a.Expression.ToString().ToLower().EndsWith("completed"));
+                                                                           .OfType<BinaryExpressionSyntax>()
+                                                                           .Any(a => a.Left.ToString().ToLower().EndsWith("completed"));
         }
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().Contains("System.AsyncCallback") || (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
+            return symbol.ToString().Contains("System.AsyncCallback") && (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
         }
 
 
 
+        // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
+        public static bool IsTPLMethod(this MethodSymbol symbol)
+        {
+            return symbol.ToString().StartsWith("System.Threading.Tasks");
+        }
 
-        // comments will be added to these methods later after we understand them well. 
+
+        public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("ThreadPool.QueueUserWorkItem");
+        }
+
+
+        public static bool IsBackgroundWorkerMethod(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("BackgroundWorker.RunWorkerAsync");
+        }
+
+        public static bool IsThreadStart(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Thread.Start");
+        }
+
+        public static bool IsAsyncDelegate(this MethodSymbol symbol)
+        {
+            return (symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
+        }
+
+        // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
+
+
+
+        public static bool IsISynchronizeInvokeMethod(this MethodSymbol symbol)
+        {
+            return symbol.ToString().StartsWith("System.ComponentModel.ISynchronizeInvoke");
+        }
+
         public static bool IsControlBeginInvoke(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Control.BeginInvoke");
@@ -97,36 +133,6 @@ namespace Analysis
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
 
-        public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
-        {
-            return symbol.ToString().Contains("ThreadPool.QueueUserWorkItem");
-        }
-
-        public static bool ContainsBeginInvoke(this InvocationExpressionSyntax invocation)
-        {
-            return invocation.ToString().Contains("BeginInvoke");
-        }
-
-        public static bool ContainsSynchronizationContext(this InvocationExpressionSyntax invocation)
-        {
-            return invocation.ToString().Contains("SynchronizationContext");
-        }
-
-        public static bool IsBackgroundWorkerRunWorkerAsync(this MethodSymbol symbol)
-        {
-            return symbol.ToString().Contains("BackgroundWorker.RunWorkerAsync");
-        }
-
-        public static bool IsThreadStart(this MethodSymbol symbol)
-        {
-            return symbol.ToString().Contains("Thread.Start");
-        }
-
-        // System.ComponentModel.ISynchronizeInvoke.BeginInvoke(System.Delegate, object[]). it is not called anywhere else
-        public static bool IsISynchronizeInvokeMethod(this MethodSymbol symbol)
-        {
-            return symbol.ToString().Contains("System.ComponentModel.ISynchronizeInvoke");
-        }
 
 
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
