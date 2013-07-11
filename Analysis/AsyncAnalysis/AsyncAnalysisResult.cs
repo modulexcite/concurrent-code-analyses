@@ -74,6 +74,8 @@ namespace Analysis
             CallTraceLog.Info(unresolved);
         }
 
+
+
         public void PrintDispatcherOccurrence(MethodSymbol methodCallSymbol)
         {
             var dispatcher = " //GUI:Dispatcher// " + methodCallSymbol + " \\\\\\\\\\";

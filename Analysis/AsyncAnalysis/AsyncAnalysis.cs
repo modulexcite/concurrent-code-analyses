@@ -12,6 +12,8 @@ namespace Analysis
 {
     public class AsyncAnalysis : AnalysisBase
     {
+        
+        public enum Detected { APM, EAP, TAP, TPL, Thread, BackgroundWorker, AsyncDelegate, Threadpool, Dispatcher, ControlInvoke, ISynchronizeInvoke, None};
 
         private AsyncAnalysisResult result;
         public override AnalysisResultBase ResultObject
@@ -97,82 +99,44 @@ namespace Analysis
 
 
 
-        private void DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        private Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
             if (methodCallSymbol == null)
             {
-                if (methodCallName.Contains("begininvoke") || methodCallName.Contains("async"))
-                {
-                    Result.NumAsyncProgrammingUsages[11]++;
-                    Result.PrintUnresolvedMethod(methodCallName);
-                }
-                return;
+                return Detected.None;
             }
 
             // DETECT PATTERNS
             if (methodCallSymbol.IsAPMBeginMethod())
-            {
-                Result.PrintAPMCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[0]++;
-            }
+                return Detected.APM;
             else if (methodCall.IsEAPMethod())
-            {
-                Result.PrintEAPCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[1]++;
-            }
+                return Detected.EAP;
             else if (methodCallSymbol.IsTAPMethod())
-            {
-                Result.PrintTAPCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[2]++;
-            }
+                return Detected.TAP;
 
             // DETECT ASYNC CALLS
             else if (methodCallSymbol.IsThreadStart())
-            {
-                Result.PrintThreadStartOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[3]++;
-            }
+                return Detected.Thread;
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
-            {
-                Result.PrintThreadPoolQueueUserWorkItemOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[4]++;
-            }
+                return Detected.Threadpool;
             else if (methodCallSymbol.IsAsyncDelegate())
-            {
-                Result.PrintAsyncDelegateOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[5]++;
-            }
+                return Detected.Threadpool;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
-            {
-                Result.PrintBackgroundWorkerOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[6]++;
-            }
+                return Detected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
-            {
-                Result.PrintTPLMethodOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[7]++;
-            }
+                return Detected.TPL;
 
             // DETECT GUI UPDATE CALLS
             else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-            {
-                Result.PrintISynchronizeInvokeOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[8]++;
-            }
+                return Detected.ISynchronizeInvoke;
             else if (methodCallSymbol.IsControlBeginInvoke())
-            {
-                Result.PrintControlInvokeOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[9]++;
-            }
+                return Detected.ControlInvoke;
             else if (methodCallSymbol.IsDispatcherBeginInvoke())
-            {
-                Result.PrintDispatcherOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[10]++;
-            }
-
-            
+                return Detected.Dispatcher;
+            else
+                return Detected.None;
         }
     }
 }
