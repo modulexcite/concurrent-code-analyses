@@ -32,10 +32,26 @@ namespace Analysis
 
         protected override void AnalyzeDocument(IDocument document)
         {
-            var syntaxTree = document.GetSyntaxTree();
-            var loopWalker = new AsyncAnalysisWalker(this, Result);
+            var root = (SyntaxNode)  document.GetSyntaxTree().GetRoot();
+            SemanticModel semanticModel= (SemanticModel) document.GetSemanticModel();
+            SyntaxWalker walker;
+            
+            walker = new EventHandlerMethodsWalker()
+            {
+                Analysis = this,
+                Result = Result,
+            };
 
-            loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
+
+            walker = new InvocationsWalker()
+            {
+                Analysis = this,
+                Result = Result,
+                SemanticModel = semanticModel,
+            };
+            
+
+            walker.Visit(root);
         }
 
 
@@ -77,6 +93,9 @@ namespace Analysis
                     throw;
             }
         }
+
+
+
 
         private void DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {

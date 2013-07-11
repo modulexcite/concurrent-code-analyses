@@ -80,15 +80,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisResultBase.cs" />
-    <Compile Include="AsyncAnalysisResult.cs" />
-    <Compile Include="AnalysisBase.cs" />
-    <Compile Include="AsyncAnalysis.cs" />
+    <Compile Include="AnalysisBase\AnalysisResultBase.cs" />
+    <Compile Include="AsyncAnalysis\AsyncAnalysisResult.cs" />
+    <Compile Include="AnalysisBase\AnalysisBase.cs" />
+    <Compile Include="AsyncAnalysis\AsyncAnalysis.cs" />
+    <Compile Include="AsyncAnalysis\InvocationsWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadTaskAnalysis.cs" />
-    <Compile Include="AsyncAnalysisWalker.cs" />
-    <Compile Include="ThreadTaskAnalysisResult.cs" />
-    <Compile Include="ThreadTaskAnalysisWalker.cs" />
+    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysis.cs" />
+    <Compile Include="AsyncAnalysis\EventHandlerMethodsWalker.cs" />
+    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisResult.cs" />
+    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisWalker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
