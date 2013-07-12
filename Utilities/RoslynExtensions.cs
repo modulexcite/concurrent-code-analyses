@@ -19,6 +19,22 @@ namespace Analysis
             return project.LanguageServices.Language.Equals("C#");
         }
 
+        public static int CountSLOC(this SyntaxNode node)
+        {
+            var text = node.GetText();
+            var totalLines = text.LineCount;
+
+            var linesWithNoText = 0;
+            foreach (var l in text.Lines)
+            {
+                
+                if (string.IsNullOrEmpty(l.ToString().Trim()))
+                {
+                    ++linesWithNoText;
+                }
+            }
+            return totalLines - linesWithNoText; ;
+        }
 
         // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1. 
         public static int IsWindowsPhoneProject(this IProject project)

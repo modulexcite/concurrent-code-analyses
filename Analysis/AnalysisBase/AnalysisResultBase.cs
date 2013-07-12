@@ -28,6 +28,8 @@ namespace Analysis
         protected int NumTotalProjects;
         protected int NumUnanalyzedProjects;
 
+        public int NumTotalSLOC;
+
         public AnalysisResultBase(string appName)
         {
             _appName = appName;

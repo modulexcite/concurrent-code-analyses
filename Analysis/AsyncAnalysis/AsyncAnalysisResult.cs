@@ -15,7 +15,6 @@ namespace Analysis
         public int NumAsyncVoidNonEventHandlerMethods;
         public int NumAsyncVoidEventHandlerMethods;
         public int NumAsyncTaskMethods;
-        public int NumTotalSLOC;
 
         public int[] NumAsyncProgrammingUsages;
 

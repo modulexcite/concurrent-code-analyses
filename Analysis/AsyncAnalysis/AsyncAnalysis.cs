@@ -35,6 +35,9 @@ namespace Analysis
         protected override void AnalyzeDocument(IDocument document)
         {
             var root = (SyntaxNode)  document.GetSyntaxTree().GetRoot();
+
+            Result.NumTotalSLOC += root.CountSLOC();
+
             SemanticModel semanticModel= (SemanticModel) document.GetSemanticModel();
             SyntaxWalker walker;
             
@@ -53,7 +56,6 @@ namespace Analysis
                 SemanticModel = semanticModel,
                 Document= document,
             };
-
 
             walker.Visit(root);
         }

@@ -54,14 +54,5 @@ namespace Analysis
             base.VisitMethodDeclaration(node);
         }
 
-        public override void VisitTrivia(SyntaxTrivia trivia)
-        {
-            base.VisitTrivia(trivia);
-
-            if (trivia.Kind == SyntaxKind.EndOfLineTrivia)
-            {
-                ++Result.NumTotalSLOC;
-            }
-        }
     }
 }
