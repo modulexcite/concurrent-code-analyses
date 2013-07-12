@@ -115,12 +115,14 @@ namespace Analysis
             var command = @"devenv " + path + @" /upgrade";
             ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
             info.WindowStyle = ProcessWindowStyle.Hidden;
+            info.UseShellExecute = false;
 
             Process p = Process.Start(info);
             p.WaitForExit();
             string dir = Path.GetDirectoryName(path) + @"\Backup\";
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
+            p.Close();
         }
 
         protected abstract void AnalyzeDocument(IDocument document);
