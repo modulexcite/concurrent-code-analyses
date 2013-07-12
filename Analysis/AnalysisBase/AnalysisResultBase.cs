@@ -9,7 +9,7 @@ namespace Analysis
 {
     public abstract class AnalysisResultBase
     {
-        public enum ProjectType { WP7, WP8, NET4, NET45, NETOther };
+        
 
         public readonly string _appName;
 
@@ -34,36 +34,36 @@ namespace Analysis
             _appName = appName;
         }
 
-        public ProjectType AddProject(IProject project)
+        public void AddAnalyzedProject(Enums.ProjectType type)
+        {
+            switch (type)
+            { 
+                case Enums.ProjectType.WP7:
+                     NumPhone7Projects++;
+                    break;
+                case Enums.ProjectType.WP8:
+                    NumPhone8Projects++;
+                    break;
+                case Enums.ProjectType.NET4:
+                    NumNet4Projects++;
+                    break;
+                case Enums.ProjectType.NET45:
+                    NumNet45Projects++;
+                    break;
+                case Enums.ProjectType.NETOther:
+                    NumOtherNetProjects++;
+                    break;
+            }
+        }
+
+        public void AddUnanalyzedProject()
+        {
+            NumUnanalyzedProjects++;
+        }
+
+        public void AddProject()
         {
             NumTotalProjects++;
-
-            var result = project.IsWindowsPhoneProject();
-            if (result == 1)
-            {
-                NumPhone7Projects++;
-                return ProjectType.WP7;
-            }
-            else if (result == 2)
-            {
-                NumPhone8Projects++;
-                return ProjectType.WP8;
-            }
-            else if (project.IsNet40Project())
-            {
-                NumNet4Projects++;
-                return ProjectType.NET4;
-            }
-            else if (project.IsNet45Project())
-            {
-                NumNet45Projects++;
-                return ProjectType.NET45;
-            }
-            else
-            {
-                NumOtherNetProjects++;
-                return ProjectType.NETOther;
-            }
         }
 
         public void WritePhoneProjects(IProject project)
@@ -75,10 +75,7 @@ namespace Analysis
 
         }
 
-        public void AddUnanalyzedProject()
-        {
-            NumUnanalyzedProjects++;
-        }
+
 
         public abstract void WriteSummaryLog();
 

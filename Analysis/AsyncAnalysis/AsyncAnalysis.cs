@@ -13,8 +13,7 @@ namespace Analysis
     public class AsyncAnalysis : AnalysisBase
     {
 
-        public enum Detected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, TPL = 7, ISynchronizeInvoke = 8, ControlInvoke = 9, Dispatcher = 10, None };
-
+        
         private AsyncAnalysisResult result;
         public override AnalysisResultBase ResultObject
         {
@@ -32,13 +31,18 @@ namespace Analysis
         }
 
 
-        protected override void AnalyzeDocument(IDocument document)
+        public override bool FilterProject(Enums.ProjectType type)
         {
-            var root = (SyntaxNode)  document.GetSyntaxTree().GetRoot();
+            if (type == Enums.ProjectType.WP7 || type == Enums.ProjectType.WP8)
+            {
+                //Result.WritePhoneProjects();
+                return true;
+            }
+            return false;
+        }
 
-            Result.NumTotalSLOC += root.CountSLOC();
-
-            SemanticModel semanticModel= (SemanticModel) document.GetSemanticModel();
+        protected override void VisitDocument(IDocument document,SyntaxNode root)
+        {
             SyntaxWalker walker;
             
             //walker = new EventHandlerMethodsWalker()
@@ -51,7 +55,7 @@ namespace Analysis
             {
                 Analysis = this,
                 Result = Result,
-                SemanticModel = semanticModel,
+                SemanticModel = (SemanticModel) document.GetSemanticModel(),
                 Document= document,
             };
 
@@ -100,44 +104,44 @@ namespace Analysis
             }
         }
 
-        public Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        public Enums.Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
             if (methodCallSymbol == null)
             {
-                return Detected.None;
+                return Enums.Detected.None;
             }
 
             // DETECT PATTERNS
             if (methodCallSymbol.IsAPMBeginMethod())
-                return Detected.APM;
+                return Enums.Detected.APM;
             else if (methodCall.IsEAPMethod())
-                return Detected.EAP;
+                return Enums.Detected.EAP;
             else if (methodCallSymbol.IsTAPMethod())
-                return Detected.TAP;
+                return Enums.Detected.TAP;
 
             // DETECT ASYNC CALLS
             else if (methodCallSymbol.IsThreadStart())
-                return Detected.Thread;
+                return Enums.Detected.Thread;
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
-                return Detected.Threadpool;
+                return Enums.Detected.Threadpool;
             else if (methodCallSymbol.IsAsyncDelegate())
-                return Detected.AsyncDelegate;
+                return Enums.Detected.AsyncDelegate;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
-                return Detected.BackgroundWorker;
+                return Enums.Detected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
-                return Detected.TPL;
+                return Enums.Detected.TPL;
 
             // DETECT GUI UPDATE CALLS
             else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-                return Detected.ISynchronizeInvoke;
+                return Enums.Detected.ISynchronizeInvoke;
             else if (methodCallSymbol.IsControlBeginInvoke())
-                return Detected.ControlInvoke;
+                return Enums.Detected.ControlInvoke;
             else if (methodCallSymbol.IsDispatcherBeginInvoke())
-                return Detected.Dispatcher;
+                return Enums.Detected.Dispatcher;
             else
-                return Detected.None;
+                return Enums.Detected.None;
         }
     }
 }

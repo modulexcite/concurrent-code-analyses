@@ -6,6 +6,8 @@ using System.Linq;
 using Roslyn.Services;
 using Microsoft.Build.Exceptions;
 using System.Diagnostics;
+using Roslyn.Compilers.CSharp;
+using Utilities;
 
 namespace Analysis
 {
@@ -38,52 +40,72 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                try
-                {
-                    UpgradeToVS2012(solutionPath);
-                    CurrentSolution = Solution.Load(solutionPath);
-                }
-                catch (Exception ex)
-                {
-                    Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
-                    continue;
-                }
+                TryUpgradeToVS2012(solutionPath);
 
-                foreach (var project in CurrentSolution.Projects)
-                {
-                    AnalyzeProject(project);
-                }
+                CurrentSolution = TryLoadSolution(solutionPath);
+
+                if ((CurrentSolution = TryLoadSolution(solutionPath)) != null)
+                    foreach (var project in CurrentSolution.Projects)
+                        AnalyzeProject(project);
             }
 
             OnAnalysisCompleted();
         }
 
-        public void AnalyzeProject(IProject project)
+        private static ISolution TryLoadSolution(string solutionPath)
         {
-            IEnumerable<IDocument> documents;
             try
             {
-                if (!project.IsCSProject())
-                    return;
+                return Solution.Load(solutionPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+                return null;
+            }
+        }
 
-                AnalysisResultBase.ProjectType type= Result.AddProject(project);
 
+        public void AnalyzeProject(IProject project)
+        {
+            Result.AddProject(); 
+            IEnumerable<IDocument> documents;
+            
+            if ((documents = TryLoadProject(project)) != null)
+            {
+                Enums.ProjectType type = project.GetProjectType();
+
+                // Filtering projects according to their type!
+                if (FilterProject(type))
+                {
+                    Result.AddAnalyzedProject(type);
+                    foreach (var document in documents)
+                        AnalyzeDocument(document);
+                }
+                else 
+                {
+                    Result.AddUnanalyzedProject();
+                }
+            }
+            else 
+            {
+                Result.AddUnanalyzedProject();
+            }
+
+            if (!project.IsCSProject())
+                return;
+        }
+
+        public abstract bool FilterProject(Enums.ProjectType type);
+
+        // I did not make it extension method, because it is better to see all exception handling in this file.
+        private static IEnumerable<IDocument> TryLoadProject(IProject project)
+        {
+            IEnumerable<IDocument> documents = null;
+            try
+            {
                 documents = project.Documents;
-
-                // If the project is not WP, ignore it! 
-                if (type != AnalysisResultBase.ProjectType.WP7 && type != AnalysisResultBase.ProjectType.WP8)
-                {
-                    Result.AddUnanalyzedProject();
-                    return;
-                }
-                //Result.WritePhoneProjects(project);
-                    
-
-                if (documents == null)
-                {
-                    Result.AddUnanalyzedProject();
-                    return;
-                }
+                var totalDocuments = documents.Count();
             }
             catch (Exception ex)
             {
@@ -92,47 +114,69 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Log.Info("Project not analyzed: {0}", project.FilePath, ex);
-                    Result.AddUnanalyzedProject();
+                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
                 }
                 else
-                {
                     throw;
-                }
-                return;
             }
-
-            foreach (var document in documents)
-            {
-                try
-                {
-                    AnalyzeDocument(document);
-                }
-                catch (InvalidProjectFileException ex)
-                {
-                    Log.Info("Document not analyzed: {0}", document.FilePath, ex);
-                }
-              
-            }
+            return documents;
         }
 
 
-        public void UpgradeToVS2012(string path)
+        public static void UpgradeToVS2012(string path)
         {
             var command = @"devenv /upgrade " + "\"" + path + "\"";
-            ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
-            info.WindowStyle = ProcessWindowStyle.Hidden;
-            info.UseShellExecute = false;
+            var info = new ProcessStartInfo("cmd.exe", "/C " + command)
+                {
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    //UseShellExecute = false
+                };
 
-            Process p = Process.Start(info);
+            var p = Process.Start(info);
             p.WaitForExit();
+            p.Close();
+
             string dir = Path.GetDirectoryName(path) + @"\Backup\";
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
-            p.Close();
         }
 
-        protected abstract void AnalyzeDocument(IDocument document);
+        /// <summary>
+        /// Try to upgrade the solution to VS 2012.
+        /// </summary>
+        /// <param name="solutionPath">Filename of the solution to try to upgrade.</param>
+        /// <returns>true if the upgrade was succesful, otherwise false.</returns>
+        private static bool TryUpgradeToVS2012(string solutionPath)
+        {
+            try
+            {
+                UpgradeToVS2012(solutionPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
+                return false;
+            }
+            return true;
+        }
+
+        protected void AnalyzeDocument(IDocument document)
+        {
+            var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
+            var sloc = root.CountSLOC();
+            Result.NumTotalSLOC += sloc;
+            try 
+            {
+                VisitDocument(document, root);
+            }
+            catch (InvalidProjectFileException ex)
+            {
+                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex);
+                Result.NumTotalSLOC -= sloc;
+            }
+        }
+
+        protected abstract void VisitDocument(IDocument document, SyntaxNode root);
 
         protected void OnAnalysisCompleted()
         {

@@ -29,9 +29,9 @@ namespace Analysis
             NumAsyncProgrammingUsages = new int[11];
         }
 
-        public void StoreDetectedAsyncUsage(AsyncAnalysis.Detected type)
+        public void StoreDetectedAsyncUsage(Enums.Detected type)
         {
-            if (AsyncAnalysis.Detected.None != type)
+            if (Enums.Detected.None != type)
                 NumAsyncProgrammingUsages[(int)type]++;
         }
 
@@ -70,18 +70,18 @@ namespace Analysis
             CallTraceLog.Info(message);
         }
 
-        public void WriteDetectedAsyncToCallTrace(AsyncAnalysis.Detected type, MethodSymbol symbol) 
+        public void WriteDetectedAsyncToCallTrace(Enums.Detected type, MethodSymbol symbol) 
         {
-            if (AsyncAnalysis.Detected.None != type)
+            if (Enums.Detected.None != type)
             {
                 var text = "///" + type.ToString() + "///  " + symbol.ToStringWithReturnType();
                 CallTraceLog.Info(text);
             }
         }
 
-        public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, MethodSymbol symbol)
+        public void WriteDetectedAsync(Enums.Detected type, string documentPath, MethodSymbol symbol)
         {
-            if (AsyncAnalysis.Detected.None != type)
+            if (Enums.Detected.None != type)
             {
                 var methodCallString = symbol.ToStringWithReturnType();
                 ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), methodCallString.Replace(",", ";"), type.ToString());

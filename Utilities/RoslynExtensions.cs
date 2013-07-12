@@ -5,6 +5,7 @@ using Roslyn.Services;
 using System.Xml;
 using System.Diagnostics;
 using System.IO;
+using Utilities;
 
 namespace Analysis
 {
@@ -34,6 +35,22 @@ namespace Analysis
                 }
             }
             return totalLines - linesWithNoText; ;
+        }
+
+        public static Enums.ProjectType GetProjectType(this IProject project)
+        {
+
+            var result = project.IsWindowsPhoneProject();
+            if (result == 1)
+                return Enums.ProjectType.WP7;
+            else if (result == 2)
+                return Enums.ProjectType.WP8;
+            else if (project.IsNet40Project())
+                return Enums.ProjectType.NET4;
+            else if (project.IsNet45Project())
+                return Enums.ProjectType.NET45;
+            else
+                return Enums.ProjectType.NETOther;
         }
 
         public static string ToStringWithReturnType(this MethodSymbol symbol)
