@@ -81,7 +81,7 @@ namespace Analysis
         }
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().Contains("System.AsyncCallback") && (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
+            return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
 
@@ -111,7 +111,7 @@ namespace Analysis
 
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
-            return (symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
+            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
         }
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE

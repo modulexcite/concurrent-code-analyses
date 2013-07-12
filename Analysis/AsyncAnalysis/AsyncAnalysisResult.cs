@@ -18,14 +18,12 @@ namespace Analysis
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
-        protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassfierLog");
+        protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassifierLog");
         
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
             NumAsyncProgrammingUsages = new int[11];
-
-            PrintAppNameHeaderToCallTrace(appName);
         }
 
         public void StoreDetectedAsyncUsage(AsyncAnalysis.Detected type)
@@ -71,20 +69,26 @@ namespace Analysis
 
         public void WriteDetectedAsyncToCallTrace(AsyncAnalysis.Detected type, string methodCall) 
         {
-            var text = "///" + type.ToString() + "///  " + methodCall;
-            CallTraceLog.Info(text);
+
+            if (AsyncAnalysis.Detected.None != type)
+            {
+                var text = "///" + type.ToString() + "///  " + methodCall;
+                CallTraceLog.Info(text);
+            }
         }
 
-        public void PrintAppNameHeaderToCallTrace(string appName)
+        public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, MethodSymbol symbol)
         {
-            var header = " #################\r\n" + appName + "\r\n#################";
-            CallTraceLog.Info(header);
-        }
+            if (AsyncAnalysis.Detected.None != type)
+            {
+                var methodCallString = symbol.ToString(); ;
+                if (symbol.ReturnsVoid)
+                    methodCallString = "void " + methodCallString;
+                else
+                    methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
 
-
-        public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, string methodCall)
-        {
-            ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath, methodCall.Replace(",", ";"), type.ToString());
+                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath, methodCallString.Replace(",", ";"), type.ToString());
+            }
         }  
     }
 }

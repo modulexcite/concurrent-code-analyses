@@ -13,7 +13,7 @@ namespace Analysis
     public class AsyncAnalysis : AnalysisBase
     {
 
-        public enum Detected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, TPL = 7, ControlInvoke=8, ISynchronizeInvoke=9, Dispatcher=10, None };
+        public enum Detected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, TPL = 7, ISynchronizeInvoke = 8, ControlInvoke = 9, Dispatcher = 10, None };
 
         private AsyncAnalysisResult result;
         public override AnalysisResultBase ResultObject
@@ -45,6 +45,7 @@ namespace Analysis
             //};
 
 
+
             walker = new InvocationsWalker()
             {
                 Analysis = this,
@@ -52,7 +53,7 @@ namespace Analysis
                 SemanticModel = semanticModel,
                 Document= document,
             };
-            
+
 
             walker.Visit(root);
         }
@@ -122,7 +123,7 @@ namespace Analysis
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
                 return Detected.Threadpool;
             else if (methodCallSymbol.IsAsyncDelegate())
-                return Detected.Threadpool;
+                return Detected.AsyncDelegate;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
                 return Detected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())

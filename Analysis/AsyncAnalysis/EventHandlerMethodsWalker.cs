@@ -16,6 +16,7 @@ namespace Analysis
                 uiClass = true;
                 Result.NumUIClasses++;
             }
+            base.VisitUsingDirective(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -33,6 +34,7 @@ namespace Analysis
                 else
                     Result.NumAsyncTaskMethods++;
             }
+            base.VisitMethodDeclaration(node);
         }
     }
 }

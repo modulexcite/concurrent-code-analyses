@@ -1,5 +1,6 @@
 ﻿using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System;
 
 namespace Analysis
 {
@@ -10,26 +11,29 @@ namespace Analysis
         public SemanticModel SemanticModel { get; set; }
         public IDocument Document { get; set; }
 
+        private bool uiClass;
+
+        public override void VisitUsingDirective(UsingDirectiveSyntax node)
+        {
+            if (node.IsInSystemWindows() && !uiClass)
+            {
+                uiClass = true;
+                Result.NumUIClasses++;
+            }
+            base.VisitUsingDirective(node);
+        }
+
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            //Log.Trace("Visiting invocation expression: {0} @ {1}:{2}",node, _currentDocument.FilePath, node.GetLocation().GetLineSpan(false).StartLinePosition);
-
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
-
 
             var type = Analysis.DetectAsyncProgrammingUsages(node, symbol);
 
             Result.StoreDetectedAsyncUsage(type);
 
-            var methodCallString = symbol.ToString(); ;
+            Result.WriteDetectedAsync(type, Document.FilePath, symbol);
 
-            if (symbol.ReturnsVoid)
-                methodCallString = "void " + methodCallString;
-            else
-                methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
-            
-            Result.WriteDetectedAsync(type, Document.FilePath, methodCallString);
-
+            base.VisitInvocationExpression(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -41,8 +45,8 @@ namespace Analysis
                 else
                     Result.NumAsyncTaskMethods++;
             }
-            
 
+            base.VisitMethodDeclaration(node);
         }
     }
 }
