@@ -38,14 +38,15 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                try
+                if (TryUpgradeToVS2012(solutionPath))
                 {
-                    UpgradeToVS2012(solutionPath);
-                    CurrentSolution = Solution.Load(solutionPath);
+                    continue;
                 }
-                catch (Exception ex)
+
+                CurrentSolution = TryLoadSolution(solutionPath);
+
+                if (CurrentSolution == null)
                 {
-                    Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
                     continue;
                 }
 
@@ -58,6 +59,19 @@ namespace Analysis
             OnAnalysisCompleted();
         }
 
+        private static ISolution TryLoadSolution(string solutionPath)
+        {
+            try
+            {
+                return Solution.Load(solutionPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+                return null;
+            }
+        }
+
         public void AnalyzeProject(IProject project)
         {
             IEnumerable<IDocument> documents;
@@ -66,7 +80,7 @@ namespace Analysis
                 if (!project.IsCSProject())
                     return;
 
-                AnalysisResultBase.ProjectType type= Result.AddProject(project);
+                AnalysisResultBase.ProjectType type = Result.AddProject(project);
 
                 documents = project.Documents;
 
@@ -77,7 +91,7 @@ namespace Analysis
                     return;
                 }
                 //Result.WritePhoneProjects(project);
-                    
+
 
                 if (documents == null)
                 {
@@ -104,25 +118,47 @@ namespace Analysis
 
             foreach (var document in documents)
             {
-               
-               AnalyzeDocument(document);
+
+                AnalyzeDocument(document);
             }
         }
 
 
-        public void UpgradeToVS2012(string path)
+        public static void UpgradeToVS2012(string path)
         {
             var command = @"devenv /upgrade " + "\"" + path + "\"";
-            ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
-            info.WindowStyle = ProcessWindowStyle.Hidden;
-            info.UseShellExecute = false;
+            var info = new ProcessStartInfo("cmd.exe", "/C " + command)
+                {
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    UseShellExecute = false
+                };
 
-            Process p = Process.Start(info);
+            var p = Process.Start(info);
             p.WaitForExit();
+            p.Close();
+
             string dir = Path.GetDirectoryName(path) + @"\Backup\";
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
-            p.Close();
+        }
+
+        /// <summary>
+        /// Try to upgrade the solution to VS 2012.
+        /// </summary>
+        /// <param name="solutionPath">Filename of the solution to try to upgrade.</param>
+        /// <returns>true if the upgrade was succesful, otherwise false.</returns>
+        private static bool TryUpgradeToVS2012(string solutionPath)
+        {
+            try
+            {
+                UpgradeToVS2012(solutionPath);
+            }
+            catch (Exception e)
+            {
+                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, e.Message);
+                return true;
+            }
+            return false;
         }
 
         protected abstract void AnalyzeDocument(IDocument document);
