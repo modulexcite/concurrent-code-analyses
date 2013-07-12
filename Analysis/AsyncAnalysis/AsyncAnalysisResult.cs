@@ -39,7 +39,6 @@ namespace Analysis
         {
             string summary = _appName + "," +
                                NumTotalProjects + "," +
-                               NumUnloadedProjects + "," +
                                NumUnanalyzedProjects + "," +
                                NumPhone7Projects + "," +
                                NumPhone8Projects + "," +
