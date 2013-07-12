@@ -47,8 +47,6 @@ namespace Analysis
             //    Result = Result,
             //};
 
-
-
             walker = new InvocationsWalker()
             {
                 Analysis = this,
@@ -78,7 +76,7 @@ namespace Analysis
 
                     var type= DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
                     Result.StoreDetectedAsyncUsage(type);
-                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol.ToString()); 
+                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol); 
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 

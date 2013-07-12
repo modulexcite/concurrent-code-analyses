@@ -24,7 +24,6 @@ namespace Analysis
         protected int NumNet45Projects;
         protected int NumOtherNetProjects;
 
-        protected int NumUnloadedProjects;
         protected int NumTotalProjects;
         protected int NumUnanalyzedProjects;
 
