@@ -171,7 +171,7 @@ namespace Analysis
             }
             catch (InvalidProjectFileException ex)
             {
-                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex);
+                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
                 Result.NumTotalSLOC -= sloc;
             }
         }
