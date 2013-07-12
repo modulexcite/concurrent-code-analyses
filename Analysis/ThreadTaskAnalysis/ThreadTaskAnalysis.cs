@@ -1,5 +1,6 @@
 ﻿using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using Utilities;
 
 namespace Analysis
 {
@@ -21,12 +22,14 @@ namespace Analysis
         {
              result = new ThreadTaskAnalysisResult(appName);
         }
-        
 
-        protected override void AnalyzeDocument(IDocument document)
+        public override bool FilterProject(Enums.ProjectType type)
         {
-            var syntaxTree = document.GetSyntaxTree();
+            return true;
+        }
 
+        protected override void VisitDocument(IDocument document, SyntaxNode root)
+        {
             var loopWalker = new ThreadTaskAnalysisWalker(Result)
             {
                 Outer = this,
@@ -35,7 +38,7 @@ namespace Analysis
                 Id = Result._appName + " " + document.Id
             };
 
-            loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
+            loopWalker.Visit(root);
         }
 
     }

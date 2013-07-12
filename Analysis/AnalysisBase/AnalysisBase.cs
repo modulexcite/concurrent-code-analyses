@@ -6,6 +6,8 @@ using System.Linq;
 using Roslyn.Services;
 using Microsoft.Build.Exceptions;
 using System.Diagnostics;
+using Roslyn.Compilers.CSharp;
+using Utilities;
 
 namespace Analysis
 {
@@ -38,22 +40,13 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                if (TryUpgradeToVS2012(solutionPath))
-                {
-                    continue;
-                }
+                TryUpgradeToVS2012(solutionPath);
 
                 CurrentSolution = TryLoadSolution(solutionPath);
 
-                if (CurrentSolution == null)
-                {
-                    continue;
-                }
-
-                foreach (var project in CurrentSolution.Projects)
-                {
-                    AnalyzeProject(project);
-                }
+                if ((CurrentSolution = TryLoadSolution(solutionPath)) != null)
+                    foreach (var project in CurrentSolution.Projects)
+                        AnalyzeProject(project);
             }
 
             OnAnalysisCompleted();
@@ -72,32 +65,43 @@ namespace Analysis
             }
         }
 
+
         public void AnalyzeProject(IProject project)
         {
+            Result.AddProject(); 
             IEnumerable<IDocument> documents;
+            
+            if ((documents = TryLoadProject(project)) != null)
+            {
+                Enums.ProjectType type = project.GetProjectType();
+
+                // Filtering projects according to their type!
+                if (FilterProject(type))
+                {
+                    Result.AddAnalyzedProject(type);
+                    foreach (var document in documents)
+                        AnalyzeDocument(document);
+                }
+            }
+            else 
+            {
+                Result.AddUnanalyzedProject();
+            }
+
+            if (!project.IsCSProject())
+                return;
+        }
+
+        public abstract bool FilterProject(Enums.ProjectType type);
+
+        // I did not make it extension method, because it is better to see all exception handling in this file.
+        private static IEnumerable<IDocument> TryLoadProject(IProject project)
+        {
+            IEnumerable<IDocument> documents = null;
             try
             {
-                if (!project.IsCSProject())
-                    return;
-
-                AnalysisResultBase.ProjectType type = Result.AddProject(project);
-
                 documents = project.Documents;
-
-                // If the project is not WP, ignore it! 
-                if (type != AnalysisResultBase.ProjectType.WP7 && type != AnalysisResultBase.ProjectType.WP8)
-                {
-                    Result.AddUnanalyzedProject();
-                    return;
-                }
-                //Result.WritePhoneProjects(project);
-
-
-                if (documents == null)
-                {
-                    Result.AddUnanalyzedProject();
-                    return;
-                }
+                var totalDocuments = documents.Count();
             }
             catch (Exception ex)
             {
@@ -106,27 +110,12 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Log.Info("Project not analyzed: {0}", project.FilePath, ex);
-                    Result.AddUnanalyzedProject();
+                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex);
                 }
                 else
-                {
                     throw;
-                }
-                return;
             }
-
-            foreach (var document in documents)
-            {
-                try
-                {
-                    AnalyzeDocument(document);
-                }
-                catch (InvalidProjectFileException ex)
-                {
-                    Log.Info("Document not analyzed: {0}", document.FilePath, ex);
-                }
-            }
+            return documents;
         }
 
 
@@ -162,12 +151,28 @@ namespace Analysis
             catch (Exception e)
             {
                 Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, e.Message);
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
-        protected abstract void AnalyzeDocument(IDocument document);
+        protected void AnalyzeDocument(IDocument document)
+        {
+            var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
+            var sloc = root.CountSLOC();
+            Result.NumTotalSLOC += sloc;
+            try 
+            {
+                VisitDocument(document, root);
+            }
+            catch (InvalidProjectFileException ex)
+            {
+                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex);
+                Result.NumTotalSLOC -= sloc;
+            }
+        }
+
+        protected abstract void VisitDocument(IDocument document, SyntaxNode root);
 
         protected void OnAnalysisCompleted()
         {
