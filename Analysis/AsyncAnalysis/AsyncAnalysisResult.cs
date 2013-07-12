@@ -70,12 +70,11 @@ namespace Analysis
             CallTraceLog.Info(message);
         }
 
-        public void WriteDetectedAsyncToCallTrace(AsyncAnalysis.Detected type, string methodCall) 
+        public void WriteDetectedAsyncToCallTrace(AsyncAnalysis.Detected type, MethodSymbol symbol) 
         {
-
             if (AsyncAnalysis.Detected.None != type)
             {
-                var text = "///" + type.ToString() + "///  " + methodCall;
+                var text = "///" + type.ToString() + "///  " + symbol.ToStringWithReturnType();
                 CallTraceLog.Info(text);
             }
         }
@@ -84,12 +83,7 @@ namespace Analysis
         {
             if (AsyncAnalysis.Detected.None != type)
             {
-                var methodCallString = symbol.ToString(); ;
-                if (symbol.ReturnsVoid)
-                    methodCallString = "void " + methodCallString;
-                else
-                    methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
-
+                var methodCallString = symbol.ToStringWithReturnType();
                 ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), methodCallString.Replace(",", ";"), type.ToString());
             }
         }  

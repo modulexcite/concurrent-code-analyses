@@ -36,6 +36,16 @@ namespace Analysis
             return totalLines - linesWithNoText; ;
         }
 
+        public static string ToStringWithReturnType(this MethodSymbol symbol)
+        {
+            var methodCallString = symbol.ToString();
+            if (symbol.ReturnsVoid)
+                methodCallString = "void " + methodCallString;
+            else
+                methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
+            return methodCallString;
+        }
+
         // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1. 
         public static int IsWindowsPhoneProject(this IProject project)
         {
