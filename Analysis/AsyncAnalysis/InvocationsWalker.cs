@@ -54,7 +54,7 @@ namespace Analysis
             base.VisitMethodDeclaration(node);
         }
 
-        protected override void VisitTrivia(SyntaxTrivia trivia)
+        public override void VisitTrivia(SyntaxTrivia trivia)
         {
             base.VisitTrivia(trivia);
 
