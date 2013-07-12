@@ -112,7 +112,7 @@ namespace Analysis
 
         public void UpgradeToVS2012(string path)
         {
-            var command = @"devenv " + path + @" /upgrade";
+            var command = @"devenv /upgrade " + "\"" + path + "\"";
             ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
             info.WindowStyle = ProcessWindowStyle.Hidden;
             info.UseShellExecute = false;
