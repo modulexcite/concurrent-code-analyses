@@ -42,7 +42,6 @@ namespace Analysis
                 {
                     //UpgradeToVS2012(solutionPath);
                     CurrentSolution = Solution.Load(solutionPath);
-                    
                 }
                 catch (Exception ex)
                 {

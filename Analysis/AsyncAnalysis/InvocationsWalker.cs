@@ -30,21 +30,19 @@ namespace Analysis
             
             Result.WriteDetectedAsync(type, Document.FilePath, methodCallString);
 
-            //if (pattern != null)
-            //{
-            //    Results.Info(@"{0},{1},{2},{3},{4},{5}",
-            //                         _currentDocument.Project.Solution.FilePath,
-            //                         _currentDocument.Project.FilePath,
-            //                         _currentDocument.FilePath,
-            //                         node.GetLocation()
-            //                             .GetLineSpan(false)
-            //                             .StartLinePosition.ToString()
-            //                             .Replace(',', ':'),
-            //                         symbol.ToString().Replace(',', ';'),
-            //                         pattern);
-            //}
+        }
 
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            if (node.HasAsyncModifier())
+            {
+                if (node.ReturnType.ToString().Equals("void"))
+                    Result.NumAsyncVoidMethods++;
+                else
+                    Result.NumAsyncTaskMethods++;
+            }
             
+
         }
     }
 }

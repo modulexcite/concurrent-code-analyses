@@ -12,7 +12,9 @@ namespace Analysis
     {
         public int NumUIClasses;
         public int NumEventHandlerMethods;
-        public int NumAsyncMethods;
+        public int NumAsyncVoidMethods;
+        public int NumAsyncTaskMethods;
+
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
@@ -26,7 +28,11 @@ namespace Analysis
             PrintAppNameHeaderToCallTrace(appName);
         }
 
-        
+        public void StoreDetectedAsyncUsage(AsyncAnalysis.Detected type)
+        {
+            if (AsyncAnalysis.Detected.None != type)
+                NumAsyncProgrammingUsages[(int)type]++;
+        }
 
         public override void WriteSummaryLog()
         {
@@ -43,7 +49,7 @@ namespace Analysis
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary += NumAsyncMethods + "," + NumEventHandlerMethods + "," + NumUIClasses;
+            summary += NumAsyncVoidMethods + "," + NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
             SummaryLog.Info(summary);
 
         }
@@ -76,15 +82,9 @@ namespace Analysis
         }
 
 
-        public void StoreDetectedAsyncUsage(AsyncAnalysis.Detected type)
-        {
-            if(AsyncAnalysis.Detected.None != type) 
-                NumAsyncProgrammingUsages[(int)type]++; 
-        }
-
         public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, string methodCall)
         {
-            ClassifierLog.Info(@"{0},{1}", _appName, documentPath, methodCall.Replace(",", ";"), type.ToString());
+            ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath, methodCall.Replace(",", ";"), type.ToString());
         }  
     }
 }

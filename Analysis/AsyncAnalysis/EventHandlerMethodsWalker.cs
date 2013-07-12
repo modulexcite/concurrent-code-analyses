@@ -28,7 +28,10 @@ namespace Analysis
 
             if (node.HasAsyncModifier())
             {
-                Result.NumAsyncMethods++;
+                if (node.ReturnType.ToString().Equals("void"))
+                    Result.NumAsyncVoidMethods++;
+                else
+                    Result.NumAsyncTaskMethods++;
             }
         }
     }
