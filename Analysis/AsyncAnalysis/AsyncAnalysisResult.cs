@@ -15,11 +15,13 @@ namespace Analysis
         public int NumAsyncVoidNonEventHandlerMethods;
         public int NumAsyncVoidEventHandlerMethods;
         public int NumAsyncTaskMethods;
+        public int NumTotalSLOC;
 
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassifierLog");
+        
         
         
         public AsyncAnalysisResult(string appName)
@@ -36,7 +38,7 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-            string summary= _appName + "," +
+            string summary = _appName + "," +
                                NumTotalProjects + "," +
                                NumUnloadedProjects + "," +
                                NumUnanalyzedProjects + "," +
@@ -44,7 +46,8 @@ namespace Analysis
                                NumPhone8Projects + "," +
                                NumNet4Projects + "," +
                                NumNet45Projects + "," +
-                               NumOtherNetProjects + ",";
+                               NumOtherNetProjects + "," +
+                               NumTotalSLOC+ ",";
 
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
