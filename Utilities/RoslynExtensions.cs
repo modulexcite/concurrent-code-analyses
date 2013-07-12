@@ -67,8 +67,7 @@ namespace Analysis
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this MethodSymbol symbol)
         {
-            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task") 
-                                       && symbol.ToString().ToLower().Contains("async(");
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
         }
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
