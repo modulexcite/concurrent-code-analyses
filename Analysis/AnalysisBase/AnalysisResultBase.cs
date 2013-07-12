@@ -14,6 +14,9 @@ namespace Analysis
         public readonly string _appName;
 
         protected static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
+        protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
+        protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
+
 
         public int NumPhone7Projects;
         public int NumPhone8Projects;
@@ -62,11 +65,22 @@ namespace Analysis
             }
         }
 
+        public void WritePhoneProjects(IProject project)
+        {
+            phoneProjectListLog.Info(project.FilePath);
+            //if (!hasPhoneProjectInThisSolution)
+            phoneSolutionListLog.Info(project.Solution.FilePath);
+            //hasPhoneProjectInThisSolution = true;
+
+        }
+
         public void AddUnanalyzedProject()
         {
             NumUnanalyzedProjects++;
         }
 
         public abstract void WriteSummaryLog();
+
+        
     }
 }

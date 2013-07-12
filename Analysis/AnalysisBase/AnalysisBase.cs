@@ -12,8 +12,7 @@ namespace Analysis
     public abstract class AnalysisBase
     {
         protected static readonly Logger Log = LogManager.GetLogger("Console");
-        protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
-        protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
+
 
         private readonly string _dirName;
         private readonly string _appName;
@@ -43,7 +42,7 @@ namespace Analysis
                 {
                     //UpgradeToVS2012(solutionPath);
                     CurrentSolution = Solution.Load(solutionPath);
-                    hasPhoneProjectInThisSolution = false;
+                    
                 }
                 catch (Exception ex)
                 {
@@ -78,14 +77,8 @@ namespace Analysis
                     Result.AddUnanalyzedProject();
                     return;
                 }
-                else
-                {
-                    phoneProjectListLog.Info(project.FilePath);
-                    if (!hasPhoneProjectInThisSolution)
-                        phoneSolutionListLog.Info(CurrentSolution.FilePath);
-                    hasPhoneProjectInThisSolution = true;
-
-                }
+                //Result.WritePhoneProjects(project);
+                    
 
                 if (documents == null)
                 {

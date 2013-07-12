@@ -4,6 +4,7 @@ using System.IO;
 using Utilities;
 using Roslyn.Compilers.CSharp;
 using NLog;
+using Roslyn.Services;
 
 namespace Analysis
 {
@@ -16,7 +17,7 @@ namespace Analysis
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassfierLog");
-
+        
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
@@ -46,7 +47,6 @@ namespace Analysis
             SummaryLog.Info(summary);
 
         }
-
 
 
 
@@ -85,6 +85,6 @@ namespace Analysis
         public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, string methodCall)
         {
             ClassifierLog.Info(@"{0},{1}", _appName, documentPath, methodCall.Replace(",", ";"), type.ToString());
-        }
+        }  
     }
 }
