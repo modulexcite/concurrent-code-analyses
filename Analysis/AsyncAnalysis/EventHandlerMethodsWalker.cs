@@ -30,7 +30,12 @@ namespace Analysis
             if (node.HasAsyncModifier())
             {
                 if (node.ReturnType.ToString().Equals("void"))
-                    Result.NumAsyncVoidMethods++;
+                {
+                    if (node.HasEventArgsParameter())
+                        Result.NumAsyncVoidEventHandlerMethods++;
+                    else
+                        Result.NumAsyncVoidNonEventHandlerMethods++;
+                }
                 else
                     Result.NumAsyncTaskMethods++;
             }

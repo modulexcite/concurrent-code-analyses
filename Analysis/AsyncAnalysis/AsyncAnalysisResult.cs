@@ -12,13 +12,15 @@ namespace Analysis
     {
         public int NumUIClasses;
         public int NumEventHandlerMethods;
-        public int NumAsyncVoidMethods;
+        public int NumAsyncVoidNonEventHandlerMethods;
+        public int NumAsyncVoidEventHandlerMethods;
         public int NumAsyncTaskMethods;
 
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassifierLog");
+        
         
         public AsyncAnalysisResult(string appName)
             : base(appName)
@@ -47,7 +49,7 @@ namespace Analysis
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary += NumAsyncVoidMethods + "," + NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
+            summary += NumAsyncVoidNonEventHandlerMethods + "," + NumAsyncVoidEventHandlerMethods+ ","+ NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
             SummaryLog.Info(summary);
 
         }
