@@ -111,10 +111,15 @@ namespace Analysis
 
         public void UpgradeToVS2012(string path)
         {
-            Process.Start(@"devenv " + path + @" \upgrade");
+            var command = @"devenv " + path + @" /upgrade";
+            ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
+            info.WindowStyle = ProcessWindowStyle.Hidden;
+
+            Process p = Process.Start(info);
+            p.WaitForExit();
             string dir = Path.GetDirectoryName(path) + @"\Backup\";
             if (Directory.Exists(dir))
-                Directory.Delete(dir);
+                Directory.Delete(dir, true);
         }
 
         protected abstract void AnalyzeDocument(IDocument document);

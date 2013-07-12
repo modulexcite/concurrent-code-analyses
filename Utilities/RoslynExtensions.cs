@@ -74,10 +74,10 @@ namespace Analysis
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
         {
             return invocation.Expression.ToString().ToLower().EndsWith("async") && 
-                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().First()
-                                                                           .DescendantNodes()
+                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().Any( node=> 
+                                                                           node.DescendantNodes()
                                                                            .OfType<BinaryExpressionSyntax>()
-                                                                           .Any(a => a.Left.ToString().ToLower().EndsWith("completed"));
+                                                                           .Any(a => a.Left.ToString().ToLower().EndsWith("completed")));
         }
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
@@ -132,8 +132,6 @@ namespace Analysis
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
-
-
 
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
         {

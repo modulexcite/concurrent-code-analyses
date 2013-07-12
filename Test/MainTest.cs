@@ -10,6 +10,7 @@ namespace Test
     {
         public static void Main(String[] args)
         {
+            Test3.execute();
             //Test1.execute();
             //ToyTest.execute();
         }
