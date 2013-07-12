@@ -1,4 +1,5 @@
 ﻿using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
 
 namespace Analysis
 {
@@ -7,7 +8,7 @@ namespace Analysis
         public AsyncAnalysis Analysis { get; set; }
         public AsyncAnalysisResult Result { get; set; }
         public SemanticModel SemanticModel { get; set; }
-
+        public IDocument Document { get; set; }
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
@@ -16,6 +17,18 @@ namespace Analysis
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
 
+            var type = Analysis.DetectAsyncProgrammingUsages(node, symbol);
+
+            Result.StoreDetectedAsyncUsage(type);
+
+            var methodCallString = symbol.ToString(); ;
+
+            if (symbol.ReturnsVoid)
+                methodCallString = "void " + methodCallString;
+            else
+                methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
+            
+            Result.WriteDetectedAsync(type, Document.FilePath, methodCallString);
 
             //if (pattern != null)
             //{
@@ -30,6 +43,8 @@ namespace Analysis
             //                         symbol.ToString().Replace(',', ';'),
             //                         pattern);
             //}
+
+            
         }
     }
 }

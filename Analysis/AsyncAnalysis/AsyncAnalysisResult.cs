@@ -15,13 +15,14 @@ namespace Analysis
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
+        protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassfierLog");
 
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
             NumAsyncProgrammingUsages = new int[11];
 
-            PrintAppNameHeader(appName);
+            PrintAppNameHeaderToCallTrace(appName);
         }
 
         
@@ -50,7 +51,7 @@ namespace Analysis
 
 
 
-        public void WriteCallTrace(MethodDeclarationSyntax node, int n)
+        public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;
             var start = node.GetLocation().GetLineSpan(true).StartLinePosition;
@@ -62,85 +63,28 @@ namespace Analysis
             CallTraceLog.Info(message);
         }
 
-        public void PrintAppNameHeader(string appName)
+        public void WriteDetectedAsyncToCallTrace(AsyncAnalysis.Detected type, string methodCall) 
+        {
+            var text = "///" + type.ToString() + "///  " + methodCall;
+            CallTraceLog.Info(text);
+        }
+
+        public void PrintAppNameHeaderToCallTrace(string appName)
         {
             var header = " #################\r\n" + appName + "\r\n#################";
             CallTraceLog.Info(header);
         }
 
-        public void PrintUnresolvedMethod(string methodCallName)
+
+        public void StoreDetectedAsyncUsage(AsyncAnalysis.Detected type)
         {
-            var unresolved = " //Unresolved// " + methodCallName + " \\\\\\\\\\";
-            CallTraceLog.Info(unresolved);
+            if(AsyncAnalysis.Detected.None != type) 
+                NumAsyncProgrammingUsages[(int)type]++; 
         }
 
-
-
-        public void PrintDispatcherOccurrence(MethodSymbol methodCallSymbol)
+        public void WriteDetectedAsync(AsyncAnalysis.Detected type,  string documentPath, string methodCall)
         {
-            var dispatcher = " //GUI:Dispatcher// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(dispatcher);
-        }
-
-        public void PrintControlInvokeOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var controlInvoke = " //GUI:Control// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(controlInvoke);
-        }
-
-        public void PrintISynchronizeInvokeOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var text = " //GUI:ISynchronizeInvoke// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(text);
-        }
-
-        
-
-
-        public void PrintEAPCallOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var eap = " //Pattern:EAP// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(eap);
-        }
-
-        public void PrintTAPCallOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var tap = " //Pattern:TAP// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(tap);
-        }
-
-        public void PrintAPMCallOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var apm = " //Pattern:APM// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(apm);
-        }
-
-        public void PrintThreadStartOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var threadStart = " //Async:Thread// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(threadStart);
-        }
-
-        public void PrintBackgroundWorkerOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var backgroundWorker = " //Async:BackgroundWorker// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(backgroundWorker);
-        }
-
-        public void PrintThreadPoolQueueUserWorkItemOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var threadpool = " //Async:ThreadPool// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(threadpool);
-        }
-        public void PrintTPLMethodOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var text = " //Async:TPL// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(text);
-        }
-        public void PrintAsyncDelegateOccurrence(MethodSymbol methodCallSymbol)
-        {
-            var text = " //Async:AsyncDelegate// " + methodCallSymbol + " \\\\\\\\\\";
-            CallTraceLog.Info(text);
+            ClassifierLog.Info(@"{0},{1}", _appName, documentPath, methodCall.Replace(",", ";"), type.ToString());
         }
     }
 }

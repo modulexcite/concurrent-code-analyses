@@ -12,8 +12,8 @@ namespace Analysis
 {
     public class AsyncAnalysis : AnalysisBase
     {
-        
-        public enum Detected { APM, EAP, TAP, TPL, Thread, BackgroundWorker, AsyncDelegate, Threadpool, Dispatcher, ControlInvoke, ISynchronizeInvoke, None};
+
+        public enum Detected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, TPL = 7, ControlInvoke=8, ISynchronizeInvoke=9, Dispatcher=10, None };
 
         private AsyncAnalysisResult result;
         public override AnalysisResultBase ResultObject
@@ -38,11 +38,11 @@ namespace Analysis
             SemanticModel semanticModel= (SemanticModel) document.GetSemanticModel();
             SyntaxWalker walker;
             
-            walker = new EventHandlerMethodsWalker()
-            {
-                Analysis = this,
-                Result = Result,
-            };
+            //walker = new EventHandlerMethodsWalker()
+            //{
+            //    Analysis = this,
+            //    Result = Result,
+            //};
 
 
             walker = new InvocationsWalker()
@@ -50,6 +50,7 @@ namespace Analysis
                 Analysis = this,
                 Result = Result,
                 SemanticModel = semanticModel,
+                Document= document,
             };
             
 
@@ -61,7 +62,7 @@ namespace Analysis
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
         {
             var newMethods = new List<MethodDeclarationSyntax>();
-            Result.WriteCallTrace(node, n);
+            Result.WriteNodeToCallTrace(node, n);
 
             var doc = CurrentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
 
@@ -72,7 +73,9 @@ namespace Analysis
                 {
                     var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
-                    DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
+                    var type= DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
+                    Result.StoreDetectedAsyncUsage(type);
+                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol.ToString()); 
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
@@ -96,10 +99,7 @@ namespace Analysis
             }
         }
 
-
-
-
-        private Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        public Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 

@@ -41,7 +41,7 @@ namespace Analysis
             {
                 try
                 {
-                    UpgradeToVS2012(solutionPath);
+                    //UpgradeToVS2012(solutionPath);
                     CurrentSolution = Solution.Load(solutionPath);
                     hasPhoneProjectInThisSolution = false;
                 }
