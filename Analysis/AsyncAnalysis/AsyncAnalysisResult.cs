@@ -91,7 +91,7 @@ namespace Analysis
                 else
                     methodCallString = symbol.ReturnType.ToString() + " " + methodCallString;
 
-                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath, methodCallString.Replace(",", ";"), type.ToString());
+                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), methodCallString.Replace(",", ";"), type.ToString());
             }
         }  
     }
