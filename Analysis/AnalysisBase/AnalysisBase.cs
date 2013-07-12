@@ -104,8 +104,15 @@ namespace Analysis
 
             foreach (var document in documents)
             {
-               
-               AnalyzeDocument(document);
+                try
+                {
+                    AnalyzeDocument(document);
+                }
+                catch (InvalidProjectFileException ex)
+                {
+                    Log.Info("Document not analyzed: {0}", document.FilePath, ex);
+                }
+              
             }
         }
 

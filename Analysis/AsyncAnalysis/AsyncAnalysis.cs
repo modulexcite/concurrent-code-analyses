@@ -47,8 +47,6 @@ namespace Analysis
             //    Result = Result,
             //};
 
-
-
             walker = new InvocationsWalker()
             {
                 Analysis = this,
