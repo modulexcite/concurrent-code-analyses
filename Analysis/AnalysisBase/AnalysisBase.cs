@@ -82,6 +82,10 @@ namespace Analysis
                     foreach (var document in documents)
                         AnalyzeDocument(document);
                 }
+                else 
+                {
+                    Result.AddUnanalyzedProject();
+                }
             }
             else 
             {
@@ -125,7 +129,7 @@ namespace Analysis
             var info = new ProcessStartInfo("cmd.exe", "/C " + command)
                 {
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    UseShellExecute = false
+                    //UseShellExecute = false
                 };
 
             var p = Process.Start(info);
