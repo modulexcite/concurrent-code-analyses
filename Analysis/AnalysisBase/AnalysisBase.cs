@@ -114,7 +114,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex);
+                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
                 }
                 else
                     throw;
@@ -152,9 +152,9 @@ namespace Analysis
             {
                 UpgradeToVS2012(solutionPath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, e.Message);
+                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
                 return false;
             }
             return true;
