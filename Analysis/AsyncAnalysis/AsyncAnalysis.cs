@@ -13,6 +13,8 @@ namespace Analysis
     public class AsyncAnalysis : AnalysisBase
     {
 
+        public enum Detected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, TPL = 7, ISynchronizeInvoke = 8, ControlInvoke = 9, Dispatcher = 10, None };
+
         private AsyncAnalysisResult result;
         public override AnalysisResultBase ResultObject
         {
@@ -32,10 +34,30 @@ namespace Analysis
 
         protected override void AnalyzeDocument(IDocument document)
         {
-            var syntaxTree = document.GetSyntaxTree();
-            var loopWalker = new AsyncAnalysisWalker(this, Result);
+            var root = (SyntaxNode)  document.GetSyntaxTree().GetRoot();
 
-            loopWalker.Visit((SyntaxNode)syntaxTree.GetRoot());
+            Result.NumTotalSLOC += root.CountSLOC();
+
+            SemanticModel semanticModel= (SemanticModel) document.GetSemanticModel();
+            SyntaxWalker walker;
+            
+            //walker = new EventHandlerMethodsWalker()
+            //{
+            //    Analysis = this,
+            //    Result = Result,
+            //};
+
+
+
+            walker = new InvocationsWalker()
+            {
+                Analysis = this,
+                Result = Result,
+                SemanticModel = semanticModel,
+                Document= document,
+            };
+
+            walker.Visit(root);
         }
 
 
@@ -43,7 +65,7 @@ namespace Analysis
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
         {
             var newMethods = new List<MethodDeclarationSyntax>();
-            Result.WriteCallTrace(node, n);
+            Result.WriteNodeToCallTrace(node, n);
 
             var doc = CurrentSolution.GetDocument(node.SyntaxTree.GetRoot().SyntaxTree);
 
@@ -54,7 +76,9 @@ namespace Analysis
                 {
                     var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
-                    DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
+                    var type= DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
+                    Result.StoreDetectedAsyncUsage(type);
+                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol.ToString()); 
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
@@ -78,82 +102,44 @@ namespace Analysis
             }
         }
 
-        private void DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        public Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
             if (methodCallSymbol == null)
             {
-                if (methodCallName.Contains("begininvoke") || methodCallName.Contains("async"))
-                {
-                    Result.NumAsyncProgrammingUsages[11]++;
-                    Result.PrintUnresolvedMethod(methodCallName);
-                }
-                return;
+                return Detected.None;
             }
 
             // DETECT PATTERNS
             if (methodCallSymbol.IsAPMBeginMethod())
-            {
-                Result.PrintAPMCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[0]++;
-            }
+                return Detected.APM;
             else if (methodCall.IsEAPMethod())
-            {
-                Result.PrintEAPCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[1]++;
-            }
+                return Detected.EAP;
             else if (methodCallSymbol.IsTAPMethod())
-            {
-                Result.PrintTAPCallOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[2]++;
-            }
+                return Detected.TAP;
 
             // DETECT ASYNC CALLS
             else if (methodCallSymbol.IsThreadStart())
-            {
-                Result.PrintThreadStartOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[3]++;
-            }
+                return Detected.Thread;
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
-            {
-                Result.PrintThreadPoolQueueUserWorkItemOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[4]++;
-            }
+                return Detected.Threadpool;
             else if (methodCallSymbol.IsAsyncDelegate())
-            {
-                Result.PrintAsyncDelegateOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[5]++;
-            }
+                return Detected.AsyncDelegate;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
-            {
-                Result.PrintBackgroundWorkerOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[6]++;
-            }
+                return Detected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
-            {
-                Result.PrintTPLMethodOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[7]++;
-            }
+                return Detected.TPL;
 
             // DETECT GUI UPDATE CALLS
             else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-            {
-                Result.PrintISynchronizeInvokeOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[8]++;
-            }
+                return Detected.ISynchronizeInvoke;
             else if (methodCallSymbol.IsControlBeginInvoke())
-            {
-                Result.PrintControlInvokeOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[9]++;
-            }
+                return Detected.ControlInvoke;
             else if (methodCallSymbol.IsDispatcherBeginInvoke())
-            {
-                Result.PrintDispatcherOccurrence(methodCallSymbol);
-                Result.NumAsyncProgrammingUsages[10]++;
-            }
-
-            
+                return Detected.Dispatcher;
+            else
+                return Detected.None;
         }
     }
 }

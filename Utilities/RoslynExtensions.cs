@@ -19,6 +19,23 @@ namespace Analysis
             return project.LanguageServices.Language.Equals("C#");
         }
 
+        public static int CountSLOC(this SyntaxNode node)
+        {
+            var text = node.GetText();
+            var totalLines = text.LineCount;
+
+            var linesWithNoText = 0;
+            foreach (var l in text.Lines)
+            {
+                
+                if (string.IsNullOrEmpty(l.ToString().Trim()))
+                {
+                    ++linesWithNoText;
+                }
+            }
+            return totalLines - linesWithNoText; ;
+        }
+
         // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1. 
         public static int IsWindowsPhoneProject(this IProject project)
         {
@@ -67,21 +84,20 @@ namespace Analysis
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this MethodSymbol symbol)
         {
-            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task") 
-                                       && symbol.ToString().ToLower().Contains("async(");
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
         }
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
         {
             return invocation.Expression.ToString().ToLower().EndsWith("async") && 
-                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().First()
-                                                                           .DescendantNodes()
+                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().Any( node=> 
+                                                                           node.DescendantNodes()
                                                                            .OfType<BinaryExpressionSyntax>()
-                                                                           .Any(a => a.Left.ToString().ToLower().EndsWith("completed"));
+                                                                           .Any(a => a.Left.ToString().ToLower().EndsWith("completed")));
         }
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().Contains("System.AsyncCallback") && (!symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.IAsyncResult"));
+            return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
 
@@ -111,7 +127,7 @@ namespace Analysis
 
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
-            return (symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
+            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
         }
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
@@ -132,8 +148,6 @@ namespace Analysis
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
-
-
 
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
         {

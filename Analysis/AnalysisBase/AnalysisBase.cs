@@ -12,8 +12,7 @@ namespace Analysis
     public abstract class AnalysisBase
     {
         protected static readonly Logger Log = LogManager.GetLogger("Console");
-        protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
-        protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
+
 
         private readonly string _dirName;
         private readonly string _appName;
@@ -43,7 +42,6 @@ namespace Analysis
                 {
                     UpgradeToVS2012(solutionPath);
                     CurrentSolution = Solution.Load(solutionPath);
-                    hasPhoneProjectInThisSolution = false;
                 }
                 catch (Exception ex)
                 {
@@ -78,14 +76,8 @@ namespace Analysis
                     Result.AddUnanalyzedProject();
                     return;
                 }
-                else
-                {
-                    phoneProjectListLog.Info(project.FilePath);
-                    if (!hasPhoneProjectInThisSolution)
-                        phoneSolutionListLog.Info(CurrentSolution.FilePath);
-                    hasPhoneProjectInThisSolution = true;
-
-                }
+                //Result.WritePhoneProjects(project);
+                    
 
                 if (documents == null)
                 {
@@ -112,6 +104,7 @@ namespace Analysis
 
             foreach (var document in documents)
             {
+               
                AnalyzeDocument(document);
             }
         }
@@ -119,10 +112,17 @@ namespace Analysis
 
         public void UpgradeToVS2012(string path)
         {
-            Process.Start(@"devenv " + path + @" \upgrade");
+            var command = @"devenv " + path + @" /upgrade";
+            ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/C " + command);
+            info.WindowStyle = ProcessWindowStyle.Hidden;
+            info.UseShellExecute = false;
+
+            Process p = Process.Start(info);
+            p.WaitForExit();
             string dir = Path.GetDirectoryName(path) + @"\Backup\";
             if (Directory.Exists(dir))
-                Directory.Delete(dir);
+                Directory.Delete(dir, true);
+            p.Close();
         }
 
         protected abstract void AnalyzeDocument(IDocument document);
