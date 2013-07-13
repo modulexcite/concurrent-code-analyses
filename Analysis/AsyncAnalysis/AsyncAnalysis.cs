@@ -31,7 +31,7 @@ namespace Analysis
         }
 
 
-        public override bool FilterProject(Enums.ProjectType type)
+        protected override bool FilterProject(Enums.ProjectType type)
         {
             if (type == Enums.ProjectType.WP7 || type == Enums.ProjectType.WP8)
             {

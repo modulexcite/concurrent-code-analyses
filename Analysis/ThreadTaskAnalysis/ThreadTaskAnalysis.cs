@@ -23,7 +23,7 @@ namespace Analysis
              result = new ThreadTaskAnalysisResult(appName);
         }
 
-        public override bool FilterProject(Enums.ProjectType type)
+        protected override bool FilterProject(Enums.ProjectType type)
         {
             return true;
         }

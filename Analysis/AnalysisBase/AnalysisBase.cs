@@ -71,11 +71,12 @@ namespace Analysis
             Result.AddProject(); 
             IEnumerable<IDocument> documents;
             
-            if ((documents = TryLoadProject(project)) != null)
+            if ((documents = TryLoadProject(project)) != null 
+                && !project.IsCSProject())
             {
                 Enums.ProjectType type = project.GetProjectType();
 
-                // Filtering projects according to their type!
+                // Filtering projects according to their type, depending on the type of the analysis
                 if (FilterProject(type))
                 {
                     Result.AddAnalyzedProject(type);
@@ -96,7 +97,7 @@ namespace Analysis
                 return;
         }
 
-        public abstract bool FilterProject(Enums.ProjectType type);
+        protected abstract bool FilterProject(Enums.ProjectType type);
 
         // I did not make it extension method, because it is better to see all exception handling in this file.
         private static IEnumerable<IDocument> TryLoadProject(IProject project)
