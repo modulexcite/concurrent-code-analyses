@@ -72,7 +72,7 @@ namespace Analysis
             IEnumerable<IDocument> documents;
             
             if ((documents = TryLoadProject(project)) != null 
-                && !project.IsCSProject())
+                && project.IsCSProject())
             {
                 Enums.ProjectType type = project.GetProjectType();
 
