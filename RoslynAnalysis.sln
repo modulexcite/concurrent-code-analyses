@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Refactoring", "Refactoring\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Refactoring-Tests", "Refactoring-Tests\Refactoring-Tests.csproj", "{A77048AC-A682-493D-B389-D160748A76EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Challenges", "Challenges\Challenges.csproj", "{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +100,16 @@ Global
 		{A77048AC-A682-493D-B389-D160748A76EA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A77048AC-A682-493D-B389-D160748A76EA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A77048AC-A682-493D-B389-D160748A76EA}.Release|x86.ActiveCfg = Release|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
