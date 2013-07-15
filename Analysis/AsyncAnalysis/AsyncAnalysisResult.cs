@@ -83,8 +83,15 @@ namespace Analysis
         {
             if (Enums.Detected.None != type)
             {
-                var methodCallString = symbol.ToStringWithReturnType();
-                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), methodCallString.Replace(",", ";"), type.ToString());
+                string returntype;
+                if (symbol.ReturnsVoid)
+                    returntype = "void ";
+                else
+                    returntype = symbol.ReturnType.ToString();
+                
+                //Class name: symbol.ContainingType.ToString()
+                
+                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), returntype.Replace(",",";"), symbol.OriginalDefinition.ToString().Replace(",", ";"), type.ToString());
             }
         }  
     }

@@ -84,6 +84,16 @@ namespace Analysis
                         return 1;
                 }
             }
+            else
+            {
+                var node2 = doc.SelectSingleNode("//x:XnaPlatform", mgr);
+                if (node2 != null)
+                {
+                    if (node2.InnerText.ToString().Equals("Windows Phone"))
+                        return 1;
+                }
+
+            }
             return 0;
         }
 
