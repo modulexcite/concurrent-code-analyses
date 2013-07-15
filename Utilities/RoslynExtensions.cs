@@ -111,7 +111,7 @@ namespace Analysis
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this MethodSymbol symbol)
         {
-            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
+            return symbol.ReturnTask() && !symbol.ToString().StartsWith("System.Threading.Tasks");
         }
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
@@ -132,7 +132,7 @@ namespace Analysis
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
         public static bool IsTPLMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().StartsWith("System.Threading.Tasks");
+            return symbol.ReturnTask() && symbol.ToString().StartsWith("System.Threading.Tasks");
         }
 
 
@@ -176,10 +176,21 @@ namespace Analysis
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
 
+        // END
+
+
+        public static bool ReturnTask(this MethodSymbol symbol)
+        {
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
+        }
+
+
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
         {
             return node.Name.ToString().StartsWith("System.Windows");
         }
+
+
 
 
         public static bool HasEventArgsParameter(this MethodDeclarationSyntax method)

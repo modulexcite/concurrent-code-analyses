@@ -109,17 +109,7 @@ namespace Analysis
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
             if (methodCallSymbol == null)
-            {
                 return Enums.Detected.None;
-            }
-
-            // DETECT PATTERNS
-            if (methodCallSymbol.IsAPMBeginMethod())
-                return Enums.Detected.APM;
-            else if (methodCall.IsEAPMethod())
-                return Enums.Detected.EAP;
-            else if (methodCallSymbol.IsTAPMethod())
-                return Enums.Detected.TAP;
 
             // DETECT ASYNC CALLS
             else if (methodCallSymbol.IsThreadStart())
@@ -132,7 +122,6 @@ namespace Analysis
                 return Enums.Detected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
                 return Enums.Detected.TPL;
-
             // DETECT GUI UPDATE CALLS
             else if (methodCallSymbol.IsISynchronizeInvokeMethod())
                 return Enums.Detected.ISynchronizeInvoke;
@@ -140,8 +129,18 @@ namespace Analysis
                 return Enums.Detected.ControlInvoke;
             else if (methodCallSymbol.IsDispatcherBeginInvoke())
                 return Enums.Detected.Dispatcher;
+            // DETECT PATTERNS
+            else if (methodCallSymbol.IsAPMBeginMethod())
+                return Enums.Detected.APM;
+            else if (methodCall.IsEAPMethod())
+                return Enums.Detected.EAP;
+            else if (methodCallSymbol.IsTAPMethod())
+                return Enums.Detected.TAP;
+              
+            // 
             else
                 return Enums.Detected.None;
+
         }
     }
 }
