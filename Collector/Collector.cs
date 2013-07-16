@@ -12,6 +12,8 @@ namespace Collector
     internal class Collector
     {
         private static readonly Logger Log = LogManager.GetLogger("Console");
+        private static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
+
         private static string SummaryLogFileName = ConfigurationManager.AppSettings["SummaryLogFile"];
 
         private readonly List<string> _analyzedProjects;
@@ -36,12 +38,16 @@ namespace Collector
 
         public void Run()
         {
+            SummaryLog.Info(
+@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
+);
+
             var index = 1;
 
             foreach (var subdir in _subdirsToAnalyze)
             {
                 var appName = subdir.Split('\\').Last();
-                
+
                 var app = new AsyncAnalysis(subdir, appName);
 
                 Log.Info(@"{0}: {1}", index, appName);
@@ -49,7 +55,7 @@ namespace Collector
                 app.Analyze();
 
                 ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
-                
+
                 index++;
             }
         }
