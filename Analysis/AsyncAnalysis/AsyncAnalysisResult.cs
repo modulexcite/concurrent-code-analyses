@@ -20,7 +20,7 @@ namespace Analysis
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassifierLog");
-        
+        protected static readonly Logger ClassifierOriginalLog = LogManager.GetLogger("ClassifierOriginalLog");
         
         
         public AsyncAnalysisResult(string appName)
@@ -88,10 +88,17 @@ namespace Analysis
                     returntype = "void ";
                 else
                     returntype = symbol.ReturnType.ToString();
+
+                ClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters); 
                 
-                //Class name: symbol.ContainingType.ToString()
-                
-                ClassifierLog.Info(@"{0},{1},{2},{3}", _appName, documentPath.Replace(",",";"), returntype.Replace(",",";"), symbol.OriginalDefinition.ToString().Replace(",", ";"), type.ToString());
+
+                // Let's get rid of all generic information!
+
+                if (!symbol.ReturnsVoid)
+                    returntype = symbol.ReturnType.OriginalDefinition.ToString();
+
+
+                ClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters); 
             }
         }  
     }

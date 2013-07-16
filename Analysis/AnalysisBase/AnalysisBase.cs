@@ -40,7 +40,8 @@ namespace Analysis
             var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                TryUpgradeToVS2012(solutionPath);
+                
+                //TryUpgradeToVS2012(solutionPath);  // enable when you are first exploring the code repository
 
                 CurrentSolution = TryLoadSolution(solutionPath);
 
@@ -93,8 +94,6 @@ namespace Analysis
                 Result.AddUnanalyzedProject();
             }
 
-            if (!project.IsCSProject())
-                return;
         }
 
         protected abstract bool FilterProject(Enums.ProjectType type);
