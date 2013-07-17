@@ -1,4 +1,5 @@
-﻿using Roslyn.Compilers.CSharp;
+﻿using NLog;
+using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System;
 
@@ -11,6 +12,8 @@ namespace Analysis
         public SemanticModel SemanticModel { get; set; }
         public IDocument Document { get; set; }
 
+
+        protected static readonly Logger TempLog = LogManager.GetLogger("TempLog");
         private bool uiClass;
 
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
@@ -27,11 +30,23 @@ namespace Analysis
         {
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
-            var type = Analysis.DetectAsyncProgrammingUsages(node, symbol);
+            if (symbol != null)
+            {
+                //var asynctype = Analysis.DetectAsynchronousUsages(node, symbol);
 
-            Result.StoreDetectedAsyncUsage(type);
+                //Result.StoreDetectedAsyncUsage(asynctype);
 
-            Result.WriteDetectedAsync(type, Document.FilePath, symbol);
+                //Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
+
+
+                var synctype = Analysis.DetectSynchronousUsages(node, (MethodSymbol)symbol.OriginalDefinition);
+
+                Result.StoreDetectedSyncUsage(synctype);
+
+                Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
+            }
+            
+                
 
             base.VisitInvocationExpression(node);
         }
@@ -49,6 +64,9 @@ namespace Analysis
                 }
                 else
                     Result.NumAsyncTaskMethods++;
+
+                if (!node.Body.ToString().Contains("await"))
+                    Result.NumAsyncNotHavingAwaitMethods++;
             }
 
             base.VisitMethodDeclaration(node);

@@ -14,13 +14,18 @@ namespace Analysis
         public int NumEventHandlerMethods;
         public int NumAsyncVoidNonEventHandlerMethods;
         public int NumAsyncVoidEventHandlerMethods;
+        public int NumAsyncNotHavingAwaitMethods;
         public int NumAsyncTaskMethods;
+
+        public int NumSyncReplacableMethods;
 
         public int[] NumAsyncProgrammingUsages;
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
-        protected static readonly Logger ClassifierLog = LogManager.GetLogger("ClassifierLog");
-        protected static readonly Logger ClassifierOriginalLog = LogManager.GetLogger("ClassifierOriginalLog");
+        protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
+        protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
+        protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
+
         
         
         public AsyncAnalysisResult(string appName)
@@ -29,9 +34,9 @@ namespace Analysis
             NumAsyncProgrammingUsages = new int[11];
         }
 
-        public void StoreDetectedAsyncUsage(Enums.Detected type)
+        public void StoreDetectedAsyncUsage(Enums.AsyncDetected type)
         {
-            if (Enums.Detected.None != type)
+            if (Enums.AsyncDetected.None != type)
                 NumAsyncProgrammingUsages[(int)type]++;
         }
 
@@ -50,7 +55,7 @@ namespace Analysis
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary += NumAsyncVoidNonEventHandlerMethods + "," + NumAsyncVoidEventHandlerMethods+ ","+ NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
+            summary += NumSyncReplacableMethods +"," + NumAsyncNotHavingAwaitMethods + "," + NumAsyncVoidNonEventHandlerMethods + "," + NumAsyncVoidEventHandlerMethods+ ","+ NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
             SummaryLog.Info(summary);
 
         }
@@ -70,18 +75,18 @@ namespace Analysis
             CallTraceLog.Info(message);
         }
 
-        public void WriteDetectedAsyncToCallTrace(Enums.Detected type, MethodSymbol symbol) 
+        public void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol) 
         {
-            if (Enums.Detected.None != type)
+            if (Enums.AsyncDetected.None != type)
             {
                 var text = "///" + type.ToString() + "///  " + symbol.ToStringWithReturnType();
                 CallTraceLog.Info(text);
             }
         }
 
-        public void WriteDetectedAsync(Enums.Detected type, string documentPath, MethodSymbol symbol)
+        public void WriteDetectedAsyncUsage(Enums.AsyncDetected type, string documentPath, MethodSymbol symbol)
         {
-            if (Enums.Detected.None != type)
+            if (Enums.AsyncDetected.None != type)
             {
                 string returntype;
                 if (symbol.ReturnsVoid)
@@ -89,7 +94,7 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                ClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters); 
+                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters); 
                 
 
                 // Let's get rid of all generic information!
@@ -98,8 +103,29 @@ namespace Analysis
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
 
-                ClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters); 
+                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters); 
             }
-        }  
+        }
+
+        internal void StoreDetectedSyncUsage(Enums.SyncDetected synctype)
+        {
+            if (Enums.SyncDetected.None != synctype)
+                NumSyncReplacableMethods++;
+        }
+
+        internal void WriteDetectedSyncUsage(Enums.SyncDetected type, string documentPath, MethodSymbol symbol)
+        {
+            if (Enums.SyncDetected.None != type)
+            {
+                string returntype;
+                if (symbol.ReturnsVoid)
+                    returntype = "void ";
+                else
+                    returntype = symbol.ReturnType.ToString();
+
+                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
+
+            }
+        }
     }
 }

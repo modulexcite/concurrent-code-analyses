@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Roslyn.Compilers.CSharp;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -26,6 +27,8 @@ namespace Test
                 Directory.Delete(dir,true);
 
             Console.ReadLine();
+
+
 
         }
     }
