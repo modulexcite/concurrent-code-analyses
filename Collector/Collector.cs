@@ -38,9 +38,9 @@ namespace Collector
 
         public void Run()
         {
-            SummaryLog.Info(
-@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
-);
+            //SummaryLog.Info(
+//@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
+///);
 
             var index = 1;
 

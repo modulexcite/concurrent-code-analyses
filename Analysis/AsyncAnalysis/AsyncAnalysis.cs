@@ -78,7 +78,7 @@ namespace Analysis
                 {
                     var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
-                    var type= DetectAsyncProgrammingUsages(methodCall, methodCallSymbol);
+                    var type= DetectAsynchronousUsages(methodCall, methodCallSymbol);
                     Result.StoreDetectedAsyncUsage(type);
                     Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol); 
 
@@ -104,43 +104,96 @@ namespace Analysis
             }
         }
 
-        public Enums.Detected DetectAsyncProgrammingUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        public Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
-            if (methodCallSymbol == null)
-                return Enums.Detected.None;
 
             // DETECT ASYNC CALLS
-            else if (methodCallSymbol.IsThreadStart())
-                return Enums.Detected.Thread;
+            if (methodCallSymbol.IsThreadStart())
+                return Enums.AsyncDetected.Thread;
             else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
-                return Enums.Detected.Threadpool;
+                return Enums.AsyncDetected.Threadpool;
             else if (methodCallSymbol.IsAsyncDelegate())
-                return Enums.Detected.AsyncDelegate;
+                return Enums.AsyncDetected.AsyncDelegate;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
-                return Enums.Detected.BackgroundWorker;
+                return Enums.AsyncDetected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
-                return Enums.Detected.TPL;
+                return Enums.AsyncDetected.TPL;
             // DETECT GUI UPDATE CALLS
             else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-                return Enums.Detected.ISynchronizeInvoke;
+                return Enums.AsyncDetected.ISynchronizeInvoke;
             else if (methodCallSymbol.IsControlBeginInvoke())
-                return Enums.Detected.ControlInvoke;
+                return Enums.AsyncDetected.ControlInvoke;
             else if (methodCallSymbol.IsDispatcherBeginInvoke())
-                return Enums.Detected.Dispatcher;
+                return Enums.AsyncDetected.Dispatcher;
             // DETECT PATTERNS
             else if (methodCallSymbol.IsAPMBeginMethod())
-                return Enums.Detected.APM;
+                return Enums.AsyncDetected.APM;
             else if (methodCall.IsEAPMethod())
-                return Enums.Detected.EAP;
+                return Enums.AsyncDetected.EAP;
             else if (methodCallSymbol.IsTAPMethod())
-                return Enums.Detected.TAP;
+                return Enums.AsyncDetected.TAP;
               
             // 
             else
-                return Enums.Detected.None;
+                return Enums.AsyncDetected.None;
 
+        }
+
+
+        public Enums.SyncDetected DetectSynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        {
+
+            var list = methodCallSymbol.ContainingType.MemberNames;
+
+            var name = methodCallSymbol.Name;
+
+            bool isTAPReplacable=false;
+            bool isEAPReplacable=false;
+            bool isAPMReplacable=false;
+
+            foreach (var tmp in list)
+            {
+                if (tmp.ToString().Equals("Begin" + name))
+                {
+                  
+                    isAPMReplacable = true;
+                }
+                if (tmp.ToString().Equals(name + "Async"))
+                {
+                    
+                    // TODO: Get the return type of the member! 
+                    isEAPReplacable = true;
+                    isTAPReplacable = true;
+                }
+            }
+
+            if (isAPMReplacable)
+            {
+                if (isEAPReplacable)
+                {
+                    if (isTAPReplacable)
+                        return Enums.SyncDetected.APMEAPTAPReplacable;
+                    else
+                        return Enums.SyncDetected.APMEAPReplacable;
+                }
+                else if (isTAPReplacable)
+                    return Enums.SyncDetected.APMTAPReplacable;
+                else
+                    return Enums.SyncDetected.APMReplacable;
+            }
+            else if (isEAPReplacable)
+            {
+                return Enums.SyncDetected.EAPReplacable;
+            }
+            else if (isTAPReplacable)
+            {
+                return Enums.SyncDetected.TAPReplacable;
+            }
+            else
+                return Enums.SyncDetected.None;
+           
         }
     }
 }
