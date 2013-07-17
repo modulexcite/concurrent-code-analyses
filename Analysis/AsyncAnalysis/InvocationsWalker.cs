@@ -1,7 +1,11 @@
 ﻿using NLog;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System.Linq;
+using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
 using System;
+using Utilities;
 
 namespace Analysis
 {
@@ -44,6 +48,14 @@ namespace Analysis
                 Result.StoreDetectedSyncUsage(synctype);
 
                 Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
+
+                if (synctype != Utilities.Enums.SyncDetected.None
+                    && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method=> method.HasAsyncModifier()))
+                {
+                    Result.NumGUIBlockingSyncUsages++;
+                    TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
+                    
+                }
             }
             
                 
@@ -66,7 +78,19 @@ namespace Analysis
                     Result.NumAsyncTaskMethods++;
 
                 if (!node.Body.ToString().Contains("await"))
-                    Result.NumAsyncNotHavingAwaitMethods++;
+                    Result.NumAsyncMethodsNotHavingAwait++;
+
+                if (node.Body.ToString().Contains("ConfigureAwait"))
+                {
+                    Result.NumAsyncMethodsHavingConfigureAwait++;
+                    TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
+                }
+                if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
+                {
+                    TempLog.Info(@"BLOCKING {0}",node.ToString());
+                    Result.NumAsyncMethodsHavingBlockingCalls++;
+                }
+                
             }
 
             base.VisitMethodDeclaration(node);

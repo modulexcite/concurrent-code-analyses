@@ -14,10 +14,18 @@ namespace Analysis
         public int NumEventHandlerMethods;
         public int NumAsyncVoidNonEventHandlerMethods;
         public int NumAsyncVoidEventHandlerMethods;
-        public int NumAsyncNotHavingAwaitMethods;
         public int NumAsyncTaskMethods;
 
-        public int NumSyncReplacableMethods;
+        public int NumSyncReplacableUsages;
+
+
+        public int NumGUIBlockingSyncUsages;
+
+
+        public int NumAsyncMethodsHavingConfigureAwait;
+        public int NumAsyncMethodsHavingBlockingCalls;
+        public int NumAsyncMethodsNotHavingAwait;
+
 
         public int[] NumAsyncProgrammingUsages;
 
@@ -25,6 +33,8 @@ namespace Analysis
         protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
         protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
         protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
+        
+
 
         
         
@@ -55,7 +65,21 @@ namespace Analysis
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary += NumSyncReplacableMethods +"," + NumAsyncNotHavingAwaitMethods + "," + NumAsyncVoidNonEventHandlerMethods + "," + NumAsyncVoidEventHandlerMethods+ ","+ NumAsyncTaskMethods +","+ NumEventHandlerMethods + "," + NumUIClasses;
+            summary +=
+                NumGUIBlockingSyncUsages + "," +
+                NumSyncReplacableUsages +"," +
+
+                NumAsyncMethodsHavingConfigureAwait +","+
+                NumAsyncMethodsHavingBlockingCalls +","+
+                NumAsyncMethodsNotHavingAwait + "," + 
+
+                NumAsyncVoidNonEventHandlerMethods + "," + 
+                NumAsyncVoidEventHandlerMethods+ ","+ 
+                NumAsyncTaskMethods +","+ 
+
+                NumEventHandlerMethods + "," + 
+                NumUIClasses;
+
             SummaryLog.Info(summary);
 
         }
@@ -75,7 +99,7 @@ namespace Analysis
             CallTraceLog.Info(message);
         }
 
-        public void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol) 
+        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol) 
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -84,7 +108,7 @@ namespace Analysis
             }
         }
 
-        public void WriteDetectedAsyncUsage(Enums.AsyncDetected type, string documentPath, MethodSymbol symbol)
+        internal void WriteDetectedAsyncUsage(Enums.AsyncDetected type, string documentPath, MethodSymbol symbol)
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -110,7 +134,7 @@ namespace Analysis
         internal void StoreDetectedSyncUsage(Enums.SyncDetected synctype)
         {
             if (Enums.SyncDetected.None != synctype)
-                NumSyncReplacableMethods++;
+                NumSyncReplacableUsages++;
         }
 
         internal void WriteDetectedSyncUsage(Enums.SyncDetected type, string documentPath, MethodSymbol symbol)

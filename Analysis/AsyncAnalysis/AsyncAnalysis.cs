@@ -157,12 +157,12 @@ namespace Analysis
             {
                 if (tmp.ToString().Equals("Begin" + name))
                 {
-                    Console.WriteLine(tmp);
+                  
                     isAPMReplacable = true;
                 }
                 if (tmp.ToString().Equals(name + "Async"))
                 {
-                    Console.WriteLine(tmp);
+                    
                     // TODO: Get the return type of the member! 
                     isEAPReplacable = true;
                     isTAPReplacable = true;
