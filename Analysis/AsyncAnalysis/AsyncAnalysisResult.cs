@@ -52,33 +52,35 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-            string summary = _appName + "," +
-                               NumTotalProjects + "," +
-                               NumUnanalyzedProjects + "," +
-                               NumPhone7Projects + "," +
-                               NumPhone8Projects + "," +
-                               NumNet4Projects + "," +
-                               NumNet45Projects + "," +
-                               NumOtherNetProjects + "," +
-                               NumTotalSLOC+ ",";
+
+            string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",  
+                                   _appName,
+                                   NumTotalProjects,
+                                   NumUnanalyzedProjects,
+                                   NumPhone7Projects,
+                                   NumPhone8Projects,
+                                   NumNet4Projects,
+                                   NumNet45Projects,
+                                   NumOtherNetProjects,
+                                   NumTotalSLOC);
 
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary +=
-                NumGUIBlockingSyncUsages + "," +
-                NumSyncReplacableUsages +"," +
+            summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                NumGUIBlockingSyncUsages,
+                NumSyncReplacableUsages,
 
-                NumAsyncMethodsHavingConfigureAwait +","+
-                NumAsyncMethodsHavingBlockingCalls +","+
-                NumAsyncMethodsNotHavingAwait + "," + 
+                NumAsyncMethodsHavingConfigureAwait,
+                NumAsyncMethodsHavingBlockingCalls,
+                NumAsyncMethodsNotHavingAwait,
 
-                NumAsyncVoidNonEventHandlerMethods + "," + 
-                NumAsyncVoidEventHandlerMethods+ ","+ 
-                NumAsyncTaskMethods +","+ 
+                NumAsyncVoidNonEventHandlerMethods,
+                NumAsyncVoidEventHandlerMethods, 
+                NumAsyncTaskMethods,
 
-                NumEventHandlerMethods + "," + 
-                NumUIClasses;
+                NumEventHandlerMethods,
+                NumUIClasses);
 
             SummaryLog.Info(summary);
 
