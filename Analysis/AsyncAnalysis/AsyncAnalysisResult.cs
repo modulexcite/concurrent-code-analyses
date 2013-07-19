@@ -26,6 +26,12 @@ namespace Analysis
         public int NumAsyncMethodsHavingBlockingCalls;
         public int NumAsyncMethodsNotHavingAwait;
 
+        public int NumAPMBeginMethods;
+        public int NumAPMBeginFollowed;
+        public int NumAPMEndMethods;
+        public int NumAPMEndTryCatchedMethods;
+        public int NumAPMEndNestedMethods;
+
 
         public int[] NumAsyncProgrammingUsages;
 
@@ -33,6 +39,7 @@ namespace Analysis
         protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
         protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
         protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
+
         
 
 
@@ -81,6 +88,14 @@ namespace Analysis
 
                 NumEventHandlerMethods,
                 NumUIClasses);
+
+
+            summary += String.Format(@"{0},{1},{2},{3},{4}",
+                NumAPMBeginMethods,
+                NumAPMBeginFollowed,
+                NumAPMEndMethods,
+                NumAPMEndTryCatchedMethods,
+                NumAPMEndNestedMethods);
 
             SummaryLog.Info(summary);
 

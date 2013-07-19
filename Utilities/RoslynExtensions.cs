@@ -136,7 +136,7 @@ namespace Analysis
         {
             return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
-
+        
 
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
@@ -188,6 +188,13 @@ namespace Analysis
 
         // END
 
+
+
+
+        public static bool IsAPMEndMethod(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("IAsyncResult") && symbol.Name.StartsWith("End");
+        }
 
         public static bool ReturnTask(this MethodSymbol symbol)
         {
