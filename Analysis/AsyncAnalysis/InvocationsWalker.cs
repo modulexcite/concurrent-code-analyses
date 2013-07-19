@@ -6,6 +6,7 @@ using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System;
 using Utilities;
+using System.Configuration;
 
 namespace Analysis
 {
@@ -36,26 +37,31 @@ namespace Analysis
 
             if (symbol != null)
             {
-                //var asynctype = Analysis.DetectAsynchronousUsages(node, symbol);
-
-                //Result.StoreDetectedAsyncUsage(asynctype);
-
-                //Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
-
-
-                var synctype = Analysis.DetectSynchronousUsages(node, (MethodSymbol)symbol.OriginalDefinition);
-
-                Result.StoreDetectedSyncUsage(synctype);
-
-                Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
-
-                if (synctype != Utilities.Enums.SyncDetected.None
-                    && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method=> method.HasAsyncModifier()))
+                if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]))
                 {
-                    Result.NumGUIBlockingSyncUsages++;
-                    TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
-                    
+                    var asynctype = Analysis.DetectAsynchronousUsages(node, symbol);
+                    Result.StoreDetectedAsyncUsage(asynctype);
+                    Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
                 }
+
+
+                if (bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]))
+                {
+                    var synctype = Analysis.DetectSynchronousUsages(node, (MethodSymbol)symbol.OriginalDefinition);
+                    Result.StoreDetectedSyncUsage(synctype);
+                    Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
+                    if (synctype != Utilities.Enums.SyncDetected.None
+                            && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method => method.HasAsyncModifier()))
+                    {
+                        Result.NumGUIBlockingSyncUsages++;
+                        TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
+
+                    }
+                }
+
+               
+
+              
             }
             
                 
@@ -65,32 +71,36 @@ namespace Analysis
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            if (node.HasAsyncModifier())
+
+            if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
             {
-                if (node.ReturnType.ToString().Equals("void"))
+                if (node.HasAsyncModifier())
                 {
-                    if (node.HasEventArgsParameter())
-                        Result.NumAsyncVoidEventHandlerMethods++;
+                    if (node.ReturnType.ToString().Equals("void"))
+                    {
+                        if (node.HasEventArgsParameter())
+                            Result.NumAsyncVoidEventHandlerMethods++;
+                        else
+                            Result.NumAsyncVoidNonEventHandlerMethods++;
+                    }
                     else
-                        Result.NumAsyncVoidNonEventHandlerMethods++;
-                }
-                else
-                    Result.NumAsyncTaskMethods++;
+                        Result.NumAsyncTaskMethods++;
 
-                if (!node.Body.ToString().Contains("await"))
-                    Result.NumAsyncMethodsNotHavingAwait++;
+                    if (!node.Body.ToString().Contains("await"))
+                        Result.NumAsyncMethodsNotHavingAwait++;
 
-                if (node.Body.ToString().Contains("ConfigureAwait"))
-                {
-                    Result.NumAsyncMethodsHavingConfigureAwait++;
-                    TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
+                    if (node.Body.ToString().Contains("ConfigureAwait"))
+                    {
+                        Result.NumAsyncMethodsHavingConfigureAwait++;
+                        TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
+                    }
+                    if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
+                    {
+                        TempLog.Info(@"BLOCKING {0}", node.ToString());
+                        Result.NumAsyncMethodsHavingBlockingCalls++;
+                    }
+
                 }
-                if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
-                {
-                    TempLog.Info(@"BLOCKING {0}",node.ToString());
-                    Result.NumAsyncMethodsHavingBlockingCalls++;
-                }
-                
             }
 
             base.VisitMethodDeclaration(node);

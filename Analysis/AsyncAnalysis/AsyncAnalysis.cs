@@ -162,7 +162,7 @@ namespace Analysis
                 }
                 if (tmp.ToString().Equals(name + "Async"))
                 {
-                    
+                    compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")
                     // TODO: Get the return type of the member! 
                     isEAPReplacable = true;
                     isTAPReplacable = true;
