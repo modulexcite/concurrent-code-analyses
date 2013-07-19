@@ -149,51 +149,23 @@ namespace Analysis
 
             var name = methodCallSymbol.Name;
 
-            bool isTAPReplacable=false;
-            bool isEAPReplacable=false;
-            bool isAPMReplacable=false;
+            Enums.SyncDetected type = Enums.SyncDetected.None;
 
             foreach (var tmp in list)
             {
                 if (tmp.ToString().Equals("Begin" + name))
                 {
                   
-                    isAPMReplacable = true;
+                    type |= Enums.SyncDetected.APMReplacable;
                 }
                 if (tmp.ToString().Equals(name + "Async"))
                 {
-                    compilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")
-                    // TODO: Get the return type of the member! 
-                    isEAPReplacable = true;
-                    isTAPReplacable = true;
+                    type |= Enums.SyncDetected.TAPReplacable;
+                    // TODO: look at return type of compilation.GetTypeByMetadataName(methodCallSymbol.ContainingType + "."+tmp) to check whether it is TAP or EAP
                 }
             }
 
-            if (isAPMReplacable)
-            {
-                if (isEAPReplacable)
-                {
-                    if (isTAPReplacable)
-                        return Enums.SyncDetected.APMEAPTAPReplacable;
-                    else
-                        return Enums.SyncDetected.APMEAPReplacable;
-                }
-                else if (isTAPReplacable)
-                    return Enums.SyncDetected.APMTAPReplacable;
-                else
-                    return Enums.SyncDetected.APMReplacable;
-            }
-            else if (isEAPReplacable)
-            {
-                return Enums.SyncDetected.EAPReplacable;
-            }
-            else if (isTAPReplacable)
-            {
-                return Enums.SyncDetected.TAPReplacable;
-            }
-            else
-                return Enums.SyncDetected.None;
-           
+            return type;
         }
     }
 }
