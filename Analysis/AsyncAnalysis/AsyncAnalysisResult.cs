@@ -26,6 +26,12 @@ namespace Analysis
         public int NumAsyncMethodsHavingBlockingCalls;
         public int NumAsyncMethodsNotHavingAwait;
 
+        public int NumAPMBeginMethods;
+        public int NumAPMBeginFollowed;
+        public int NumAPMEndMethods;
+        public int NumAPMEndTryCatchedMethods;
+        public int NumAPMEndNestedMethods;
+
 
         public int[] NumAsyncProgrammingUsages;
 
@@ -33,6 +39,7 @@ namespace Analysis
         protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
         protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
         protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
+
         
 
 
@@ -52,33 +59,43 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-            string summary = _appName + "," +
-                               NumTotalProjects + "," +
-                               NumUnanalyzedProjects + "," +
-                               NumPhone7Projects + "," +
-                               NumPhone8Projects + "," +
-                               NumNet4Projects + "," +
-                               NumNet45Projects + "," +
-                               NumOtherNetProjects + "," +
-                               NumTotalSLOC+ ",";
+
+            string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",  
+                                   _appName,
+                                   NumTotalProjects,
+                                   NumUnanalyzedProjects,
+                                   NumPhone7Projects,
+                                   NumPhone8Projects,
+                                   NumNet4Projects,
+                                   NumNet45Projects,
+                                   NumOtherNetProjects,
+                                   NumTotalSLOC);
 
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary +=
-                NumGUIBlockingSyncUsages + "," +
-                NumSyncReplacableUsages +"," +
+            summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                NumGUIBlockingSyncUsages,
+                NumSyncReplacableUsages,
 
-                NumAsyncMethodsHavingConfigureAwait +","+
-                NumAsyncMethodsHavingBlockingCalls +","+
-                NumAsyncMethodsNotHavingAwait + "," + 
+                NumAsyncMethodsHavingConfigureAwait,
+                NumAsyncMethodsHavingBlockingCalls,
+                NumAsyncMethodsNotHavingAwait,
 
-                NumAsyncVoidNonEventHandlerMethods + "," + 
-                NumAsyncVoidEventHandlerMethods+ ","+ 
-                NumAsyncTaskMethods +","+ 
+                NumAsyncVoidNonEventHandlerMethods,
+                NumAsyncVoidEventHandlerMethods, 
+                NumAsyncTaskMethods,
 
-                NumEventHandlerMethods + "," + 
-                NumUIClasses;
+                NumEventHandlerMethods,
+                NumUIClasses);
+
+
+            summary += String.Format(@"{0},{1},{2},{3},{4}",
+                NumAPMBeginMethods,
+                NumAPMBeginFollowed,
+                NumAPMEndMethods,
+                NumAPMEndTryCatchedMethods,
+                NumAPMEndNestedMethods);
 
             SummaryLog.Info(summary);
 
