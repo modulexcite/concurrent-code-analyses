@@ -42,9 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CatchBlockPropagationChallenge.cs" />
+    <Compile Include="OpenChallenges.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RefactoringSteps.cs" />
     <Compile Include="ReusedEndMethodChallenge.cs" />
+    <Compile Include="SharedEndXxxRefactoring.cs" />
+    <Compile Include="SimpleCase.cs" />
+    <Compile Include="TryCatchBlockRefactoring.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
