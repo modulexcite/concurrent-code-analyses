@@ -53,7 +53,7 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.google.com/"");
-            request.BeginGetResponse(new AsyncCallback(CallBack), request);
+            request.BeginGetResponse(CallBack, request);
 
             // Do something while GET request is in progress.
         }
