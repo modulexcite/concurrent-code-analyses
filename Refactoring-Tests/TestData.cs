@@ -95,7 +95,12 @@ namespace TextInput
             // Do something while GET request is in progress.
 
             var response = await task;
+            CallBack(response, request);
+           
+        }
 
+        private void CallBack(WebResponse response, WebRequest request)
+        {
             // Do something with the response.
         }
     }
