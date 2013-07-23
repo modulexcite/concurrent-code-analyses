@@ -74,7 +74,7 @@ namespace Analysis
             foreach (var pattern in NumAsyncProgrammingUsages)
                 summary+=pattern + ",";
 
-            summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+            summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},",
                 NumGUIBlockingSyncUsages,
                 NumSyncReplacableUsages,
 
