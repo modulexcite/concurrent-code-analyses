@@ -75,6 +75,7 @@ namespace Analysis
                         APMDiagnosisLog.Info(@"{0}", node);
                         APMDiagnosisLog.Info("---------------------------------------------------");
 
+                        Result.NumAPMBeginMethods++;
                         var statement = node.Ancestors().OfType<StatementSyntax>().First();
                         var ancestors = node.Ancestors().OfType<MethodDeclarationSyntax>();
                         if (ancestors.Any())
