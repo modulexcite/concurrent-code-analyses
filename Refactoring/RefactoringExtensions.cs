@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
+using Roslyn.Services.Formatting;
+using Roslyn.Services;
 
 namespace Refactoring
 {
@@ -12,7 +15,9 @@ namespace Refactoring
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
         /// <param name="invocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, 
+            InvocationExpressionSyntax invocation,
+            SemanticModel model)
         {
             var method = invocation.ContainingMethod();
             var expression = (MemberAccessExpressionSyntax)invocation.Expression;
@@ -21,7 +26,14 @@ namespace Refactoring
             if (HasCallbackParameter(invocation))
             {
                 // annotate invocation expression
-                CreateNewCallbackMethod(invocation);
+
+                var oldCallbackMethodDeclaration = FindCallbackMethod(invocation, model);
+                var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
+
+                syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
+            
+
+                Console.WriteLine(syntax);
                 
                 //reassign invocation 
                 TransformCallerMethod(invocation);
@@ -40,6 +52,7 @@ namespace Refactoring
 
             return syntax.ReplaceNode(expression, newExpression);
         }
+
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -97,10 +110,101 @@ namespace Refactoring
             throw new NotImplementedException();
         }
 
-        private static void CreateNewCallbackMethod(InvocationExpressionSyntax invocation)
+
+
+
+
+
+
+
+
+
+
+
+
+
+        private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
-            throw new NotImplementedException();
+
+
+            var oldMethodBody = oldMethodDeclaration.Body;
+
+            //Console.WriteLine("parameter "+oldMethodDeclaration.ParameterList);
+
+            var identifierIAsyncResult= oldMethodDeclaration.ParameterList.ChildNodes().OfType<ParameterSyntax>().Where(a => a.Type.ToString().Equals("IAsyncResult")).First().Identifier;
+
+            //Console.WriteLine("id: "+identifierIAsyncResult);
+
+            var localDeclarationList= oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
+
+
+            string parameterListText = "(";
+            int c = 0;
+            foreach (var stmt in localDeclarationList)
+            {
+                var expression = stmt.Declaration.Variables.First().Initializer.Value;
+                var id = stmt.Declaration.Variables.First().Identifier;
+                var type = model.GetTypeInfo(expression).Type;
+                
+                if(c!=0)
+                    parameterListText+=", ";
+
+                parameterListText += type.ToString() + " " + id.ToString();
+                //Console.WriteLine("* "+ type + " " + id);
+                // * System.Net.WebRequest request,  System.Net.WebResponse response
+                c++;
+            }
+            parameterListText += ")";
+
+            var newMethodBody = oldMethodBody.RemoveNodes(localDeclarationList,SyntaxRemoveOptions.KeepNoTrivia);
+                                                                                                
+            MethodDeclarationSyntax newMethodDeclaration =
+                Syntax.MethodDeclaration( oldMethodDeclaration.ReturnType, oldMethodDeclaration.Identifier.ToString())
+                .WithModifiers( oldMethodDeclaration.Modifiers)
+                .WithParameterList(Syntax.ParseParameterList(parameterListText))    
+                .WithBody(newMethodBody);
+
+
+            return newMethodDeclaration;
         }
+
+        private static MethodDeclarationSyntax FindCallbackMethod(InvocationExpressionSyntax invocation, SemanticModel model)
+        {
+            MethodSymbol symbol =(MethodSymbol) model.GetSymbolInfo(invocation).Symbol;
+
+            
+            int c = 0;
+            int numCallbackParam = 0;
+            foreach (var arg in symbol.Parameters)
+            {
+                if (arg.ToString().Contains("AsyncCallback"))
+                {
+                    numCallbackParam = c;
+                    break; ;
+                }
+                c++;
+            }
+
+            c = 0; 
+            foreach (var arg in invocation.ArgumentList.Arguments)
+            {
+                if (c == numCallbackParam)
+                {
+                    if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
+                    {
+                        var methodSymbol = model.GetSymbolInfo(arg.Expression).Symbol;
+
+                        return (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
+                    }
+                }
+                c++;
+            }
+            return null; 
+        }
+
+
+      
+
     }
 }
 

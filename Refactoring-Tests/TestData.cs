@@ -16,17 +16,19 @@ namespace Refactoring_Tests
         #region Assemblies
 
         private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
+        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
+
 
         #endregion
 
         #region Original syntax tree
 
         public static readonly SyntaxTree OriginalSyntaxTree = SyntaxTree.ParseText(OriginalCode);
-
+        
         public static readonly Compilation OriginalCompilation = Compilation.Create(
             outputName: "OriginalCompilation",
             syntaxTrees: new[] { OriginalSyntaxTree },
-            references: new[] { mscorlib });
+            references: new[] { mscorlib, system });
 
         public static readonly SemanticModel OriginalSemanticModel =
             OriginalCompilation.GetSemanticModel(OriginalSyntaxTree);
@@ -107,5 +109,7 @@ namespace TextInput
 }";
 
         #endregion
+
+
     }
 }
