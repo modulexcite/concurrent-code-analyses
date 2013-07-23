@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
+using Roslyn.Services.Formatting;
 
 namespace Refactoring
 {
@@ -21,7 +23,10 @@ namespace Refactoring
             if (HasCallbackParameter(invocation))
             {
                 // annotate invocation expression
-                CreateNewCallbackMethod(invocation);
+                var newMethod = CreateNewCallbackMethod(invocation);
+
+                syntax = UpdateClassWithNewMethod(syntax, newMethod);
+
                 
                 //reassign invocation 
                 TransformCallerMethod(invocation);
@@ -40,6 +45,7 @@ namespace Refactoring
 
             return syntax.ReplaceNode(expression, newExpression);
         }
+
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -97,10 +103,37 @@ namespace Refactoring
             throw new NotImplementedException();
         }
 
-        private static void CreateNewCallbackMethod(InvocationExpressionSyntax invocation)
+        private static MethodDeclarationSyntax CreateNewCallbackMethod(InvocationExpressionSyntax invocation)
         {
-            throw new NotImplementedException();
+
+            MethodDeclarationSyntax newMethodDeclaration =
+                Syntax.MethodDeclaration(Syntax.ParseTypeName("void"), "M")
+                    .WithBody(Syntax.Block());
+
+            return newMethodDeclaration; 
+            
         }
+
+        private static CompilationUnitSyntax UpdateClassWithNewMethod(CompilationUnitSyntax syntax, MethodDeclarationSyntax newMethod)
+        {
+            ClassDeclarationSyntax classDeclaration = syntax.ChildNodes()
+    .OfType<ClassDeclarationSyntax>().Single();
+
+            // Add this new MethodDeclarationSyntax to the above ClassDeclarationSyntax.
+            ClassDeclarationSyntax newClassDeclaration =
+                classDeclaration.AddMembers(newMethod);
+
+            // Update the CompilationUnitSyntax with the new ClassDeclarationSyntax.
+            CompilationUnitSyntax newSyntax =
+                syntax.ReplaceNode(classDeclaration, newClassDeclaration);
+
+            // Format the new CompilationUnitSyntax.
+            //return (CompilationUnitSyntax)newSyntax.Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
+
+            return newSyntax;
+        }
+
+
     }
 }
 
