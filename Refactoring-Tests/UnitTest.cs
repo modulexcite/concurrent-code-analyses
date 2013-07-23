@@ -9,7 +9,7 @@ namespace Refactoring_Tests
         [Test]
         public void TestMethod()
         {
-            var syntax = TestData.OriginalSyntaxTree.GetRoot().RefactorAPMToAsyncAwait(TestData.APMInvocation);
+            var syntax = TestData.OriginalSyntaxTree.GetRoot().RefactorAPMToAsyncAwait(TestData.APMInvocation, TestData.OriginalSemanticModel);
 
             Assert.That(syntax, Is.EqualTo(TestData.RefactoredSyntaxTree.GetRoot()));
             Assert.That(syntax.ToString(), Is.EqualTo(TestData.RefactoredSyntaxTree.GetRoot().ToString()));
