@@ -34,11 +34,11 @@ namespace Refactoring
                 //syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
 
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
-                var paramIdentifier = 
+                var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
                 list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();"));
-                list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result)"));
+                list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
 
-                Console.WriteLine(list);
+
                 var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration.WithModifiers( Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString()+" async")).WithBody(Syntax.Block(list));
 
 
