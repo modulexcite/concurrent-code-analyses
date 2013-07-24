@@ -76,7 +76,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
-    <Compile Include="SimpleTest.cs" />
+    <Compile Include="LambdaCallbackTest.cs" />
+    <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
