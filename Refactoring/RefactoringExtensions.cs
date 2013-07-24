@@ -25,9 +25,9 @@ namespace Refactoring
             CompilationUnitSyntax newRoot = null;
 
             // Check whether there is a callback parameter 
-            if (HasCallbackParameter(apmStatement))
+            if (apmStatement.HasCallbackParameter(model))
             {
-                var oldCallbackMethodDeclaration = FindCallbackMethod(apmStatement, model);
+                var oldCallbackMethodDeclaration = apmStatement.FindCallbackMethod(model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
                 var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
 
@@ -127,9 +127,17 @@ namespace Refactoring
         /// </summary>
         /// <param name="invocation">The APM invocation statement</param>
         /// <returns>Returns true if it has a callback function as a param, false if not</returns>
-        public static bool HasCallbackParameter(this ExpressionStatementSyntax invocation)
+        public static bool HasCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
         {
-            return true;
+            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
+            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+
+            foreach (var arg in symbol.Parameters)
+            {
+                if (arg.ToString().Contains("AsyncCallback"))
+                    return true;
+            }
+            return false;
         }
 
 
@@ -177,10 +185,10 @@ namespace Refactoring
             return newMethodDeclaration;
         }
 
-        private static MethodDeclarationSyntax FindCallbackMethod(ExpressionStatementSyntax invocation, SemanticModel model)
+        private static MethodDeclarationSyntax FindCallbackMethod(this ExpressionStatementSyntax statement, SemanticModel model)
         {
-            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation.Expression).Symbol;
-
+            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
+            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
             int c = 0;
             int numCallbackParam = 0;
@@ -195,7 +203,7 @@ namespace Refactoring
             }
 
             c = 0;
-            foreach (var arg in ((InvocationExpressionSyntax)invocation.Expression).ArgumentList.Arguments)
+            foreach (var arg in invocation.ArgumentList.Arguments)
             {
                 if (c == numCallbackParam)
                 {
