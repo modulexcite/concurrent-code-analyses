@@ -36,14 +36,16 @@ namespace Refactoring
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
                 var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
 
+                list = list.Add(
+                    Syntax.ParseStatement("var result = task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"),
+                    Syntax.ParseStatement("Callback(" + paramIdentifier + ",result);")
+                );
 
-
-                list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
-                list = list.Add(Syntax.ParseStatement("Callback(" + paramIdentifier + ",result);"));
-
-
-                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration.WithModifiers(Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString() + " async")).WithBody(Syntax.Block(list));
-
+                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration
+                    .WithModifiers(
+                        Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString() + " async") // TODO: Keyword async is not recognized
+                    )
+                    .WithBody(Syntax.Block(list));
 
                 newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
                               computeReplacementNode: (oldNode, newNode) =>
@@ -56,7 +58,7 @@ namespace Refactoring
                                 }
                               ).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
 
-                Console.WriteLine(newRoot);
+                //Console.WriteLine(newRoot);
             }
             else
             {
