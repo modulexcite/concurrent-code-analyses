@@ -18,13 +18,12 @@ namespace Refactoring_Tests
         private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
         private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
 
-
         #endregion
 
         #region Original syntax tree
 
         public static readonly SyntaxTree OriginalSyntaxTree = SyntaxTree.ParseText(OriginalCode);
-        
+
         public static readonly Compilation OriginalCompilation = Compilation.Create(
             outputName: "OriginalCompilation",
             syntaxTrees: new[] { OriginalSyntaxTree },
@@ -109,7 +108,6 @@ namespace TextInput
 }";
 
         #endregion
-
 
     }
 }
