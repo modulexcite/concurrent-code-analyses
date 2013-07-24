@@ -13,27 +13,27 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
-        /// <param name="invocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
+        /// <param name="apmInvocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, 
-            InvocationExpressionSyntax invocation,
+            InvocationExpressionSyntax apmInvocation,
             SemanticModel model)
         {
-            var oldAPMContainingMethodDeclaration = invocation.ContainingMethod();
+            var oldAPMContainingMethodDeclaration = apmInvocation.ContainingMethod();
             
 
             CompilationUnitSyntax newRoot=null; 
 
 
             // Check whether there is a callback parameter 
-            if (HasCallbackParameter(invocation))
+            if (apmInvocation.HasCallbackParameter())
             {
-                var oldCallbackMethodDeclaration = FindCallbackMethod(invocation, model);
+                var oldCallbackMethodDeclaration = FindCallbackMethod(apmInvocation, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
 
 
 
-                var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
+                var paramIdentifier = apmInvocation.ArgumentList.Arguments.Last().ToString();
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
                 list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
                 list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
