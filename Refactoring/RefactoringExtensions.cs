@@ -56,12 +56,22 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
         {
-            var tapInvocation = StatementSyntax("task", "request", "GetResponseAsync");
+            const string taskName = "task";
+
+            var invocationExpression = ((InvocationExpressionSyntax)apmInvocation.Expression);
+            var memberAccessExpression = (MemberAccessExpressionSyntax)invocationExpression.Expression;
+
+            var objectName = memberAccessExpression.Expression.ToString();
+            var methodName = AsyncMethodNameForAPMBeginInvocation(apmInvocation);
+
+            var tapInvocation = StatementSyntax(taskName, objectName, methodName);
+
             var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
 
-            var paramIdentifier = ((InvocationExpressionSyntax)apmInvocation.Expression).ArgumentList.Arguments.Last().ToString();
+            var paramIdentifier = invocationExpression.ArgumentList.Arguments.Last().ToString();
+            var awaitCode = String.Format("var result = {0}.ConfigureAwait(false).GetAwaiter().GetResult();\n", taskName);
             asyncMethod = asyncMethod.AddBodyStatements(
-                Syntax.ParseStatement("var result = task.ConfigureAwait(false).GetAwaiter().GetResult();\n"),
+                Syntax.ParseStatement(awaitCode),
                 Syntax.ParseStatement("Callback(" + paramIdentifier + ", result);")
             );
 
@@ -72,6 +82,22 @@ namespace Refactoring
             );
 
             return asyncMethod;
+        }
+
+        private static string AsyncMethodNameForAPMBeginInvocation(ExpressionStatementSyntax apmInvocation)
+        {
+            // TODO: Look up the actual symbols to make sure that they exist/the right (TAP) method is chosen.
+            // An example of where things might go wrong is the fact that EAP
+            // and TAP method names usually both end with Async, and if both
+            // exist, the TAP version is named XxxTaskAsync.
+
+            var expression = (MemberAccessExpressionSyntax)((InvocationExpressionSyntax)apmInvocation.Expression).Expression;
+
+            var apmMethodName = expression.Name.ToString();
+            var methodNameBase = apmMethodName.Substring(5);
+            var tapMethodName = methodNameBase + "Async";
+
+            return tapMethodName;
         }
 
         private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
@@ -210,7 +236,6 @@ namespace Refactoring
             }
             return null;
         }
-
 
 
 
