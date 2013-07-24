@@ -5,6 +5,7 @@ using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services.Formatting;
 using Roslyn.Services;
+using Utilities;
 
 namespace Refactoring
 {
@@ -164,6 +165,38 @@ namespace Refactoring
                     return true;
             }
             return false;
+        }
+
+
+        public static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
+        {
+            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
+            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+
+            int c = 0;
+            int numCallbackParam = 0;
+            foreach (var arg in symbol.Parameters)
+            {
+                if (arg.ToString().Contains("AsyncCallback"))
+                {
+                    numCallbackParam = c;
+                    break; ;
+                }
+                c++;
+            }
+
+            c = 0;
+            foreach (var arg in invocation.ArgumentList.Arguments)
+            {
+                if (c == numCallbackParam)
+                {
+                    if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
+                        return Enums.CallbackType.Identifier;
+                }
+                c++;
+            }
+
+            return Enums.CallbackType.None;
         }
 
 
