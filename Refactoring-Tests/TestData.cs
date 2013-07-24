@@ -33,7 +33,7 @@ namespace Refactoring_Tests
         public static readonly SemanticModel OriginalSemanticModel =
             OriginalCompilation.GetSemanticModel(OriginalSyntaxTree);
 
-        public static readonly InvocationExpressionSyntax APMInvocation = FindAPMMethodCall(OriginalSyntaxTree);
+        public static readonly ExpressionStatementSyntax APMInvocation = FindAPMMethodCall(OriginalSyntaxTree);
 
         #endregion
 
@@ -70,11 +70,11 @@ namespace TextInput
     }
 }";
 
-        private static InvocationExpressionSyntax FindAPMMethodCall(SyntaxTree syntaxTree)
+        private static ExpressionStatementSyntax FindAPMMethodCall(SyntaxTree syntaxTree)
         {
             return syntaxTree.GetRoot()
                              .DescendantNodes()
-                             .OfType<InvocationExpressionSyntax>()
+                             .OfType<ExpressionStatementSyntax>()
                              .First(invocation => invocation.ToString().Contains("Begin"));
         }
 

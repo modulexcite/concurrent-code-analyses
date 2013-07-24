@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services.Formatting;
@@ -13,39 +14,25 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
-        /// <param name="invocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
+        /// <param name="apmInvocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
+        /// <param name="model">The semantic model representation that corresponds to the compiled version of the compilation unit.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax,
-            InvocationExpressionSyntax invocation,
+            ExpressionStatementSyntax apmInvocation,
             SemanticModel model)
         {
-            var oldAPMContainingMethodDeclaration = invocation.ContainingMethod();
-            var expression = (MemberAccessExpressionSyntax)invocation.Expression;
+            var oldAPMContainingMethodDeclaration = apmInvocation.ContainingMethod();
 
             CompilationUnitSyntax newRoot = null;
             // Check whether there is a callback parameter 
-            if (HasCallbackParameter(invocation))
+            if (HasCallbackParameter(apmInvocation))
             {
                 // annotate invocation expression
 
-                var oldCallbackMethodDeclaration = FindCallbackMethod(invocation, model);
+                var oldCallbackMethodDeclaration = FindCallbackMethod(apmInvocation, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
 
-                //syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
-
-                SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
-                var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
-
-                list = list.Add(
-                    Syntax.ParseStatement("var result = task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"),
-                    Syntax.ParseStatement("Callback(" + paramIdentifier + ",result);")
-                );
-
-                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration
-                    .WithModifiers(
-                        Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString() + " async") // TODO: Keyword async is not recognized
-                    )
-                    .WithBody(Syntax.Block(list));
+                var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmInvocation, oldAPMContainingMethodDeclaration);
 
                 newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
                               computeReplacementNode: (oldNode, newNode) =>
@@ -69,6 +56,33 @@ namespace Refactoring
             return newRoot;
         }
 
+        private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
+        {
+            var tapInvocation = StatementSyntax("task", "request", "GetResponseAsync");
+            var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
+
+            var paramIdentifier = ((InvocationExpressionSyntax)apmInvocation.Expression).ArgumentList.Arguments.Last().ToString();
+            asyncMethod = asyncMethod.AddBodyStatements(
+                Syntax.ParseStatement("var result = task.ConfigureAwait(false).GetAwaiter().GetResult();\n"),
+                Syntax.ParseStatement("Callback(" + paramIdentifier + ", result);")
+            );
+
+            asyncMethod = asyncMethod.WithModifiers(
+                asyncMethod.Modifiers.Add(
+                    Syntax.Token(SyntaxKind.AsyncKeyword)
+                )
+            );
+
+            return asyncMethod;
+        }
+
+        private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
+        {
+            var code = String.Format("var {0} = {1}.{2}().ConfigureAwait(false);\n", taskName, objectName, methodName);
+
+            return Syntax.ParseStatement(code);
+        }
+
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -77,7 +91,7 @@ namespace Refactoring
         /// The MethodDeclarationSyntax node of this method will be returned.
         /// <param name="invocation">The invocation statement</param>
         /// <returns>The MethodDeclarationSyntax node of the method that contains the given invocation statement.</returns>
-        public static MethodDeclarationSyntax ContainingMethod(this InvocationExpressionSyntax invocation)
+        public static MethodDeclarationSyntax ContainingMethod(this ExpressionStatementSyntax invocation)
         {
             var node = invocation.Parent;
 
@@ -115,7 +129,7 @@ namespace Refactoring
         /// </summary>
         /// <param name="invocation">The APM invocation statement</param>
         /// <returns>Returns true if it has a callback function as a param, false if not</returns>
-        public static bool HasCallbackParameter(this InvocationExpressionSyntax apmInvocation)
+        public static bool HasCallbackParameter(this ExpressionStatementSyntax invocation)
         {
             //throw new NotImplementedException(); //commented out just because it should not cause exceptions in the toy transformation trials. 
             return true;
@@ -184,9 +198,9 @@ namespace Refactoring
             return newMethodDeclaration;
         }
 
-        private static MethodDeclarationSyntax FindCallbackMethod(InvocationExpressionSyntax invocation, SemanticModel model)
+        private static MethodDeclarationSyntax FindCallbackMethod(ExpressionStatementSyntax invocation, SemanticModel model)
         {
-            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation.Expression).Symbol;
 
 
             int c = 0;
@@ -202,7 +216,7 @@ namespace Refactoring
             }
 
             c = 0;
-            foreach (var arg in invocation.ArgumentList.Arguments)
+            foreach (var arg in ((InvocationExpressionSyntax)invocation.Expression).ArgumentList.Arguments)
             {
                 if (c == numCallbackParam)
                 {
