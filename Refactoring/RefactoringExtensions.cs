@@ -22,16 +22,13 @@ namespace Refactoring
             SemanticModel model)
         {
             var oldAPMContainingMethodDeclaration = apmInvocation.ContainingMethod();
-
             CompilationUnitSyntax newRoot = null;
+
             // Check whether there is a callback parameter 
             if (HasCallbackParameter(apmInvocation))
             {
-                // annotate invocation expression
-
                 var oldCallbackMethodDeclaration = FindCallbackMethod(apmInvocation, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
-
                 var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmInvocation, oldAPMContainingMethodDeclaration);
 
                 newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
@@ -50,6 +47,7 @@ namespace Refactoring
             else
             {
                 // find the blocking call in the project where the endxxx is called.
+                throw new NotImplementedException();
             }
 
 
@@ -131,31 +129,12 @@ namespace Refactoring
         /// <returns>Returns true if it has a callback function as a param, false if not</returns>
         public static bool HasCallbackParameter(this ExpressionStatementSyntax invocation)
         {
-            //throw new NotImplementedException(); //commented out just because it should not cause exceptions in the toy transformation trials. 
             return true;
         }
-
-        private static void TransformCallerMethod(InvocationExpressionSyntax invocation)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
-
 
             var oldMethodBody = oldMethodDeclaration.Body;
 
