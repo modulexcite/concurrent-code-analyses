@@ -13,31 +13,28 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
-        /// <param name="invocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
+        /// <param name="apmInvocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, 
-            InvocationExpressionSyntax invocation,
+            InvocationExpressionSyntax apmInvocation,
             SemanticModel model)
         {
-            var oldAPMContainingMethodDeclaration = invocation.ContainingMethod();
-            var expression = (MemberAccessExpressionSyntax)invocation.Expression;
+            var oldAPMContainingMethodDeclaration = apmInvocation.ContainingMethod();
+            
 
             CompilationUnitSyntax newRoot=null; 
-            // Check whether there is a callback parameter 
-            if (HasCallbackParameter(invocation))
-            {
-                // annotate invocation expression
 
-                var oldCallbackMethodDeclaration = FindCallbackMethod(invocation, model);
+
+            // Check whether there is a callback parameter 
+            if (apmInvocation.HasCallbackParameter())
+            {
+                var oldCallbackMethodDeclaration = FindCallbackMethod(apmInvocation, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
 
-                //syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
 
+
+                var paramIdentifier = apmInvocation.ArgumentList.Arguments.Last().ToString();
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
-                var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
-                
-                
-                
                 list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
                 list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
 
@@ -59,8 +56,9 @@ namespace Refactoring
                 Console.WriteLine(newRoot);
             }
             else
-            { 
+            {
                 // find the blocking call in the project where the endxxx is called.
+                throw new NotImplementedException();
             }
 
 
@@ -115,31 +113,12 @@ namespace Refactoring
         /// <returns>Returns true if it has a callback function as a param, false if not</returns>
         public static bool HasCallbackParameter(this InvocationExpressionSyntax apmInvocation)
         {
-            //throw new NotImplementedException(); //commented out just because it should not cause exceptions in the toy transformation trials. 
             return true;
         }
-
-        private static void TransformCallerMethod(InvocationExpressionSyntax invocation)
-        {
-            throw new NotImplementedException();
-        }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
-
 
             var oldMethodBody = oldMethodDeclaration.Body;
 
@@ -186,7 +165,6 @@ namespace Refactoring
         {
             MethodSymbol symbol =(MethodSymbol) model.GetSymbolInfo(invocation).Symbol;
 
-            
             int c = 0;
             int numCallbackParam = 0;
             foreach (var arg in symbol.Parameters)
