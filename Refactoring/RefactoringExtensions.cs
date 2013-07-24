@@ -15,14 +15,14 @@ namespace Refactoring
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
         /// <param name="invocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, 
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax,
             InvocationExpressionSyntax invocation,
             SemanticModel model)
         {
             var oldAPMContainingMethodDeclaration = invocation.ContainingMethod();
             var expression = (MemberAccessExpressionSyntax)invocation.Expression;
 
-            CompilationUnitSyntax newRoot=null; 
+            CompilationUnitSyntax newRoot = null;
             // Check whether there is a callback parameter 
             if (HasCallbackParameter(invocation))
             {
@@ -35,17 +35,17 @@ namespace Refactoring
 
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
                 var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
-                
-                
-                
+
+
+
                 list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
-                list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
+                list = list.Add(Syntax.ParseStatement("Callback(" + paramIdentifier + ",result);"));
 
 
-                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration.WithModifiers( Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString()+" async")).WithBody(Syntax.Block(list));
+                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration.WithModifiers(Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString() + " async")).WithBody(Syntax.Block(list));
 
 
-                newRoot= (CompilationUnitSyntax) syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
+                newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
                               computeReplacementNode: (oldNode, newNode) =>
                                 {
                                     if (oldNode == oldCallbackMethodDeclaration)
@@ -59,7 +59,7 @@ namespace Refactoring
                 Console.WriteLine(newRoot);
             }
             else
-            { 
+            {
                 // find the blocking call in the project where the endxxx is called.
             }
 
@@ -145,11 +145,11 @@ namespace Refactoring
 
             //Console.WriteLine("parameter "+oldMethodDeclaration.ParameterList);
 
-            var identifierIAsyncResult= oldMethodDeclaration.ParameterList.ChildNodes().OfType<ParameterSyntax>().Where(a => a.Type.ToString().Equals("IAsyncResult")).First().Identifier;
+            var identifierIAsyncResult = oldMethodDeclaration.ParameterList.ChildNodes().OfType<ParameterSyntax>().Where(a => a.Type.ToString().Equals("IAsyncResult")).First().Identifier;
 
             //Console.WriteLine("id: "+identifierIAsyncResult);
 
-            var localDeclarationList= oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
+            var localDeclarationList = oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
 
 
             string parameterListText = "(";
@@ -159,9 +159,9 @@ namespace Refactoring
                 var expression = stmt.Declaration.Variables.First().Initializer.Value;
                 var id = stmt.Declaration.Variables.First().Identifier;
                 var type = model.GetTypeInfo(expression).Type;
-                
-                if(c!=0)
-                    parameterListText+=", ";
+
+                if (c != 0)
+                    parameterListText += ", ";
 
                 parameterListText += type.ToString() + " " + id.ToString();
                 //Console.WriteLine("* "+ type + " " + id);
@@ -170,12 +170,12 @@ namespace Refactoring
             }
             parameterListText += ")";
 
-            var newMethodBody = oldMethodBody.RemoveNodes(localDeclarationList,SyntaxRemoveOptions.KeepNoTrivia);
-                                                                                                
+            var newMethodBody = oldMethodBody.RemoveNodes(localDeclarationList, SyntaxRemoveOptions.KeepNoTrivia);
+
             MethodDeclarationSyntax newMethodDeclaration =
-                Syntax.MethodDeclaration( oldMethodDeclaration.ReturnType, oldMethodDeclaration.Identifier.ToString())
-                .WithModifiers( oldMethodDeclaration.Modifiers)
-                .WithParameterList(Syntax.ParseParameterList(parameterListText))    
+                Syntax.MethodDeclaration(oldMethodDeclaration.ReturnType, oldMethodDeclaration.Identifier.ToString())
+                .WithModifiers(oldMethodDeclaration.Modifiers)
+                .WithParameterList(Syntax.ParseParameterList(parameterListText))
                 .WithBody(newMethodBody);
 
 
@@ -184,9 +184,9 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax FindCallbackMethod(InvocationExpressionSyntax invocation, SemanticModel model)
         {
-            MethodSymbol symbol =(MethodSymbol) model.GetSymbolInfo(invocation).Symbol;
+            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
-            
+
             int c = 0;
             int numCallbackParam = 0;
             foreach (var arg in symbol.Parameters)
@@ -199,7 +199,7 @@ namespace Refactoring
                 c++;
             }
 
-            c = 0; 
+            c = 0;
             foreach (var arg in invocation.ArgumentList.Arguments)
             {
                 if (c == numCallbackParam)
@@ -213,11 +213,11 @@ namespace Refactoring
                 }
                 c++;
             }
-            return null; 
+            return null;
         }
 
 
-      
+
 
     }
 }
