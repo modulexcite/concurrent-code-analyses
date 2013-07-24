@@ -14,22 +14,22 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="syntax">The CompilationUnitSyntax node on which to operate/in which the Begin and End method calls are represented.</param>
-        /// <param name="apmInvocation">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
+        /// <param name="apmStatement">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <param name="model">The semantic model representation that corresponds to the compiled version of the compilation unit.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax,
-            ExpressionStatementSyntax apmInvocation,
+            ExpressionStatementSyntax apmStatement,
             SemanticModel model)
         {
-            var oldAPMContainingMethodDeclaration = apmInvocation.ContainingMethod();
+            var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
             CompilationUnitSyntax newRoot = null;
 
             // Check whether there is a callback parameter 
-            if (HasCallbackParameter(apmInvocation))
+            if (HasCallbackParameter(apmStatement))
             {
-                var oldCallbackMethodDeclaration = FindCallbackMethod(apmInvocation, model);
+                var oldCallbackMethodDeclaration = FindCallbackMethod(apmStatement, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
-                var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmInvocation, oldAPMContainingMethodDeclaration);
+                var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
 
                 newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
                               computeReplacementNode: (oldNode, newNode) =>
