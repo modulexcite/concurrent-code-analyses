@@ -75,8 +75,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="TestData.cs" />
-    <Compile Include="UnitTest.cs" />
+    <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
+    <Compile Include="SimpleTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
