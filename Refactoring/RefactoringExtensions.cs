@@ -91,7 +91,7 @@ namespace Refactoring
             // and TAP method names usually both end with Async, and if both
             // exist, the TAP version is named XxxTaskAsync.
 
-            var expression = ((MemberAccessExpressionSyntax)apmInvocation.Expression);
+            var expression = (MemberAccessExpressionSyntax)((InvocationExpressionSyntax)apmInvocation.Expression).Expression;
 
             var apmMethodName = expression.Name.ToString();
             var methodNameBase = apmMethodName.Substring(5);
