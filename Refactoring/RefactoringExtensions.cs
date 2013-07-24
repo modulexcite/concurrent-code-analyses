@@ -19,9 +19,10 @@ namespace Refactoring
             InvocationExpressionSyntax invocation,
             SemanticModel model)
         {
-            var method = invocation.ContainingMethod();
+            var oldAPMContainingMethodDeclaration = invocation.ContainingMethod();
             var expression = (MemberAccessExpressionSyntax)invocation.Expression;
 
+            CompilationUnitSyntax newRoot=null; 
             // Check whether there is a callback parameter 
             if (HasCallbackParameter(invocation))
             {
@@ -30,27 +31,40 @@ namespace Refactoring
                 var oldCallbackMethodDeclaration = FindCallbackMethod(invocation, model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
 
-                syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
-            
+                //syntax = (CompilationUnitSyntax) syntax.ReplaceNode(oldCallbackMethodDeclaration, newCallbackMethodDeclaration).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
 
-                Console.WriteLine(syntax);
+                SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
+                var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
                 
-                //reassign invocation 
-                TransformCallerMethod(invocation);
+                
+                
+                list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
+                list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
+
+
+                var newAsyncMethodDeclaration = oldAPMContainingMethodDeclaration.WithModifiers( Syntax.ParseToken(oldAPMContainingMethodDeclaration.Modifiers.ToString()+" async")).WithBody(Syntax.Block(list));
+
+
+                newRoot= (CompilationUnitSyntax) syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
+                              computeReplacementNode: (oldNode, newNode) =>
+                                {
+                                    if (oldNode == oldCallbackMethodDeclaration)
+                                        return newCallbackMethodDeclaration;
+                                    else if (oldNode == oldAPMContainingMethodDeclaration)
+                                        return newAsyncMethodDeclaration;
+                                    return null;
+                                }
+                              ).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
+
+                Console.WriteLine(newRoot);
             }
             else
             { 
                 // find the blocking call in the project where the endxxx is called.
             }
 
-            Console.WriteLine("Method: {0}", method);
-            Console.WriteLine("Expression: {0}: {1}", expression, expression.Kind);
-            Console.WriteLine("Name: {0}", expression.Name);
 
-            var name = Syntax.IdentifierName("OtherName");
-            var newExpression = expression.WithName(name);
-
-            return syntax.ReplaceNode(expression, newExpression);
+            return newRoot;
         }
 
 
