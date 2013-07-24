@@ -115,17 +115,17 @@ namespace Analysis
                             if (c == i)
                             {
                                 APMDiagnosisLog2.Info("{0}", arg.Expression.Kind);
-                                
-                                //if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
-                                //{
-                                //    var methodSymbol = SemanticModel.GetSymbolInfo(arg.Expression).Symbol;
 
-                                //    if (methodSymbol != null
-                                //        && !methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
-                                //    {
-                                //        TempLog.Info(@"NOENDMETHOD {0}", methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First());
-                                //    }
-                                //}
+                                if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
+                                {
+                                    var methodSymbol = SemanticModel.GetSymbolInfo(arg.Expression).Symbol;
+
+                                    if (methodSymbol != null
+                                        && !methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
+                                    {
+                                        TempLog.Info(@"NOENDMETHOD {0}", methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First());
+                                    }
+                                }
 
                                 break;
                             }
