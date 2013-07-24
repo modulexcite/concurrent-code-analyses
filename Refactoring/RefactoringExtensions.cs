@@ -35,7 +35,10 @@ namespace Refactoring
 
                 SyntaxList<StatementSyntax> list = oldAPMContainingMethodDeclaration.Body.Statements;
                 var paramIdentifier = invocation.ArgumentList.Arguments.Last().ToString();
-                list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();"));
+                
+                
+                
+                list = list.Add(Syntax.ParseStatement("var result= task.ConfigureAwait(false).GetAwaiter().GetResult();\r\n"));
                 list = list.Add(Syntax.ParseStatement("Callback("+ paramIdentifier +",result);"));
 
 
