@@ -5,7 +5,7 @@ using Roslyn.Compilers.CSharp;
 namespace Refactoring_Tests
 {
     [TestFixture]
-    public class SimpleTest : APMToAsyncAwaitRefactoringTestBase
+    public class MethodRefCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
         public void TestThatTheSimpleCaseIsRefactoredCorrectly()
