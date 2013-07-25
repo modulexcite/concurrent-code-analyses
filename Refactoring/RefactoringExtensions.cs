@@ -69,7 +69,7 @@ namespace Refactoring
             var objectName = memberAccessExpression.Expression.ToString();
             var methodName = AsyncMethodNameForAPMBeginInvocation(apmInvocation);
 
-            var tapInvocation = StatementSyntax(taskName, objectName, methodName);
+            var tapInvocation = ConfigureAwaitStatementSyntax(taskName, objectName, methodName);
 
             var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
 
@@ -105,13 +105,12 @@ namespace Refactoring
             return tapMethodName;
         }
 
-        private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
+        private static StatementSyntax ConfigureAwaitStatementSyntax(string taskName, string objectName, string methodName)
         {
             var code = String.Format("var {0} = {1}.{2}().ConfigureAwait(false);\n", taskName, objectName, methodName);
 
             return Syntax.ParseStatement(code);
         }
-
 
         /// <summary>
         /// Returns the method containing this invocation statement.
@@ -140,8 +139,8 @@ namespace Refactoring
 
         public static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
         {
-            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
-            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            var invocation = (InvocationExpressionSyntax)statement.Expression;
+            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
             int c = 0;
             int numCallbackParam = 0;
