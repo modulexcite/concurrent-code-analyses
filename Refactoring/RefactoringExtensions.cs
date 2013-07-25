@@ -1,7 +1,9 @@
 using System;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using Roslyn.Compilers;
+using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services.Formatting;
 using Roslyn.Services;
@@ -28,7 +30,6 @@ namespace Refactoring
                 throw new NullReferenceException("model");
 
             var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
-            CompilationUnitSyntax newRoot = null;
 
             if (apmStatement.HasAsyncCallbackParameter(model))
             {
@@ -36,27 +37,14 @@ namespace Refactoring
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
                 var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
 
-                newRoot = (CompilationUnitSyntax)syntax.ReplaceNodes(oldNodes: new[] { oldCallbackMethodDeclaration, oldAPMContainingMethodDeclaration },
-                              computeReplacementNode: (oldNode, newNode) =>
+                return syntax.ReplaceAll(new[]
                                 {
-                                    if (oldNode == oldCallbackMethodDeclaration)
-                                        return newCallbackMethodDeclaration;
-                                    else if (oldNode == oldAPMContainingMethodDeclaration)
-                                        return newAsyncMethodDeclaration;
-                                    return null;
-                                }
-                              ).Format(FormattingOptions.GetDefaultOptions()).GetFormattedRoot();
-
-                //Console.WriteLine(newRoot);
-            }
-            else
-            {
-                // find the blocking call in the project where the endxxx is called.
-                throw new NotImplementedException();
+                                    new SyntaxNodeReplacementPair(oldCallbackMethodDeclaration, newCallbackMethodDeclaration),
+                                    new SyntaxNodeReplacementPair(oldAPMContainingMethodDeclaration, newAsyncMethodDeclaration)
+                                }).Format();
             }
 
-
-            return newRoot;
+            throw new NotImplementedException();
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
@@ -137,7 +125,7 @@ namespace Refactoring
             return (MethodDeclarationSyntax)node;
         }
 
-        public static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
+        private static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
         {
             var invocation = (InvocationExpressionSyntax)statement.Expression;
             var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
