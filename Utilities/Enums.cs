@@ -17,5 +17,7 @@ namespace Utilities
             APMTAPReplacable= APMReplacable|TAPReplacable, 
             EAPTAPReplacable= EAPReplacable|TAPReplacable, 
             APMEAPTAPReplacable= APMReplacable|EAPReplacable|TAPReplacable};
+
+        public enum CallbackType { None, Identifier, Lambda };
     }
 }
