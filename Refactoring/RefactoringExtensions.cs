@@ -31,20 +31,28 @@ namespace Refactoring
 
             var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
 
-            if (apmStatement.HasAsyncCallbackParameter(model))
+            switch (DetectCallbackParameter(apmStatement, model))
             {
-                var oldCallbackMethodDeclaration = apmStatement.FindCallbackMethod(model);
-                var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
-                var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
+                case Enums.CallbackType.Identifier:
+                    var oldCallbackMethodDeclaration = apmStatement.FindCallbackMethod(model);
+                    var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
+                    var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
 
-                return syntax.ReplaceAll(new[]
+                    return syntax.ReplaceAll(new[]
                                 {
                                     new SyntaxNodeReplacementPair(oldCallbackMethodDeclaration, newCallbackMethodDeclaration),
                                     new SyntaxNodeReplacementPair(oldAPMContainingMethodDeclaration, newAsyncMethodDeclaration)
                                 }).Format();
-            }
 
-            throw new NotImplementedException();
+                case Enums.CallbackType.Lambda:
+                    throw new NotImplementedException();
+
+                case Enums.CallbackType.None:
+                    throw new NotImplementedException();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
@@ -167,7 +175,6 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
-
             var oldMethodBody = oldMethodDeclaration.Body;
 
             //Console.WriteLine("parameter "+oldMethodDeclaration.ParameterList);
