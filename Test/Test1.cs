@@ -15,7 +15,7 @@ namespace Test
     {
         public static void execute()
         {
-            string dir = @"Z:\C#PROJECTS\Unused\wphonecommands";
+            string dir = @"Z:\C#PROJECTS\PhoneApps\codetitans";
             
 
             

@@ -37,10 +37,15 @@ namespace Analysis
 
         public void Analyze()
         {
-            var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
+            var solutionPaths = from f in Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories)
+                                let directoryName = Path.GetDirectoryName(f)
+                                where !directoryName.Contains(@"\tags") &&
+                                      !directoryName.Contains(@"\branches")
+                                select f;
+
             foreach (var solutionPath in solutionPaths)
             {
-                
+
                 //TryUpgradeToVS2012(solutionPath);  // enable when you are first exploring the code repository
 
                 CurrentSolution = TryLoadSolution(solutionPath);
