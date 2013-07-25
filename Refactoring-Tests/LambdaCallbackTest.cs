@@ -53,11 +53,11 @@ namespace TextInput
         public async void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.google.com/"");
-            var task = request.GetResponseAsync().ConfigureAwait(false);
+            var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
 
-            var response = await task;
+            var response = await task.ConfigureAwait(false);
             DoSomethingWithResponse(response);
         }
 
