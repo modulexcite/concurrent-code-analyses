@@ -62,7 +62,6 @@ namespace TextInput
 
             var response = await task;
             CallBack(response, request);
-           
         }
 
         private void CallBack(WebResponse response, WebRequest request)

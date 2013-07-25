@@ -18,10 +18,15 @@ namespace Refactoring
         /// <param name="apmStatement">The actual invocation of a BeginXXX APM method that marks which APM Begin/End pair must be refactored.</param>
         /// <param name="model">The semantic model representation that corresponds to the compiled version of the compilation unit.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax,
-            ExpressionStatementSyntax apmStatement,
-            SemanticModel model)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
+            if (syntax == null)
+                throw new NullReferenceException("syntax");
+            if (apmStatement == null)
+                throw new NullReferenceException("apmStatement");
+            if (model == null)
+                throw new NullReferenceException("model");
+
             var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
             CompilationUnitSyntax newRoot = null;
 
