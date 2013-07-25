@@ -96,7 +96,7 @@ namespace Analysis
                             if (isAPMFollowed)
                             {
                                 Result.NumAPMBeginFollowed++;
-                                TempLog.Info(@"APMFOLLOWED {0}", method);
+                                //TempLog.Info(@"APMFOLLOWED {0}", method);
                             }
                         }
 
@@ -119,11 +119,23 @@ namespace Analysis
                                 if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
                                 {
                                     var methodSymbol = SemanticModel.GetSymbolInfo(arg.Expression).Symbol;
+                                    Console.WriteLine(methodSymbol.Kind+ " :" + methodSymbol);
 
-                                    if (methodSymbol != null
-                                        && !methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
-                                    {
-                                        TempLog.Info(@"NOENDMETHOD {0}", methodSymbol.FindSourceDefinition(Document.Project.Solution).DeclaringSyntaxNodes.First());
+                                    if (methodSymbol.Kind.ToString().Equals("Method"))
+                                    { 
+                                        var methodDefinition = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
+
+                                        if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
+                                        {
+                                            TempLog.Info(@"HEYOOO: {0} \r\n Argument: {1} \r\n DeclaringSyntaxNodes: {2}", node, arg.Expression, methodDefinition);
+                                            Console.WriteLine("HEYOOO");
+                                        }
+                                        else
+                                        {
+                                            TempLog.Info(@"FUCKK: {0} \r\n Argument: {1} \r\n DeclaringSyntaxNodes: {2}", node, arg.Expression, methodDefinition);
+                                            Console.WriteLine("FUCKK");
+                                        }
+
                                     }
                                 }
 
@@ -140,7 +152,7 @@ namespace Analysis
                         if (ancestors.Any())
                         {
 
-                            TempLog.Info(@"TRYCATCHED ENDXXX {0}",  ancestors.First() );
+                            //TempLog.Info(@"TRYCATCHED ENDXXX {0}",  ancestors.First() );
                             Result.NumAPMEndTryCatchedMethods++;
                         }
 
@@ -168,7 +180,7 @@ namespace Analysis
 
                         if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
                         {
-                            TempLog.Info(@"NESTED ENDXXX {0}", block);
+                            //TempLog.Info(@"NESTED ENDXXX {0}", block);
                             Result.NumAPMEndNestedMethods++;
                         }
 
