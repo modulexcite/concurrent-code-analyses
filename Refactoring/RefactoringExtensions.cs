@@ -134,27 +134,6 @@ namespace Refactoring
         }
 
         /// <summary>
-        /// Checks whether the invocation satisfies the preconditions needed for async transformation
-        /// </summary>
-        /// <param name="invocation">The invocation statement</param>
-        /// <returns>Returns true if it satisfies the preconditions, false if not</returns>
-        public static bool IsAPMCandidateForAsync(this InvocationExpressionSyntax invocation)
-        {
-            var expression = (MemberAccessExpressionSyntax)invocation.Expression;
-            if (invocation.Expression.Kind != SyntaxKind.MemberAccessExpression)
-            {
-                throw new NotImplementedException("Only member access expressions are supported");
-            }
-
-            if (!expression.Name.ToString().StartsWith("Begin"))
-            {
-                throw new NotImplementedException("Only invocations of methods starting with Begin are supported");
-            }
-            //throw new NotImplementedException(); 
-            return true;
-        }
-
-        /// <summary>
         /// Checks whether the APM invocation has a callback function as a parameter to be called after the completion
         /// </summary>
         /// <param name="invocation">The APM invocation statement</param>
