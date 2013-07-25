@@ -30,8 +30,7 @@ namespace Refactoring
             var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
             CompilationUnitSyntax newRoot = null;
 
-            // Check whether there is a callback parameter 
-            if (apmStatement.HasCallbackParameter(model))
+            if (apmStatement.HasAsyncCallbackParameter(model))
             {
                 var oldCallbackMethodDeclaration = apmStatement.FindCallbackMethod(model);
                 var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
@@ -119,11 +118,17 @@ namespace Refactoring
         /// </summary>
         /// This invocation statement is contained in the scope of a certain method.
         /// The MethodDeclarationSyntax node of this method will be returned.
-        /// <param name="invocation">The invocation statement</param>
-        /// <returns>The MethodDeclarationSyntax node of the method that contains the given invocation statement.</returns>
-        public static MethodDeclarationSyntax ContainingMethod(this ExpressionStatementSyntax invocation)
+        ///
+        /// TODO: This method does not consider e.g. lambda expressions.
+        ///
+        /// <param name="statement">The expression statement</param>
+        /// <returns>The MethodDeclarationSyntax node of the method that contains the given expression statement.</returns>
+        public static MethodDeclarationSyntax ContainingMethod(this ExpressionStatementSyntax statement)
         {
-            var node = invocation.Parent;
+            if (statement == null)
+                throw new ArgumentNullException("statement");
+
+            var node = statement.Parent;
 
             while (!(node is MethodDeclarationSyntax))
             {
@@ -132,25 +137,6 @@ namespace Refactoring
 
             return (MethodDeclarationSyntax)node;
         }
-
-        /// <summary>
-        /// Checks whether the APM invocation has a callback function as a parameter to be called after the completion
-        /// </summary>
-        /// <param name="invocation">The APM invocation statement</param>
-        /// <returns>Returns true if it has a callback function as a param, false if not</returns>
-        public static bool HasCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
-        {
-            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
-            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
-
-            foreach (var arg in symbol.Parameters)
-            {
-                if (arg.ToString().Contains("AsyncCallback"))
-                    return true;
-            }
-            return false;
-        }
-
 
         public static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
         {
@@ -183,6 +169,14 @@ namespace Refactoring
             return Enums.CallbackType.None;
         }
 
+        private static bool HasAsyncCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
+        {
+            var invocation = (InvocationExpressionSyntax)statement.Expression;
+            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+
+            return symbol.Parameters
+                .Any(arg => arg.Type.Name.Equals("AsyncCallback"));
+        }
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
