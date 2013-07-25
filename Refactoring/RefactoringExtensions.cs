@@ -1,12 +1,7 @@
 using System;
-using System.Configuration;
 using System.Linq;
-using System.Threading.Tasks;
 using Roslyn.Compilers;
-using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
-using Roslyn.Services.Formatting;
-using Roslyn.Services;
 using Utilities;
 
 namespace Refactoring
@@ -29,30 +24,42 @@ namespace Refactoring
             if (model == null)
                 throw new NullReferenceException("model");
 
-            var oldAPMContainingMethodDeclaration = apmStatement.ContainingMethod();
-
-            switch (DetectCallbackParameter(apmStatement, model))
+            switch (DetectActualCallbackArgumentKind(apmStatement, model))
             {
-                case Enums.CallbackType.Identifier:
-                    var oldCallbackMethodDeclaration = apmStatement.FindCallbackMethod(model);
-                    var newCallbackMethodDeclaration = CreateNewCallbackMethod(oldCallbackMethodDeclaration, model);
-                    var newAsyncMethodDeclaration = NewAsyncMethodDeclaration(apmStatement, oldAPMContainingMethodDeclaration);
+                case SyntaxKind.IdentifierName:
+                    return RefactorInstanceWithMethodReferenceCallback(syntax, apmStatement, model);
 
-                    return syntax.ReplaceAll(new[]
-                                {
-                                    new SyntaxNodeReplacementPair(oldCallbackMethodDeclaration, newCallbackMethodDeclaration),
-                                    new SyntaxNodeReplacementPair(oldAPMContainingMethodDeclaration, newAsyncMethodDeclaration)
-                                }).Format();
-
-                case Enums.CallbackType.Lambda:
+                case SyntaxKind.SimpleLambdaExpression:
                     throw new NotImplementedException();
 
-                case Enums.CallbackType.None:
-                    throw new NotImplementedException();
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return RefactorInstanceWithParenthesizedLambdaCallback(syntax, apmStatement, model);
 
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+
+
+        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        {
+            var apmMethod = apmStatement.ContainingMethod();
+
+            var oldCallback = apmStatement.FindCallbackMethod(model);
+            var newCallback = CreateNewCallbackMethod(oldCallback, model);
+            var newCallingMethod = NewAsyncMethodDeclaration(apmStatement, apmMethod);
+
+            return syntax.ReplaceAll(new[]
+            {
+                new SyntaxNodeReplacementPair(oldCallback, newCallback),
+                new SyntaxNodeReplacementPair(apmMethod, newCallingMethod)
+            }).Format();
+        }
+
+        private static CompilationUnitSyntax RefactorInstanceWithParenthesizedLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        {
+            throw new NotImplementedException();
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
@@ -65,7 +72,7 @@ namespace Refactoring
             var objectName = memberAccessExpression.Expression.ToString();
             var methodName = AsyncMethodNameForAPMBeginInvocation(apmInvocation);
 
-            var tapInvocation = ConfigureAwaitStatementSyntax(taskName, objectName, methodName);
+            var tapInvocation = StatementSyntax(taskName, objectName, methodName);
 
             var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
 
@@ -101,9 +108,9 @@ namespace Refactoring
             return tapMethodName;
         }
 
-        private static StatementSyntax ConfigureAwaitStatementSyntax(string taskName, string objectName, string methodName)
+        private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
         {
-            var code = String.Format("var {0} = {1}.{2}().ConfigureAwait(false);\n", taskName, objectName, methodName);
+            var code = String.Format("var {0} = {1}.{2}();\n", taskName, objectName, methodName);
 
             return Syntax.ParseStatement(code);
         }
@@ -133,44 +140,31 @@ namespace Refactoring
             return (MethodDeclarationSyntax)node;
         }
 
-        private static Enums.CallbackType DetectCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
+        private static SyntaxKind DetectActualCallbackArgumentKind(this ExpressionStatementSyntax statement, SemanticModel model)
         {
             var invocation = (InvocationExpressionSyntax)statement.Expression;
             var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
-            int c = 0;
-            int numCallbackParam = 0;
-            foreach (var arg in symbol.Parameters)
-            {
-                if (arg.ToString().Contains("AsyncCallback"))
-                {
-                    numCallbackParam = c;
-                    break; ;
-                }
-                c++;
-            }
+            var callbackParamIndex = FindCallbackParamNum(symbol);
 
-            c = 0;
-            foreach (var arg in invocation.ArgumentList.Arguments)
-            {
-                if (c == numCallbackParam)
-                {
-                    if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
-                        return Enums.CallbackType.Identifier;
-                }
-                c++;
-            }
+            if (callbackParamIndex == -1)
+                throw new Exception("Callback parameter number == -1");
 
-            return Enums.CallbackType.None;
+            return invocation.ArgumentList.Arguments.ElementAt(callbackParamIndex).Expression.Kind;
         }
 
-        private static bool HasAsyncCallbackParameter(this ExpressionStatementSyntax statement, SemanticModel model)
+        private static int FindCallbackParamNum(MethodSymbol symbol)
         {
-            var invocation = (InvocationExpressionSyntax)statement.Expression;
-            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            for (var i = 0; i < symbol.Parameters.Count; i++)
+            {
+                var parameter = symbol.Parameters.ElementAt(i);
+                if (parameter.Type.ToDisplayString().Equals(@"System.AsyncCallback"))
+                {
+                    return i;
+                }
+            }
 
-            return symbol.Parameters
-                .Any(arg => arg.Type.Name.Equals("AsyncCallback"));
+            return -1;
         }
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
