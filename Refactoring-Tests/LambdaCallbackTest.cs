@@ -29,8 +29,8 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.google.com/"");
             request.BeginGetResponse(result => {
-                var request = (WebRequest)result.AsyncState;
-                var response = request.EndGetResponse(result);
+                var r = (WebRequest)result.AsyncState;
+                var response = r.EndGetResponse(result);
 
                 DoSomethingWithResponse(response);
             }, request);
