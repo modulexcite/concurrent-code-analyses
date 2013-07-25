@@ -5,10 +5,10 @@ using Roslyn.Compilers.CSharp;
 namespace Refactoring_Tests
 {
     [TestFixture]
-    public class SimpleTest : APMToAsyncAwaitRefactoringTestBase
+    public class LambdaCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
-        public void TestThatTheSimpleCaseIsRefactoredCorrectly()
+        public void TestThatTheSimpleCaseWithLambdaCallbackIsRefactoredCorrectly()
         {
             StatementFinder actualStatementFinder =
                 syntax => syntax.DescendantNodes()
@@ -28,17 +28,14 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.google.com/"");
-            request.BeginGetResponse(CallBack, request);
+            request.BeginGetResponse(result => {
+                var request = (WebRequest)result.AsyncState;
+                var response = request.EndGetResponse(result);
+
+                DoSomethingWithResponse(response);
+            }, request);
 
             DoSomethingWhileGetResponseIsRunning();
-        }
-
-        private void CallBack(IAsyncResult result)
-        {
-            var request = (WebRequest)result.AsyncState;
-            var response = request.EndGetResponse(result);
-
-            DoSomethingWithResponse(response);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
@@ -61,12 +58,6 @@ namespace TextInput
             DoSomethingWhileGetResponseIsRunning();
 
             var response = await task;
-            CallBack(response, request);
-           
-        }
-
-        private void CallBack(WebResponse response, WebRequest request)
-        {
             DoSomethingWithResponse(response);
         }
 
