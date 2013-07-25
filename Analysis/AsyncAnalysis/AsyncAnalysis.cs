@@ -43,25 +43,35 @@ namespace Analysis
 
         protected override void VisitDocument(IDocument document,SyntaxNode root)
         {
-            SyntaxWalker walker;
-            
-            //walker = new EventHandlerMethodsWalker()
-            //{
-            //    Analysis = this,
-            //    Result = Result,
-            //};
 
-            walker = new InvocationsWalker()
+            if (FilterDocument(document))
             {
-                Analysis = this,
-                Result = Result,
-                SemanticModel = (SemanticModel) document.GetSemanticModel(),
-                Document= document,
-            };
+                SyntaxWalker walker;
 
-            walker.Visit(root);
+                //walker = new EventHandlerMethodsWalker()
+                //{
+                //    Analysis = this,
+                //    Result = Result,
+                //};
+
+                walker = new InvocationsWalker()
+                {
+                    Analysis = this,
+                    Result = Result,
+                    SemanticModel = (SemanticModel)document.GetSemanticModel(),
+                    Document = document,
+                };
+                walker.Visit(root);
+            }
         }
 
+        private bool FilterDocument(IDocument doc)
+        {
+            if(Path.GetDirectoryName(doc.FilePath).Contains(@"\Service References\"))
+                return false;
+
+            return true;
+        }
 
 
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
