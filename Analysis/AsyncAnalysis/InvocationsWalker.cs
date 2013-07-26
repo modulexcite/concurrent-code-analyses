@@ -37,6 +37,17 @@ namespace Analysis
             base.VisitUsingDirective(node);
         }
 
+
+        public override void VisitClassDeclaration(Roslyn.Compilers.CSharp.ClassDeclarationSyntax node)
+        {
+            if ( (node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
+            {
+                // IGNORE WCF SERVICES
+            }
+            else
+                base.VisitClassDeclaration(node);
+        }
+
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;

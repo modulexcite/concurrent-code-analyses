@@ -13,7 +13,7 @@ namespace Test
 
         public static void execute()
         {
-            var app = new AsyncAnalysis(@"Z:\C#PROJECTS\PhoneApps\codetitans", "test");
+            var app = new AsyncAnalysis(@"Z:\C#PROJECTS\PhoneApps\4square", "test");
 
             app.Analyze();
             Console.ReadLine();
