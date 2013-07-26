@@ -68,21 +68,22 @@ namespace Refactoring
             var memberAccessExpression = (MemberAccessExpressionSyntax)invocation.Expression;
 
             var objectName = memberAccessExpression.Expression.ToString();
-            var methodName = memberAccessExpression.Name.ToString();
+            var methodName = GetAsyncMethodNameBase(apmStatement);
 
             var tapStatement = StatementSyntax("task", objectName, methodName);
-
-            Console.WriteLine(@"TAP statement: {0}", tapStatement);
 
             var lambda = (ParenthesizedLambdaExpressionSyntax)invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
             switch (lambda.Body.Kind)
             {
                 case SyntaxKind.Block:
                     var lambdaBlock = (BlockSyntax)lambda.Body;
-                    var lambdaStatements = lambdaBlock.Statements;
+
+                    var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodName);
+                    var awaitStatement = Syntax.ParseExpression("await task");
+                    lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
                     var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
-                                             .AddBodyStatements(lambdaStatements.ToArray());
+                                             .AddBodyStatements(lambdaBlock.Statements.ToArray());
 
                     return syntax.ReplaceNode(apmMethod, newMethod).Format();
 
@@ -90,6 +91,21 @@ namespace Refactoring
                     // Might be any other SyntaxNode kind, such as InvocationExpression.
                     throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambda.Body.Kind + ": lambda: " + lambda);
             }
+        }
+
+        private static SyntaxNode FindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string objectName, string methodName)
+        {
+            // TODO: Check for correct signature, etc.
+            // This can be done much smarter by e.g. using the BeginXxx method symbol, looking up the corresponding EndXxx symobl, and filtering on that.
+
+            Console.WriteLine(@"lambda: {0}", lambdaBlock);
+            Console.WriteLine(@"method: {0}", methodName);
+
+            var endStatement = lambdaBlock.DescendantNodes()
+                                          .OfType<MemberAccessExpressionSyntax>()
+                                          .First(stmt => stmt.Name.ToString().Equals("End" + methodName));
+
+            return endStatement.Parent;
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
@@ -129,13 +145,19 @@ namespace Refactoring
             // and TAP method names usually both end with Async, and if both
             // exist, the TAP version is named XxxTaskAsync.
 
+            var methodNameBase = GetAsyncMethodNameBase(apmInvocation);
+            var tapMethodName = methodNameBase + "Async";
+
+            return tapMethodName;
+        }
+
+        private static string GetAsyncMethodNameBase(ExpressionStatementSyntax apmInvocation)
+        {
             var expression = (MemberAccessExpressionSyntax)((InvocationExpressionSyntax)apmInvocation.Expression).Expression;
 
             var apmMethodName = expression.Name.ToString();
             var methodNameBase = apmMethodName.Substring(5);
-            var tapMethodName = methodNameBase + "Async";
-
-            return tapMethodName;
+            return methodNameBase;
         }
 
         private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
