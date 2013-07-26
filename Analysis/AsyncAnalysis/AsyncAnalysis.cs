@@ -67,10 +67,12 @@ namespace Analysis
 
         private bool FilterDocument(IDocument doc)
         {
-            return true;
             if(Path.GetDirectoryName(doc.FilePath).Contains(@"\Service References\"))
                 return false;
 
+            if(doc.GetText().ToString().Contains("System.ServiceModel.ClientBase"))
+                return false;
+            
             return true;
         }
 
