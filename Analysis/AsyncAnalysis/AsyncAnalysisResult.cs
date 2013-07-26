@@ -1,5 +1,8 @@
-﻿using NLog;
+﻿using Newtonsoft.Json;
+using NLog;
 using Roslyn.Compilers.CSharp;
+using System;
+using System.Configuration;
 using Utilities;
 
 namespace Analysis
@@ -75,43 +78,26 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-            //string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",
-            //                       _appName,
-            //                       NumTotalProjects,
-            //                       NumUnanalyzedProjects,
-            //                       NumPhone7Projects,
-            //                       NumPhone8Projects,
-            //                       NumNet4Projects,
-            //                       NumNet45Projects,
-            //                       NumOtherNetProjects,
-            //                       NumTotalSLOC);
+            SummaryJSONLog.Info(@"{0}", JsonConvert.SerializeObject(this, Formatting.None));
+        }
+        public bool ShouldSerializeasyncAwaitResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]);
+        }
 
-            //foreach (var pattern in NumAsyncProgrammingUsages)
-            //    summary+=pattern + ",";
+        public bool ShouldSerializeapmDiagnosisResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsAPMDiagnosisDetectionEnabled"]);
+        }
 
-            //summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},",
-            //    NumGUIBlockingSyncUsages,
-            //    NumSyncReplacableUsages,
+        public bool ShouldSerializesyncUsageResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]);
+        }
 
-            //    NumAsyncMethodsHavingConfigureAwait,
-            //    NumAsyncMethodsHavingBlockingCalls,
-            //    NumAsyncMethodsNotHavingAwait,
-
-            //    NumAsyncVoidNonEventHandlerMethods,
-            //    NumAsyncVoidEventHandlerMethods,
-            //    NumAsyncTaskMethods,
-
-            //    NumEventHandlerMethods,
-            //    NumUIClasses);
-
-            //summary += String.Format(@"{0},{1},{2},{3},{4}",
-            //    NumAPMBeginMethods,
-            //    NumAPMBeginFollowed,
-            //    NumAPMEndMethods,
-            //    NumAPMEndTryCatchedMethods,
-            //    NumAPMEndNestedMethods);
-
-            //SummaryLog.Info(summary);
+        public bool ShouldSerializeasyncUsageResults()
+        { 
+            return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
         }
 
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
@@ -145,14 +131,14 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
+                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
 
                 // Let's get rid of all generic information!
 
                 if (!symbol.ReturnsVoid)
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
-                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
+                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
             }
         }
 
@@ -172,7 +158,7 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
+                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
             }
         }
     }

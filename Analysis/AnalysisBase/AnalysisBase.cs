@@ -15,6 +15,7 @@ namespace Analysis
     {
         protected static readonly Logger Log = LogManager.GetLogger("Console");
 
+
         private readonly string _dirName;
         private readonly string _appName;
 

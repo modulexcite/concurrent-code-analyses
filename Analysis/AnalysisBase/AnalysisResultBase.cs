@@ -6,9 +6,10 @@ namespace Analysis
 {
     public abstract class AnalysisResultBase
     {
+        public string AppName;
+
         public class GeneralResults
         {
-            public string AppName;
             public int NumTotalProjects;
             public int NumUnanalyzedProjects;
             public int NumPhone7Projects;
@@ -21,14 +22,14 @@ namespace Analysis
 
         public GeneralResults generalResults { get; set; }
 
-        protected static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
+        protected static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
         protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
         protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
 
         public AnalysisResultBase(string appName)
         {
             generalResults = new GeneralResults();
-            generalResults.AppName = appName;
+            AppName = appName;
         }
 
         public void AddAnalyzedProject(Enums.ProjectType type)

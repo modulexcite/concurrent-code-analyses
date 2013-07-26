@@ -36,7 +36,7 @@ namespace Analysis
                 Outer = this,
                 Namespace = "System.Threading.Tasks",
                 SemanticModel = document.GetSemanticModel(),
-                Id = Result.generalResults.AppName + " " + document.Id
+                Id = Result.AppName + " " + document.Id
             };
 
             loopWalker.Visit(root);

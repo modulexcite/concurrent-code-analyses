@@ -1,5 +1,6 @@
 ﻿using Analysis;
 using Microsoft.Build.Evaluation;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -12,23 +13,28 @@ namespace Collector
     internal class Collector
     {
         private static readonly Logger Log = LogManager.GetLogger("Console");
-        private static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
 
-        private static string SummaryLogFileName = ConfigurationManager.AppSettings["SummaryLogFile"];
+
+        private static string SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
 
         private readonly List<string> _analyzedProjects;
         private readonly IEnumerable<string> _subdirsToAnalyze;
 
         public Collector(String topDir, int batchSize)
         {
-            _analyzedProjects = File.Exists(SummaryLogFileName)
-                ? Collector.AnalyzedProjectsFromLogFileContents()
+            _analyzedProjects = File.Exists(SummaryJSONLogPath)
+                ? Collector.AnalyzedAppsFromJSONLog()
                 : new List<string>();
 
             _subdirsToAnalyze = Directory.GetDirectories(topDir)
                                          .Where(IsNotYetAnalyzed)
                                          .OrderBy(s => s)
                                          .Take(batchSize);
+        }
+
+        private static List<string> AnalyzedAppsFromJSONLog()
+        {
+            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json).AppName).ToList();
         }
 
         private bool IsNotYetAnalyzed(string subdir)
@@ -38,10 +44,6 @@ namespace Collector
 
         public void Run()
         {
-            //SummaryLog.Info(
-            //@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
-            ///);
-
             var index = 1;
 
             foreach (var subdir in _subdirsToAnalyze)
@@ -60,11 +62,6 @@ namespace Collector
             }
         }
 
-        private static List<string> AnalyzedProjectsFromLogFileContents()
-        {
-            return File.ReadAllLines(SummaryLogFileName)
-                       .Select(a => a.Split(',')[0])
-                       .ToList();
-        }
+
     }
 }
