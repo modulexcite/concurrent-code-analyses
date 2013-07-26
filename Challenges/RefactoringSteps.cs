@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Challenges
 {
-    class RefactoringSteps
+    internal class RefactoringSteps
     {
     }
 
@@ -30,10 +27,9 @@ namespace Challenges
 
     internal class Response
     {
-
     }
 
-    class OriginalProgram
+    internal class OriginalProgram
     {
         public void Action()
         {
@@ -49,7 +45,7 @@ namespace Challenges
     }
 
     // Introduce parameter for IAsyncResult.AsyncState
-    class IntroduceParameter
+    internal class IntroduceParameter
     {
         public void Action()
         {
@@ -65,7 +61,7 @@ namespace Challenges
 
     // result.AsyncState is an alias of request. Capture request directly
     // as actual argument.
-    class UnaliasAsyncState
+    internal class UnaliasAsyncState
     {
         public void Action()
         {
@@ -88,7 +84,7 @@ namespace Challenges
     // - IAsyncResult -> Task
     // - BeginXXX(Callback) -> XXXAsync().ContinueWith(Callback)
     // - EndXXX -> task.GetAwaiter().GetResult()
-    class IntroduceTAP
+    internal class IntroduceTAP
     {
         public void Action()
         {
@@ -107,7 +103,7 @@ namespace Challenges
     // with async/await keywords. When the actual result is awaited
     // in a nested method, introduce async/await while moving up the call chain.
     // Use ConfigureAwait(false) to retain the synchronization behavior of the APM pattern
-    class IntroduceAsyncAwait
+    internal class IntroduceAsyncAwait
     {
         public async Task Action()
         {

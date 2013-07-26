@@ -3,11 +3,11 @@ using System.Configuration;
 
 namespace Collector
 {
-    class CollectMain
+    internal class CollectMain
     {
         private static string AppsPath = ConfigurationManager.AppSettings["AppsPath"];
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length > 0)
             {

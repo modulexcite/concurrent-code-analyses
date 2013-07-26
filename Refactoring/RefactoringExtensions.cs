@@ -1,11 +1,10 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
-using Roslyn.Services.Formatting;
 using Roslyn.Services;
 using Utilities;
+using Roslyn.Services.Formatting;
+using System;
+using System.Linq;
 
 namespace Refactoring
 {
@@ -50,7 +49,6 @@ namespace Refactoring
                 // find the blocking call in the project where the endxxx is called.
                 throw new NotImplementedException();
             }
-
 
             return newRoot;
         }
@@ -108,7 +106,6 @@ namespace Refactoring
             return Syntax.ParseStatement(code);
         }
 
-
         /// <summary>
         /// Returns the method containing this invocation statement.
         /// </summary>
@@ -145,7 +142,7 @@ namespace Refactoring
             {
                 throw new NotImplementedException("Only invocations of methods starting with Begin are supported");
             }
-            //throw new NotImplementedException(); 
+            //throw new NotImplementedException();
             return true;
         }
 
@@ -199,10 +196,8 @@ namespace Refactoring
             return Enums.CallbackType.None;
         }
 
-
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
-
             var oldMethodBody = oldMethodDeclaration.Body;
 
             //Console.WriteLine("parameter "+oldMethodDeclaration.ParameterList);
@@ -212,7 +207,6 @@ namespace Refactoring
             //Console.WriteLine("id: "+identifierIAsyncResult);
 
             var localDeclarationList = oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
-
 
             string parameterListText = "(";
             int c = 0;
@@ -240,12 +234,12 @@ namespace Refactoring
                 .WithParameterList(Syntax.ParseParameterList(parameterListText))
                 .WithBody(newMethodBody);
 
-
             return newMethodDeclaration;
         }
 
         private static MethodDeclarationSyntax FindCallbackMethod(this ExpressionStatementSyntax statement, SemanticModel model)
         {
+
             InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
             MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
@@ -277,9 +271,5 @@ namespace Refactoring
             }
             return null;
         }
-
-
-
     }
 }
-

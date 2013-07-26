@@ -1,22 +1,22 @@
 ﻿using NLog;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
-using System.Linq;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
 using System;
-using Utilities;
 using System.Configuration;
+using System.Linq;
+using Utilities;
 
 namespace Analysis
 {
     internal class InvocationsWalker : SyntaxWalker
     {
         public AsyncAnalysis Analysis { get; set; }
-        public AsyncAnalysisResult Result { get; set; }
-        public SemanticModel SemanticModel { get; set; }
-        public IDocument Document { get; set; }
 
+        public AsyncAnalysisResult Result { get; set; }
+
+        public SemanticModel SemanticModel { get; set; }
+
+        public IDocument Document { get; set; }
 
         protected static readonly Logger TempLog = LogManager.GetLogger("TempLog");
         protected static readonly Logger APMDiagnosisLog = LogManager.GetLogger("APMDiagnosisLog");
@@ -37,10 +37,9 @@ namespace Analysis
             base.VisitUsingDirective(node);
         }
 
-
         public override void VisitClassDeclaration(Roslyn.Compilers.CSharp.ClassDeclarationSyntax node)
         {
-            if ( (node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
+            if ((node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
             {
                 // IGNORE WCF SERVICES
             }
@@ -60,11 +59,9 @@ namespace Analysis
                     Result.StoreDetectedAsyncUsage(asynctype);
                     Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
                 }
-                
 
                 if (bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]))
                 {
-
                     var synctype = Analysis.DetectSynchronousUsages(node, (MethodSymbol)symbol.OriginalDefinition);
                     Result.StoreDetectedSyncUsage(synctype);
                     Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
@@ -73,16 +70,13 @@ namespace Analysis
                     {
                         Result.syncUsageResults.NumGUIBlockingSyncUsages++;
                         TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
-
                     }
                 }
 
                 if (bool.Parse(ConfigurationManager.AppSettings["IsAPMDiagnosisDetectionEnabled"]))
                 {
-
                     if (symbol.IsAPMBeginMethod())
                     {
-
                         if ((symbol.ToString().Contains("BeginAction") || symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("Invoke"))
                         {
                             TempLog.Info(@"FILTERED {0} {1} {2}", Document.FilePath, node, symbol);
@@ -101,15 +95,14 @@ namespace Analysis
                         {
                             var method = ancestors.First();
 
-                            bool isFound=false;
-                            bool isAPMFollowed = false; 
+                            bool isFound = false;
+                            bool isAPMFollowed = false;
                             foreach (var tmp in method.Body.ChildNodes())
                             {
                                 if (isFound)
                                     isAPMFollowed = true;
                                 if (statement == tmp)
                                     isFound = true;
-                                
                             }
 
                             if (isAPMFollowed)
@@ -119,7 +112,7 @@ namespace Analysis
                             }
                         }
 
-                        int c= 0;
+                        int c = 0;
                         foreach (var arg in symbol.Parameters)
                         {
                             if (arg.ToString().Contains("AsyncCallback"))
@@ -127,7 +120,6 @@ namespace Analysis
                             c++;
                         }
 
-                        
                         int i = 0;
                         foreach (var arg in node.ArgumentList.Arguments)
                         {
@@ -138,9 +130,9 @@ namespace Analysis
                                 if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
                                 {
                                     var methodSymbol = SemanticModel.GetSymbolInfo(arg.Expression).Symbol;
-                                  
+
                                     if (methodSymbol.Kind.ToString().Equals("Method"))
-                                    { 
+                                    {
                                         var methodDefinition = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
 
                                         if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
@@ -153,7 +145,6 @@ namespace Analysis
                                             TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
                                             Console.WriteLine("FUCKK");
                                         }
-
                                     }
                                 }
 
@@ -169,12 +160,11 @@ namespace Analysis
                     //    var ancestors= node.Ancestors().OfType<TryStatementSyntax>();
                     //    if (ancestors.Any())
                     //    {
-
                     //        //TempLog.Info(@"TRYCATCHED ENDXXX {0}",  ancestors.First() );
                     //        Result.NumAPMEndTryCatchedMethods++;
                     //    }
 
-                    //    SyntaxNode block=null; 
+                    //    SyntaxNode block=null;
                     //    var lambdas = node.Ancestors().OfType<SimpleLambdaExpressionSyntax>();
                     //    if (lambdas.Any())
                     //    {
@@ -193,7 +183,7 @@ namespace Analysis
                     //        var ancestors2 = node.Ancestors().OfType<MethodDeclarationSyntax>();
                     //        if (ancestors2.Any())
                     //            block = ancestors2.First();
-                            
+
                     //    }
 
                     //    if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
@@ -202,24 +192,15 @@ namespace Analysis
                     //        Result.NumAPMEndNestedMethods++;
                     //    }
 
-
-                        
-
                     //}
-                    
                 }
-
-              
             }
-            
-                
 
             base.VisitInvocationExpression(node);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-
             if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
             {
                 if (node.HasAsyncModifier())
@@ -247,12 +228,10 @@ namespace Analysis
                         TempLog.Info(@"BLOCKING {0}", node.ToString());
                         Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
                     }
-
                 }
             }
 
             base.VisitMethodDeclaration(node);
         }
-
     }
 }

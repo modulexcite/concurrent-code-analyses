@@ -1,11 +1,8 @@
 ﻿using Roslyn.Compilers.CSharp;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
+
 namespace Utilities
 {
     public class Helper
@@ -36,7 +33,7 @@ namespace Utilities
 #endif
         }
 
-        public static void WriteInstance(string file, string id, string ex )
+        public static void WriteInstance(string file, string id, string ex)
         {
             Helper.WriteLogger(file, id + "\r\n\r\n" + ex + "\r\n------------------------\r\n");
         }

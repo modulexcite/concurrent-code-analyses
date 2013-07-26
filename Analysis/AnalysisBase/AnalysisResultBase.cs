@@ -1,15 +1,11 @@
-﻿using System.IO;
+﻿using NLog;
 using Roslyn.Services;
 using Utilities;
-using System;
-using System.Configuration;
-using NLog;
 
 namespace Analysis
 {
     public abstract class AnalysisResultBase
     {
-
         public class GeneralResults
         {
             public string AppName;
@@ -25,7 +21,6 @@ namespace Analysis
 
         public GeneralResults generalResults { get; set; }
 
-
         protected static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
         protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
         protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
@@ -33,7 +28,7 @@ namespace Analysis
         public AnalysisResultBase(string appName)
         {
             generalResults = new GeneralResults();
-            generalResults.AppName = appName; 
+            generalResults.AppName = appName;
         }
 
         public void AddAnalyzedProject(Enums.ProjectType type)
@@ -43,15 +38,19 @@ namespace Analysis
                 case Enums.ProjectType.WP7:
                     generalResults.NumPhone7Projects++;
                     break;
+
                 case Enums.ProjectType.WP8:
                     generalResults.NumPhone8Projects++;
                     break;
+
                 case Enums.ProjectType.NET4:
                     generalResults.NumNet4Projects++;
                     break;
+
                 case Enums.ProjectType.NET45:
                     generalResults.NumNet45Projects++;
                     break;
+
                 case Enums.ProjectType.NETOther:
                     generalResults.NumOtherNetProjects++;
                     break;
@@ -74,13 +73,8 @@ namespace Analysis
             //if (!hasPhoneProjectInThisSolution)
             phoneSolutionListLog.Info(project.Solution.FilePath);
             //hasPhoneProjectInThisSolution = true;
-
         }
 
-
-
         public abstract void WriteSummaryLog();
-
-
     }
 }

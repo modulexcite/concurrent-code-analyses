@@ -1,16 +1,11 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using Utilities;
+﻿using NLog;
 using Roslyn.Compilers.CSharp;
-using NLog;
-using Roslyn.Services;
+using Utilities;
 
 namespace Analysis
 {
     public class AsyncAnalysisResult : AnalysisResultBase
     {
-
         public class GeneralAsyncResults
         {
             public int NumUIClasses;
@@ -40,26 +35,27 @@ namespace Analysis
         {
             public int NumSyncReplacableUsages;
             public int NumGUIBlockingSyncUsages;
-
         }
 
         public class AsyncUsageResults
         {
-            public int[] NumAsyncProgrammingUsages= new int[11];
+            public int[] NumAsyncProgrammingUsages = new int[11];
         }
 
-
         public GeneralAsyncResults generalAsyncResults { get; set; }
+
         public AsyncAwaitResults asyncAwaitResults { get; set; }
+
         public APMDiagnosisResults apmDiagnosisResults { get; set; }
+
         public SyncUsageResults syncUsageResults { get; set; }
-        public AsyncUsageResults asyncUsageResults { get; set; } 
+
+        public AsyncUsageResults asyncUsageResults { get; set; }
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
         protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
         protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
-
 
         public AsyncAnalysisResult(string appName)
             : base(appName)
@@ -79,8 +75,7 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-
-            //string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",  
+            //string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",
             //                       _appName,
             //                       NumTotalProjects,
             //                       NumUnanalyzedProjects,
@@ -103,12 +98,11 @@ namespace Analysis
             //    NumAsyncMethodsNotHavingAwait,
 
             //    NumAsyncVoidNonEventHandlerMethods,
-            //    NumAsyncVoidEventHandlerMethods, 
+            //    NumAsyncVoidEventHandlerMethods,
             //    NumAsyncTaskMethods,
 
             //    NumEventHandlerMethods,
             //    NumUIClasses);
-
 
             //summary += String.Format(@"{0},{1},{2},{3},{4}",
             //    NumAPMBeginMethods,
@@ -118,25 +112,21 @@ namespace Analysis
             //    NumAPMEndNestedMethods);
 
             //SummaryLog.Info(summary);
-
         }
-
-
-
 
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;
             var start = node.GetLocation().GetLineSpan(true).StartLinePosition;
 
-            string message="";
+            string message = "";
             for (var i = 0; i < n; i++)
-                message+=" ";
-            message+= node.Identifier + " " + n + " @ " + path + ":" + start;
+                message += " ";
+            message += node.Identifier + " " + n + " @ " + path + ":" + start;
             CallTraceLog.Info(message);
         }
 
-        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol) 
+        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol)
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -155,16 +145,14 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters); 
-                
+                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
 
                 // Let's get rid of all generic information!
 
                 if (!symbol.ReturnsVoid)
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
-
-                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters); 
+                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
             }
         }
 
@@ -185,7 +173,6 @@ namespace Analysis
                     returntype = symbol.ReturnType.ToString();
 
                 SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", generalResults.AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
-
             }
         }
     }

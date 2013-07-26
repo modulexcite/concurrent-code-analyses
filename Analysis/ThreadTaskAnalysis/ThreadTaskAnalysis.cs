@@ -6,21 +6,22 @@ namespace Analysis
 {
     public class ThreadTaskAnalysis : AnalysisBase
     {
-
         private ThreadTaskAnalysisResult result;
 
-         public override AnalysisResultBase ResultObject
+        public override AnalysisResultBase ResultObject
         {
             get { return result; }
         }
+
         public new ThreadTaskAnalysisResult Result
         {
             get { return result; }
         }
+
         public ThreadTaskAnalysis(string dirName, string appName)
             : base(dirName, appName)
         {
-             result = new ThreadTaskAnalysisResult(appName);
+            result = new ThreadTaskAnalysisResult(appName);
         }
 
         protected override bool FilterProject(Enums.ProjectType type)
@@ -35,11 +36,10 @@ namespace Analysis
                 Outer = this,
                 Namespace = "System.Threading.Tasks",
                 SemanticModel = document.GetSemanticModel(),
-                Id =  Result.generalResults.AppName+ " "+document.Id
+                Id = Result.generalResults.AppName + " " + document.Id
             };
 
             loopWalker.Visit(root);
         }
-
     }
 }

@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Challenges
 {
-    class SharedEndXxxRefactoring
+    internal class SharedEndXxxRefactoring
     {
     }
 
-    class OriginalProgram_SharedEndXxx
+    internal class OriginalProgram_SharedEndXxx
     {
         public void Action1()
         {
@@ -41,7 +38,7 @@ namespace Challenges
         }
     }
 
-    class RefactoredProgram_SharedEndXxx
+    internal class RefactoredProgram_SharedEndXxx
     {
         public void Action1()
         {

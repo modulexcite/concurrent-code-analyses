@@ -1,7 +1,4 @@
-﻿using System.IO;
-using Utilities;
-
-namespace Analysis
+﻿namespace Analysis
 {
     public class ThreadTaskAnalysisResult : AnalysisResultBase
     {

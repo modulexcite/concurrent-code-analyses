@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Build.Exceptions;
+using Roslyn.Services;
+using System;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Microsoft.Build.Exceptions;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
-using Roslyn.Services.CSharp;
 
 namespace TestApps
 {
-    class Test2
+    internal class Test2
     {
         public static void execute()
         {
@@ -65,7 +60,7 @@ namespace TestApps
         }
     }
 
-    static class Extensions
+    internal static class Extensions
     {
         public static bool IsInteresting(this IProject project)
         {

@@ -4,7 +4,8 @@ namespace Analysis
 {
     internal class EventHandlerMethodsWalker : SyntaxWalker
     {
-        public AsyncAnalysis Analysis {get; set;}
+        public AsyncAnalysis Analysis { get; set; }
+
         public AsyncAnalysisResult Result { get; set; }
 
         private bool uiClass;

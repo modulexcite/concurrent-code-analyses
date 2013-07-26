@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Analysis;
+﻿using Analysis;
 using Microsoft.Build.Evaluation;
 using NLog;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
+using System.Linq;
 
 namespace Collector
 {
@@ -39,8 +39,8 @@ namespace Collector
         public void Run()
         {
             //SummaryLog.Info(
-//@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
-///);
+            //@"app,numProjects,unanalyzed,wp7,wp8,net4,net45,otherNet,sloc,apm,eap,tap,thread,threadpool,asyncdelegate,bgworker,tpl,isynchronizeinvoke,controlinvoke,dispatcher,asyncVoid,asyncVoidEvent,asyncTask,eventHandlers,uiClasses"
+            ///);
 
             var index = 1;
 
