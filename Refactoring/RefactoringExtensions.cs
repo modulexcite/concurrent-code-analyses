@@ -24,19 +24,20 @@ namespace Refactoring
             if (model == null)
                 throw new NullReferenceException("model");
 
-            switch (DetectActualCallbackArgumentKind(apmStatement, model))
+            var actualArgumentKind = DetectActualCallbackArgumentKind(apmStatement, model);
+            switch (actualArgumentKind)
             {
                 case SyntaxKind.IdentifierName:
                     return RefactorInstanceWithMethodReferenceCallback(syntax, apmStatement, model);
 
                 case SyntaxKind.SimpleLambdaExpression:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Simple lambda is not yet supported");
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return RefactorInstanceWithParenthesizedLambdaCallback(syntax, apmStatement, model);
 
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException("Unsupported actual argument syntax node kind: " + actualArgumentKind);
             }
         }
 

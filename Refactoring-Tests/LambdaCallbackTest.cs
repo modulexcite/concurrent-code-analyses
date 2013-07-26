@@ -28,7 +28,7 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.google.com/"");
-            request.BeginGetResponse(result => {
+            request.BeginGetResponse((result) => {
                 var r = (WebRequest)result.AsyncState;
                 var response = r.EndGetResponse(result);
 
