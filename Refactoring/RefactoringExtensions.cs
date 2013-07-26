@@ -64,12 +64,32 @@ namespace Refactoring
             var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
             var callbackIndex = FindCallbackParamIndex(symbol);
-            var argument = invocation.ArgumentList.Arguments.ElementAt(callbackIndex);
 
-            var lambda = (ParenthesizedLambdaExpressionSyntax)argument.Expression;
+            var memberAccessExpression = (MemberAccessExpressionSyntax)invocation.Expression;
 
-            return syntax;
+            var objectName = memberAccessExpression.Expression.ToString();
+            var methodName = memberAccessExpression.Name.ToString();
 
+            var tapStatement = StatementSyntax("task", objectName, methodName);
+
+            Console.WriteLine(@"TAP statement: {0}", tapStatement);
+
+            var lambda = (ParenthesizedLambdaExpressionSyntax)invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
+            switch (lambda.Body.Kind)
+            {
+                case SyntaxKind.Block:
+                    var lambdaBlock = (BlockSyntax)lambda.Body;
+                    var lambdaStatements = lambdaBlock.Statements;
+
+                    var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
+                                             .AddBodyStatements(lambdaStatements.ToArray());
+
+                    return syntax.ReplaceNode(apmMethod, newMethod).Format();
+
+                default:
+                    // Might be any other SyntaxNode kind, such as InvocationExpression.
+                    throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambda.Body.Kind + ": lambda: " + lambda);
+            }
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
