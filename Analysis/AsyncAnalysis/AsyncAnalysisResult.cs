@@ -100,6 +100,14 @@ namespace Analysis
             return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
         }
 
+        public bool ShouldSerializegeneralAsyncResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]);
+        }
+
+
+        
+
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;

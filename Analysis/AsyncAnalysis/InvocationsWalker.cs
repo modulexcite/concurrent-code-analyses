@@ -25,7 +25,7 @@ namespace Analysis
 
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
         {
-            if (bool.Parse(ConfigurationManager.AppSettings["IsUIClassDetectionEnabled"]))
+            if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]))
             {
                 if (node.IsInSystemWindows() && !uiClass)
                 {
