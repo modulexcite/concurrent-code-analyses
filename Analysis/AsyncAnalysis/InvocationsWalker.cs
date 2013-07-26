@@ -72,7 +72,9 @@ namespace Analysis
                     if (symbol.IsAPMBeginMethod())
                     {
                         //PRINT ALL APM BEGIN METHODS
-                        APMDiagnosisLog.Info(@"{0}", node);
+                        APMDiagnosisLog.Info(@"Document: {0}", Document.FilePath);
+                        APMDiagnosisLog.Info(@"Symbol: {0}", symbol);
+                        APMDiagnosisLog.Info(@"Invocation: {0}", node);
                         APMDiagnosisLog.Info("---------------------------------------------------");
 
                         Result.NumAPMBeginMethods++;
@@ -96,7 +98,7 @@ namespace Analysis
                             if (isAPMFollowed)
                             {
                                 Result.NumAPMBeginFollowed++;
-                                //TempLog.Info(@"APMFOLLOWED {0}", method);
+                                TempLog.Info(@"APMFOLLOWED {0}", method);
                             }
                         }
 
@@ -114,13 +116,12 @@ namespace Analysis
                         {
                             if (c == i)
                             {
-                                APMDiagnosisLog2.Info("{0}", arg.Expression.Kind);
+                                APMDiagnosisLog2.Info("{0}: {1}", arg.Expression.Kind, arg);
 
                                 if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
                                 {
                                     var methodSymbol = SemanticModel.GetSymbolInfo(arg.Expression).Symbol;
-                                    Console.WriteLine(methodSymbol.Kind+ " :" + methodSymbol);
-
+                                  
                                     if (methodSymbol.Kind.ToString().Equals("Method"))
                                     { 
                                         var methodDefinition = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
@@ -144,50 +145,50 @@ namespace Analysis
                             i++;
                         }
                     }
-                    if (symbol.IsAPMEndMethod())
-                    {
-                        Result.NumAPMEndMethods++;
+                    //if (symbol.IsAPMEndMethod())
+                    //{
+                    //    Result.NumAPMEndMethods++;
 
-                        var ancestors= node.Ancestors().OfType<TryStatementSyntax>();
-                        if (ancestors.Any())
-                        {
+                    //    var ancestors= node.Ancestors().OfType<TryStatementSyntax>();
+                    //    if (ancestors.Any())
+                    //    {
 
-                            //TempLog.Info(@"TRYCATCHED ENDXXX {0}",  ancestors.First() );
-                            Result.NumAPMEndTryCatchedMethods++;
-                        }
+                    //        //TempLog.Info(@"TRYCATCHED ENDXXX {0}",  ancestors.First() );
+                    //        Result.NumAPMEndTryCatchedMethods++;
+                    //    }
 
-                        SyntaxNode block=null; 
-                        var lambdas = node.Ancestors().OfType<SimpleLambdaExpressionSyntax>();
-                        if (lambdas.Any())
-                        {
-                            block = lambdas.First();
-                        }
+                    //    SyntaxNode block=null; 
+                    //    var lambdas = node.Ancestors().OfType<SimpleLambdaExpressionSyntax>();
+                    //    if (lambdas.Any())
+                    //    {
+                    //        block = lambdas.First();
+                    //    }
 
-                        if (block == null)
-                        {
-                            var lambdas2 = node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>();
-                            if (lambdas2.Any())
-                                block = lambdas2.First();
-                        }
+                    //    if (block == null)
+                    //    {
+                    //        var lambdas2 = node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>();
+                    //        if (lambdas2.Any())
+                    //            block = lambdas2.First();
+                    //    }
 
-                        if (block == null)
-                        {
-                            var ancestors2 = node.Ancestors().OfType<MethodDeclarationSyntax>();
-                            if (ancestors2.Any())
-                                block = ancestors2.First();
+                    //    if (block == null)
+                    //    {
+                    //        var ancestors2 = node.Ancestors().OfType<MethodDeclarationSyntax>();
+                    //        if (ancestors2.Any())
+                    //            block = ancestors2.First();
                             
-                        }
+                    //    }
 
-                        if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
-                        {
-                            //TempLog.Info(@"NESTED ENDXXX {0}", block);
-                            Result.NumAPMEndNestedMethods++;
-                        }
+                    //    if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
+                    //    {
+                    //        //TempLog.Info(@"NESTED ENDXXX {0}", block);
+                    //        Result.NumAPMEndNestedMethods++;
+                    //    }
 
 
                         
 
-                    }
+                    //}
                     
                 }
 
