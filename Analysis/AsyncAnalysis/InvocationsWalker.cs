@@ -82,6 +82,12 @@ namespace Analysis
 
                     if (symbol.IsAPMBeginMethod())
                     {
+
+                        if ((symbol.ToString().Contains("BeginAction") || symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("Invoke"))
+                        {
+                            TempLog.Info(@"FILTERED {0} {1} {2}", Document.FilePath, node, symbol);
+                            return;
+                        }
                         //PRINT ALL APM BEGIN METHODS
                         APMDiagnosisLog.Info(@"Document: {0}", Document.FilePath);
                         APMDiagnosisLog.Info(@"Symbol: {0}", symbol);
@@ -139,12 +145,12 @@ namespace Analysis
 
                                         if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
                                         {
-                                            TempLog.Info(@"HEYOOO: {0} \r\n Argument: {1} \r\n DeclaringSyntaxNodes: {2}", node, arg.Expression, methodDefinition);
+                                            TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
                                             Console.WriteLine("HEYOOO");
                                         }
                                         else
                                         {
-                                            TempLog.Info(@"FUCKK: {0} \r\n Argument: {1} \r\n DeclaringSyntaxNodes: {2}", node, arg.Expression, methodDefinition);
+                                            TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
                                             Console.WriteLine("FUCKK");
                                         }
 
