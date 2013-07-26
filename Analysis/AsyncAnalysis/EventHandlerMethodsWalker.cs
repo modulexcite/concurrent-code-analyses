@@ -14,7 +14,7 @@ namespace Analysis
             if (node.IsInSystemWindows() && !uiClass)
             {
                 uiClass = true;
-                Result.NumUIClasses++;
+                Result.generalAsyncResults.NumUIClasses++;
             }
             base.VisitUsingDirective(node);
         }
@@ -23,7 +23,7 @@ namespace Analysis
         {
             if (node.HasEventArgsParameter())
             {
-                Result.NumEventHandlerMethods++;
+                Result.generalAsyncResults.NumEventHandlerMethods++;
                 Analysis.ProcessMethodCallsInMethod(node, 0);
             }
 
@@ -32,12 +32,12 @@ namespace Analysis
                 if (node.ReturnType.ToString().Equals("void"))
                 {
                     if (node.HasEventArgsParameter())
-                        Result.NumAsyncVoidEventHandlerMethods++;
+                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
                     else
-                        Result.NumAsyncVoidNonEventHandlerMethods++;
+                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
                 }
                 else
-                    Result.NumAsyncTaskMethods++;
+                    Result.asyncAwaitResults.NumAsyncTaskMethods++;
             }
             base.VisitMethodDeclaration(node);
         }

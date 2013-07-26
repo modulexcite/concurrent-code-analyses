@@ -30,7 +30,7 @@ namespace Analysis
                 if (node.IsInSystemWindows() && !uiClass)
                 {
                     uiClass = true;
-                    Result.NumUIClasses++;
+                    Result.generalAsyncResults.NumUIClasses++;
                 }
             }
 
@@ -71,7 +71,7 @@ namespace Analysis
                     if (synctype != Utilities.Enums.SyncDetected.None
                             && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method => method.HasAsyncModifier()))
                     {
-                        Result.NumGUIBlockingSyncUsages++;
+                        Result.syncUsageResults.NumGUIBlockingSyncUsages++;
                         TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
 
                     }
@@ -94,7 +94,7 @@ namespace Analysis
                         APMDiagnosisLog.Info(@"Invocation: {0}", node);
                         APMDiagnosisLog.Info("---------------------------------------------------");
 
-                        Result.NumAPMBeginMethods++;
+                        Result.apmDiagnosisResults.NumAPMBeginMethods++;
                         var statement = node.Ancestors().OfType<StatementSyntax>().First();
                         var ancestors = node.Ancestors().OfType<MethodDeclarationSyntax>();
                         if (ancestors.Any())
@@ -114,7 +114,7 @@ namespace Analysis
 
                             if (isAPMFollowed)
                             {
-                                Result.NumAPMBeginFollowed++;
+                                Result.apmDiagnosisResults.NumAPMBeginFollowed++;
                                 TempLog.Info(@"APMFOLLOWED {0}", method);
                             }
                         }
@@ -227,25 +227,25 @@ namespace Analysis
                     if (node.ReturnType.ToString().Equals("void"))
                     {
                         if (node.HasEventArgsParameter())
-                            Result.NumAsyncVoidEventHandlerMethods++;
+                            Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
                         else
-                            Result.NumAsyncVoidNonEventHandlerMethods++;
+                            Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
                     }
                     else
-                        Result.NumAsyncTaskMethods++;
+                        Result.asyncAwaitResults.NumAsyncTaskMethods++;
 
                     if (!node.Body.ToString().Contains("await"))
-                        Result.NumAsyncMethodsNotHavingAwait++;
+                        Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
 
                     if (node.Body.ToString().Contains("ConfigureAwait"))
                     {
-                        Result.NumAsyncMethodsHavingConfigureAwait++;
+                        Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
                         TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
                     }
                     if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
                     {
                         TempLog.Info(@"BLOCKING {0}", node.ToString());
-                        Result.NumAsyncMethodsHavingBlockingCalls++;
+                        Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
                     }
 
                 }

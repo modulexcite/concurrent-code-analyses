@@ -169,7 +169,7 @@ namespace Analysis
         {
             var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
             var sloc = root.CountSLOC();
-            Result.NumTotalSLOC += sloc;
+            Result.generalResults.NumTotalSLOC += sloc;
             try 
             {
                 VisitDocument(document, root);
@@ -177,7 +177,7 @@ namespace Analysis
             catch (InvalidProjectFileException ex)
             {
                 Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                Result.NumTotalSLOC -= sloc;
+                Result.generalResults.NumTotalSLOC -= sloc;
             }
         }
 
