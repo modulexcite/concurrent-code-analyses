@@ -40,8 +40,6 @@ namespace Refactoring
             }
         }
 
-
-
         private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
             var apmMethod = apmStatement.ContainingMethod();
@@ -59,7 +57,18 @@ namespace Refactoring
 
         private static CompilationUnitSyntax RefactorInstanceWithParenthesizedLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
-            throw new NotImplementedException();
+            var apmMethod = apmStatement.ContainingMethod();
+
+            var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
+            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+
+            var callbackIndex = FindCallbackParamIndex(symbol);
+            var argument = invocation.ArgumentList.Arguments.ElementAt(callbackIndex);
+
+            var lambda = (ParenthesizedLambdaExpressionSyntax)argument.Expression;
+
+            return syntax;
+
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
@@ -145,7 +154,7 @@ namespace Refactoring
             var invocation = (InvocationExpressionSyntax)statement.Expression;
             var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
-            var callbackParamIndex = FindCallbackParamNum(symbol);
+            var callbackParamIndex = FindCallbackParamIndex(symbol);
 
             if (callbackParamIndex == -1)
                 throw new Exception("Callback parameter number == -1");
@@ -153,7 +162,7 @@ namespace Refactoring
             return invocation.ArgumentList.Arguments.ElementAt(callbackParamIndex).Expression.Kind;
         }
 
-        private static int FindCallbackParamNum(MethodSymbol symbol)
+        private static int FindCallbackParamIndex(MethodSymbol symbol)
         {
             for (var i = 0; i < symbol.Parameters.Count; i++)
             {
