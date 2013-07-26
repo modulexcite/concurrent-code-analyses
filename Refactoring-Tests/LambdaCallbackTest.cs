@@ -29,11 +29,10 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.google.com/"");
             request.BeginGetResponse((result) => {
-                var r = (WebRequest)result.AsyncState;
-                var response = r.EndGetResponse(result);
+                var response = request.EndGetResponse(result);
 
                 DoSomethingWithResponse(response);
-            }, request);
+            }, null);
 
             DoSomethingWhileGetResponseIsRunning();
         }
