@@ -79,7 +79,7 @@ namespace Refactoring
                     var lambdaBlock = (BlockSyntax)lambda.Body;
 
                     var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodName);
-                    var awaitStatement = Syntax.ParseExpression("await task");
+                    SyntaxNode awaitStatement = Syntax.ParseExpression("task.GetAwaiter().GetResult()");
                     lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
                     var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
