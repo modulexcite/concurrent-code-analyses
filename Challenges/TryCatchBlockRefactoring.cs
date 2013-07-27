@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Challenges
 {
-    class TryCatchBlockRefactoring
+    internal class TryCatchBlockRefactoring
     {
     }
 
@@ -27,7 +24,6 @@ namespace Challenges
             }
             catch (Exception e)
             {
-
             }
         }
     }
@@ -49,7 +45,6 @@ namespace Challenges
             }
             catch (Exception e)
             {
-
             }
         }
     }

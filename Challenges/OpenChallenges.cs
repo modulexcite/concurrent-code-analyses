@@ -3,7 +3,7 @@ using System.Net;
 
 namespace Challenges
 {
-    class OpenChallenges
+    internal class OpenChallenges
     {
         // EndGetResponse is probably used in the report delegate, but it is impossible
         // to be certain about this without considering surrounding code.

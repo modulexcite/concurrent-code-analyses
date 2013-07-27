@@ -1,6 +1,6 @@
-﻿using System.Linq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Roslyn.Compilers.CSharp;
+using System.Linq;
 
 namespace Refactoring_Tests
 {
@@ -62,7 +62,6 @@ namespace TextInput
 
             var response = await task;
             CallBack(response, request);
-           
         }
 
         private void CallBack(WebResponse response, WebRequest request)
