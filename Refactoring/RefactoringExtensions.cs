@@ -31,10 +31,10 @@ namespace Refactoring
                     return RefactorInstanceWithMethodReferenceCallback(syntax, apmStatement, model);
 
                 case SyntaxKind.SimpleLambdaExpression:
-                    throw new NotImplementedException("Simple lambda is not yet supported");
+                    return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model, false);
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    return RefactorInstanceWithParenthesizedLambdaCallback(syntax, apmStatement, model);
+                    return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model, true);
 
                 default:
                     throw new NotImplementedException("Unsupported actual argument syntax node kind: " + actualArgumentKind);
@@ -56,7 +56,8 @@ namespace Refactoring
             }).Format();
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithParenthesizedLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorInstanceWithLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model,
+            bool isParenthesized)
         {
             var apmMethod = apmStatement.ContainingMethod();
 
@@ -74,11 +75,13 @@ namespace Refactoring
             const string taskName = "task";
             var tapStatement = StatementSyntax(taskName, objectName, methodName);
 
-            var lambda = (ParenthesizedLambdaExpressionSyntax)invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
-            switch (lambda.Body.Kind)
+            var lambda = invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
+            var lambdaBody = isParenthesized ? ((ParenthesizedLambdaExpressionSyntax)lambda).Body : ((SimpleLambdaExpressionSyntax)lambda).Body;
+
+            switch (lambdaBody.Kind)
             {
                 case SyntaxKind.Block:
-                    var lambdaBlock = (BlockSyntax)lambda.Body;
+                    var lambdaBlock = (BlockSyntax)lambdaBody;
 
                     var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodNameBase);
                     var awaitStatement = AwaitExpression(taskName);
@@ -92,7 +95,7 @@ namespace Refactoring
 
                 default:
                     // Might be any other SyntaxNode kind, such as InvocationExpression.
-                    throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambda.Body.Kind + ": lambda: " + lambda);
+                    throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambdaBody.Kind + ": lambda: " + lambda);
             }
         }
 
