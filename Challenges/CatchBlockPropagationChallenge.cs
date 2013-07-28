@@ -17,7 +17,7 @@ namespace Challenges
         public static void EntryPoint()
         {
             // Create a WebRequest (HTTP GET) for a specific URL
-            HttpWebRequest request = WebRequest.CreateHttp("url://...");
+            var request = WebRequest.CreateHttp("url://...");
 
             // Start the asynchronous operation in the background.
             // The request object is passed as 'state'.
@@ -28,7 +28,7 @@ namespace Challenges
         private static void Callback(IAsyncResult result)
         {
             // Retrieve the request object from the APM state object.
-            HttpWebRequest request = (HttpWebRequest)result.AsyncState;
+            var request = (HttpWebRequest)result.AsyncState;
 
             var x = 0;
             // Code: Do something with x.
