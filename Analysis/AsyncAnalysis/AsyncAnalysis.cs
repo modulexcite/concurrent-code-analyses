@@ -1,35 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NLog;
+﻿using Microsoft.Build.Exceptions;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using Microsoft.Build.Exceptions;
+using System.Linq;
 using Utilities;
 
 namespace Analysis
 {
     public class AsyncAnalysis : AnalysisBase
     {
-
-        
         private AsyncAnalysisResult result;
+
         public override AnalysisResultBase ResultObject
         {
             get { return result; }
         }
+
         public new AsyncAnalysisResult Result
         {
             get { return result; }
         }
 
         public AsyncAnalysis(string dirName, string appName)
-            : base(dirName,appName)
+            : base(dirName, appName)
         {
             result = new AsyncAnalysisResult(appName);
         }
-
 
         protected override bool FilterProject(Enums.ProjectType type)
         {
@@ -41,28 +39,36 @@ namespace Analysis
             return false;
         }
 
-        protected override void VisitDocument(IDocument document,SyntaxNode root)
+        protected override void VisitDocument(IDocument document, SyntaxNode root)
         {
-            SyntaxWalker walker;
-            
-            //walker = new EventHandlerMethodsWalker()
-            //{
-            //    Analysis = this,
-            //    Result = Result,
-            //};
-
-            walker = new InvocationsWalker()
+            if (FilterDocument(document))
             {
-                Analysis = this,
-                Result = Result,
-                SemanticModel = (SemanticModel) document.GetSemanticModel(),
-                Document= document,
-            };
+                SyntaxWalker walker;
 
-            walker.Visit(root);
+                //walker = new EventHandlerMethodsWalker()
+                //{
+                //    Analysis = this,
+                //    Result = Result,
+                //};
+
+                walker = new InvocationsWalker()
+                {
+                    Analysis = this,
+                    Result = Result,
+                    SemanticModel = (SemanticModel)document.GetSemanticModel(),
+                    Document = document,
+                };
+                walker.Visit(root);
+            }
         }
 
+        private bool FilterDocument(IDocument doc)
+        {
+            if (Path.GetDirectoryName(doc.FilePath).Contains(@"\Service References\"))
+                return false;
 
+            return true;
+        }
 
         public void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
         {
@@ -78,9 +84,9 @@ namespace Analysis
                 {
                     var methodCallSymbol = (MethodSymbol)((SemanticModel)semanticModel).GetSymbolInfo(methodCall).Symbol;
 
-                    var type= DetectAsynchronousUsages(methodCall, methodCallSymbol);
+                    var type = DetectAsynchronousUsages(methodCall, methodCallSymbol);
                     Result.StoreDetectedAsyncUsage(type);
-                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol); 
+                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol);
 
                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
 
@@ -108,7 +114,6 @@ namespace Analysis
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 
-
             // DETECT ASYNC CALLS
             if (methodCallSymbol.IsThreadStart())
                 return Enums.AsyncDetected.Thread;
@@ -134,17 +139,14 @@ namespace Analysis
                 return Enums.AsyncDetected.EAP;
             else if (methodCallSymbol.IsTAPMethod())
                 return Enums.AsyncDetected.TAP;
-              
-            // 
+
+            //
             else
                 return Enums.AsyncDetected.None;
-
         }
-
 
         public Enums.SyncDetected DetectSynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
-
             var list = methodCallSymbol.ContainingType.MemberNames;
 
             var name = methodCallSymbol.Name;
@@ -155,7 +157,6 @@ namespace Analysis
             {
                 if (tmp.ToString().Equals("Begin" + name))
                 {
-                  
                     type |= Enums.SyncDetected.APMReplacable;
                 }
                 if (tmp.ToString().Equals(name + "Async"))

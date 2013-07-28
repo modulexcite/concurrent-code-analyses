@@ -239,7 +239,6 @@ namespace Refactoring
 
             var localDeclarationList = oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
 
-
             string parameterListText = "(";
             int c = 0;
             foreach (var stmt in localDeclarationList)
@@ -266,12 +265,12 @@ namespace Refactoring
                 .WithParameterList(Syntax.ParseParameterList(parameterListText))
                 .WithBody(newMethodBody);
 
-
             return newMethodDeclaration;
         }
 
         private static MethodDeclarationSyntax FindCallbackMethod(this ExpressionStatementSyntax statement, SemanticModel model)
         {
+
             InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
             MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
@@ -303,9 +302,5 @@ namespace Refactoring
             }
             return null;
         }
-
-
-
     }
 }
-

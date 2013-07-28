@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Challenges
 {
-    class ReusedEndMethodChallenge
+    internal class ReusedEndMethodChallenge
     {
         public static void EntryPoint1()
         {

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Build.Exceptions;
 using NLog;
+using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Roslyn.Services;
-using Microsoft.Build.Exceptions;
-using System.Diagnostics;
-using Roslyn.Compilers.CSharp;
 using Utilities;
 
 namespace Analysis
@@ -26,6 +26,7 @@ namespace Analysis
         {
             get { return ResultObject; }
         }
+
         public abstract AnalysisResultBase ResultObject { get; }
 
         protected AnalysisBase(string dirName, string appName)
@@ -34,13 +35,16 @@ namespace Analysis
             _appName = appName;
         }
 
-
         public void Analyze()
         {
-            var solutionPaths = Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories);
+            var solutionPaths = from f in Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories)
+                                let directoryName = Path.GetDirectoryName(f)
+                                where !directoryName.Contains(@"\tags") &&
+                                      !directoryName.Contains(@"\branches")
+                                select f;
+
             foreach (var solutionPath in solutionPaths)
             {
-                
                 //TryUpgradeToVS2012(solutionPath);  // enable when you are first exploring the code repository
 
                 CurrentSolution = TryLoadSolution(solutionPath);
@@ -66,13 +70,12 @@ namespace Analysis
             }
         }
 
-
         public void AnalyzeProject(IProject project)
         {
-            Result.AddProject(); 
+            Result.AddProject();
             IEnumerable<IDocument> documents;
-            
-            if ((documents = TryLoadProject(project)) != null 
+
+            if ((documents = TryLoadProject(project)) != null
                 && project.IsCSProject())
             {
                 Enums.ProjectType type = project.GetProjectType();
@@ -84,16 +87,15 @@ namespace Analysis
                     foreach (var document in documents)
                         AnalyzeDocument(document);
                 }
-                else 
+                else
                 {
                     Result.AddUnanalyzedProject();
                 }
             }
-            else 
+            else
             {
                 Result.AddUnanalyzedProject();
             }
-
         }
 
         protected abstract bool FilterProject(Enums.ProjectType type);
@@ -121,7 +123,6 @@ namespace Analysis
             }
             return documents;
         }
-
 
         public static void UpgradeToVS2012(string path)
         {
@@ -164,15 +165,15 @@ namespace Analysis
         {
             var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
             var sloc = root.CountSLOC();
-            Result.NumTotalSLOC += sloc;
-            try 
+            Result.generalResults.NumTotalSLOC += sloc;
+            try
             {
                 VisitDocument(document, root);
             }
             catch (InvalidProjectFileException ex)
             {
                 Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                Result.NumTotalSLOC -= sloc;
+                Result.generalResults.NumTotalSLOC -= sloc;
             }
         }
 
@@ -182,6 +183,5 @@ namespace Analysis
         {
             Result.WriteSummaryLog();
         }
-
     }
 }

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using Roslyn.Compilers.Common;
 using Roslyn.Compilers.CSharp;
-using Roslyn.Compilers.Common;
+using System;
+using System.Linq;
 using Utilities;
 
 namespace Analysis
@@ -10,10 +10,10 @@ namespace Analysis
     {
         private static readonly string[] ThreadpoolSignatures =
             {
-                "ThreadPool.QueueUserWorkItem", 
+                "ThreadPool.QueueUserWorkItem",
                 "ThreadPool.RegisterWaitForSingleObject",
                 "ThreadPool.UnsafeRegisterWaitForSingleObject",
-                "ThreadPool.UnsafeQueueUserWorkItem", 
+                "ThreadPool.UnsafeQueueUserWorkItem",
                 "ThreadPool.UnsafeQueueNativeOverlapped"
             };
 
@@ -62,7 +62,6 @@ namespace Analysis
                     Helper.WriteInstance(LoopThreadTestFile, Id, node.Parent.ToString());
                 else
                     Helper.WriteInstance(LoopThreadFile, Id, node.Parent.ToString());
-
             }
         }
 

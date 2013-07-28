@@ -3,12 +3,12 @@ using System.Net;
 
 namespace Test
 {
-    class Constants
+    internal class Constants
     {
         public const string GoogleUrl = "http://www.google.com/";
     }
 
-    class SimpleAPMCase
+    internal class SimpleAPMCase
     {
         public void FireAndForget()
         {
@@ -30,7 +30,7 @@ namespace Test
     /// <summary>
     /// Refactored version of SimpleAPMCase. Note the use of ConfigureAwait(false), to make sure that the callee's synchronization context is reused.
     /// </summary>
-    class SimpleAPMCaseRefactored
+    internal class SimpleAPMCaseRefactored
     {
         public async void FireAndForget()
         {
@@ -45,7 +45,7 @@ namespace Test
         }
     }
 
-    class SimpleAPMCaseWithoutCallback
+    internal class SimpleAPMCaseWithoutCallback
     {
         public void FireAndForget()
         {
@@ -60,7 +60,7 @@ namespace Test
         }
     }
 
-    class SimpleAPMCaseWithoutCallbackRefactored
+    internal class SimpleAPMCaseWithoutCallbackRefactored
     {
         public async void FireAndForget()
         {

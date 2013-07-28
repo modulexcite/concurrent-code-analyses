@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
-using Roslyn.Compilers.CSharp;
+﻿using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System.Linq;
 using System.Xml;
-using System.Diagnostics;
-using System.IO;
 using Utilities;
 
 namespace Analysis
@@ -14,7 +11,6 @@ namespace Analysis
     /// </summary>
     public static class RoslynExtensions
     {
-
         public static bool IsCSProject(this IProject project)
         {
             return project.LanguageServices.Language.Equals("C#");
@@ -28,7 +24,6 @@ namespace Analysis
             var linesWithNoText = 0;
             foreach (var l in text.Lines)
             {
-                
                 if (string.IsNullOrEmpty(l.ToString().Trim()))
                 {
                     ++linesWithNoText;
@@ -39,7 +34,6 @@ namespace Analysis
 
         public static Enums.ProjectType GetProjectType(this IProject project)
         {
-
             var result = project.IsWindowsPhoneProject();
             if (result == 1)
                 return Enums.ProjectType.WP7;
@@ -63,7 +57,7 @@ namespace Analysis
             return methodCallString;
         }
 
-        // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1. 
+        // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1.
         public static int IsWindowsPhoneProject(this IProject project)
         {
             XmlDocument doc = new XmlDocument();
@@ -92,7 +86,6 @@ namespace Analysis
                     if (node2.InnerText.ToString().Equals("Windows Phone"))
                         return 1;
                 }
-
             }
             return 0;
         }
@@ -117,7 +110,6 @@ namespace Analysis
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.5") || a.Display.Contains(".NETCore\\v4.5"));
         }
 
-
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this MethodSymbol symbol)
         {
@@ -126,18 +118,17 @@ namespace Analysis
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
         {
-            return invocation.Expression.ToString().ToLower().EndsWith("async") && 
-                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().Any( node=> 
+            return invocation.Expression.ToString().ToLower().EndsWith("async") &&
+                   invocation.Ancestors().OfType<MethodDeclarationSyntax>().Any(node =>
                                                                            node.DescendantNodes()
                                                                            .OfType<BinaryExpressionSyntax>()
                                                                            .Any(a => a.Left.ToString().ToLower().EndsWith("completed")));
         }
+
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
-        
-
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
         public static bool IsTPLMethod(this MethodSymbol symbol)
@@ -145,12 +136,10 @@ namespace Analysis
             return symbol.ReturnTask() && symbol.ToString().StartsWith("System.Threading.Tasks");
         }
 
-
         public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("ThreadPool.QueueUserWorkItem");
         }
-
 
         public static bool IsBackgroundWorkerMethod(this MethodSymbol symbol)
         {
@@ -164,12 +153,10 @@ namespace Analysis
 
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
-            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke") ;
+            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke");
         }
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
-
-
 
         public static bool IsISynchronizeInvokeMethod(this MethodSymbol symbol)
         {
@@ -188,9 +175,6 @@ namespace Analysis
 
         // END
 
-
-
-
         public static bool IsAPMEndMethod(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("IAsyncResult") && symbol.Name.StartsWith("End");
@@ -201,14 +185,10 @@ namespace Analysis
             return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
         }
 
-
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
         {
             return node.Name.ToString().StartsWith("System.Windows");
         }
-
-
-
 
         public static bool HasEventArgsParameter(this MethodDeclarationSyntax method)
         {
@@ -236,7 +216,7 @@ namespace Analysis
             return null;
 
             // above one is not always working. basically, above one is the shortcut for the below one!
- 
+
             //var def = methodCallSymbol.FindSourceDefinition(currentSolution);
 
             //if (def != null && def.Locations != null && def.Locations.Count > 0)
@@ -245,7 +225,7 @@ namespace Analysis
             //    var loc = def.Locations.First();
             //    var node = loc.SourceTree.GetRoot().FindToken(loc.SourceSpan.Start).Parent;
             //    if (node is MethodDeclarationSyntax)
-            //        return (MethodDeclarationSyntax)node; 
+            //        return (MethodDeclarationSyntax)node;
             //}
         }
     }

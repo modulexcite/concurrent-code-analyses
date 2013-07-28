@@ -3,7 +3,7 @@ using System.Net;
 
 namespace Challenges
 {
-    // In this example, the response variable in the Callback method should be made a parameter, 
+    // In this example, the response variable in the Callback method should be made a parameter,
     // and the EndGetResponse call should be moved to the EntryPoint method. However, EndGetResponse
     // might throw a WebException, so the catch block should be copied to the EntryPoint method.
     // But unfortunately, the catch block references identifiers from the Callback method scope that
@@ -12,7 +12,7 @@ namespace Challenges
 
     // Original source: Topaz Fuel Card (https://github.com/dlhartveld/topaz-fuel-card-windows-phone)
 
-    class CatchBlockPropagationChallenge
+    internal class CatchBlockPropagationChallenge
     {
         public static void EntryPoint()
         {

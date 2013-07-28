@@ -13,6 +13,7 @@ namespace Refactoring_Tests
     {
         // ReSharper disable InconsistentNaming
         private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
+
         private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
         // ReSharper restore InconsistentNaming
 

@@ -1,69 +1,71 @@
-﻿using System.IO;
+﻿using NLog;
 using Roslyn.Services;
 using Utilities;
-using System;
-using System.Configuration;
-using NLog;
 
 namespace Analysis
 {
     public abstract class AnalysisResultBase
     {
-        
+        public string AppName;
 
-        public readonly string _appName;
+        public class GeneralResults
+        {
+            public int NumTotalProjects;
+            public int NumUnanalyzedProjects;
+            public int NumPhone7Projects;
+            public int NumPhone8Projects;
+            public int NumNet4Projects;
+            public int NumNet45Projects;
+            public int NumOtherNetProjects;
+            public int NumTotalSLOC;
+        }
 
-        protected static readonly Logger SummaryLog = LogManager.GetLogger("SummaryLog");
+        public GeneralResults generalResults { get; set; }
+
+        protected static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
         protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
         protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
 
-
-        public int NumPhone7Projects;
-        public int NumPhone8Projects;
-        protected int NumNet4Projects;
-        protected int NumNet45Projects;
-        protected int NumOtherNetProjects;
-
-        protected int NumTotalProjects;
-        protected int NumUnanalyzedProjects;
-
-        public int NumTotalSLOC;
-
         public AnalysisResultBase(string appName)
         {
-            _appName = appName;
+            generalResults = new GeneralResults();
+            AppName = appName;
         }
 
         public void AddAnalyzedProject(Enums.ProjectType type)
         {
             switch (type)
-            { 
+            {
                 case Enums.ProjectType.WP7:
-                     NumPhone7Projects++;
+                    generalResults.NumPhone7Projects++;
                     break;
+
                 case Enums.ProjectType.WP8:
-                    NumPhone8Projects++;
+                    generalResults.NumPhone8Projects++;
                     break;
+
                 case Enums.ProjectType.NET4:
-                    NumNet4Projects++;
+                    generalResults.NumNet4Projects++;
                     break;
+
                 case Enums.ProjectType.NET45:
-                    NumNet45Projects++;
+                    generalResults.NumNet45Projects++;
                     break;
+
                 case Enums.ProjectType.NETOther:
-                    NumOtherNetProjects++;
+                    generalResults.NumOtherNetProjects++;
                     break;
             }
         }
 
         public void AddUnanalyzedProject()
         {
-            NumUnanalyzedProjects++;
+            generalResults.NumUnanalyzedProjects++;
         }
 
         public void AddProject()
         {
-            NumTotalProjects++;
+            generalResults.NumTotalProjects++;
         }
 
         public void WritePhoneProjects(IProject project)
@@ -72,13 +74,8 @@ namespace Analysis
             //if (!hasPhoneProjectInThisSolution)
             phoneSolutionListLog.Info(project.Solution.FilePath);
             //hasPhoneProjectInThisSolution = true;
-
         }
 
-
-
         public abstract void WriteSummaryLog();
-
-        
     }
 }

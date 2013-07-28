@@ -1,122 +1,126 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using Utilities;
-using Roslyn.Compilers.CSharp;
+﻿using Newtonsoft.Json;
 using NLog;
-using Roslyn.Services;
+using Roslyn.Compilers.CSharp;
+using System;
+using System.Configuration;
+using Utilities;
 
 namespace Analysis
 {
     public class AsyncAnalysisResult : AnalysisResultBase
     {
-        public int NumUIClasses;
-        public int NumEventHandlerMethods;
-        public int NumAsyncVoidNonEventHandlerMethods;
-        public int NumAsyncVoidEventHandlerMethods;
-        public int NumAsyncTaskMethods;
+        public class GeneralAsyncResults
+        {
+            public int NumUIClasses;
+            public int NumEventHandlerMethods;
+        }
 
-        public int NumSyncReplacableUsages;
+        public class AsyncAwaitResults
+        {
+            public int NumAsyncVoidNonEventHandlerMethods;
+            public int NumAsyncVoidEventHandlerMethods;
+            public int NumAsyncTaskMethods;
+            public int NumAsyncMethodsHavingConfigureAwait;
+            public int NumAsyncMethodsHavingBlockingCalls;
+            public int NumAsyncMethodsNotHavingAwait;
+        }
 
+        public class APMDiagnosisResults
+        {
+            public int NumAPMBeginMethods;
+            public int NumAPMBeginFollowed;
+            public int NumAPMEndMethods;
+            public int NumAPMEndTryCatchedMethods;
+            public int NumAPMEndNestedMethods;
+        }
 
-        public int NumGUIBlockingSyncUsages;
+        public class SyncUsageResults
+        {
+            public int NumSyncReplacableUsages;
+            public int NumGUIBlockingSyncUsages;
+        }
 
+        public class AsyncUsageResults
+        {
+            public int[] NumAsyncProgrammingUsages = new int[11];
+        }
 
-        public int NumAsyncMethodsHavingConfigureAwait;
-        public int NumAsyncMethodsHavingBlockingCalls;
-        public int NumAsyncMethodsNotHavingAwait;
+        public GeneralAsyncResults generalAsyncResults { get; set; }
 
-        public int NumAPMBeginMethods;
-        public int NumAPMBeginFollowed;
-        public int NumAPMEndMethods;
-        public int NumAPMEndTryCatchedMethods;
-        public int NumAPMEndNestedMethods;
+        public AsyncAwaitResults asyncAwaitResults { get; set; }
 
+        public APMDiagnosisResults apmDiagnosisResults { get; set; }
 
-        public int[] NumAsyncProgrammingUsages;
+        public SyncUsageResults syncUsageResults { get; set; }
+
+        public AsyncUsageResults asyncUsageResults { get; set; }
 
         protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
         protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
         protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
         protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
 
-        
-
-
-        
-        
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
-            NumAsyncProgrammingUsages = new int[11];
+            generalAsyncResults = new GeneralAsyncResults();
+            asyncAwaitResults = new AsyncAwaitResults();
+            apmDiagnosisResults = new APMDiagnosisResults();
+            syncUsageResults = new SyncUsageResults();
+            asyncUsageResults = new AsyncUsageResults();
         }
 
         public void StoreDetectedAsyncUsage(Enums.AsyncDetected type)
         {
             if (Enums.AsyncDetected.None != type)
-                NumAsyncProgrammingUsages[(int)type]++;
+                asyncUsageResults.NumAsyncProgrammingUsages[(int)type]++;
         }
 
         public override void WriteSummaryLog()
         {
+            SummaryJSONLog.Info(@"{0}", JsonConvert.SerializeObject(this, Formatting.None));
+        }
+        public bool ShouldSerializeasyncAwaitResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]);
+        }
 
-            string summary = String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8}",  
-                                   _appName,
-                                   NumTotalProjects,
-                                   NumUnanalyzedProjects,
-                                   NumPhone7Projects,
-                                   NumPhone8Projects,
-                                   NumNet4Projects,
-                                   NumNet45Projects,
-                                   NumOtherNetProjects,
-                                   NumTotalSLOC);
+        public bool ShouldSerializeapmDiagnosisResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsAPMDiagnosisDetectionEnabled"]);
+        }
 
-            foreach (var pattern in NumAsyncProgrammingUsages)
-                summary+=pattern + ",";
+        public bool ShouldSerializesyncUsageResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]);
+        }
 
-            summary += String.Format(@"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},",
-                NumGUIBlockingSyncUsages,
-                NumSyncReplacableUsages,
+        public bool ShouldSerializeasyncUsageResults()
+        { 
+            return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
+        }
 
-                NumAsyncMethodsHavingConfigureAwait,
-                NumAsyncMethodsHavingBlockingCalls,
-                NumAsyncMethodsNotHavingAwait,
-
-                NumAsyncVoidNonEventHandlerMethods,
-                NumAsyncVoidEventHandlerMethods, 
-                NumAsyncTaskMethods,
-
-                NumEventHandlerMethods,
-                NumUIClasses);
-
-
-            summary += String.Format(@"{0},{1},{2},{3},{4}",
-                NumAPMBeginMethods,
-                NumAPMBeginFollowed,
-                NumAPMEndMethods,
-                NumAPMEndTryCatchedMethods,
-                NumAPMEndNestedMethods);
-
-            SummaryLog.Info(summary);
-
+        public bool ShouldSerializegeneralAsyncResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]);
         }
 
 
-
+        
 
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;
             var start = node.GetLocation().GetLineSpan(true).StartLinePosition;
 
-            string message="";
+            string message = "";
             for (var i = 0; i < n; i++)
-                message+=" ";
-            message+= node.Identifier + " " + n + " @ " + path + ":" + start;
+                message += " ";
+            message += node.Identifier + " " + n + " @ " + path + ":" + start;
             CallTraceLog.Info(message);
         }
 
-        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol) 
+        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol)
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -135,23 +139,21 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters); 
-                
+                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
 
                 // Let's get rid of all generic information!
 
                 if (!symbol.ReturnsVoid)
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
-
-                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters); 
+                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
             }
         }
 
         internal void StoreDetectedSyncUsage(Enums.SyncDetected synctype)
         {
             if (Enums.SyncDetected.None != synctype)
-                NumSyncReplacableUsages++;
+                syncUsageResults.NumSyncReplacableUsages++;
         }
 
         internal void WriteDetectedSyncUsage(Enums.SyncDetected type, string documentPath, MethodSymbol symbol)
@@ -164,8 +166,7 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", _appName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
-
+                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
             }
         }
     }
