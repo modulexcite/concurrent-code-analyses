@@ -109,9 +109,6 @@ namespace Refactoring
             // TODO: Check for correct signature, etc.
             // This can be done much smarter by e.g. using the BeginXxx method symbol, looking up the corresponding EndXxx symobl, and filtering on that.
 
-            Console.WriteLine(@"lambda: {0}", lambdaBlock);
-            Console.WriteLine(@"method: {0}", methodName);
-
             var endStatement = lambdaBlock.DescendantNodes()
                                           .OfType<MemberAccessExpressionSyntax>()
                                           .First(stmt => stmt.Name.ToString().Equals("End" + methodName));
