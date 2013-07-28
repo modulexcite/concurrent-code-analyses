@@ -68,9 +68,11 @@ namespace Refactoring
             var memberAccessExpression = (MemberAccessExpressionSyntax)invocation.Expression;
 
             var objectName = memberAccessExpression.Expression.ToString();
-            var methodName = GetAsyncMethodNameBase(apmStatement);
+            var methodNameBase = GetAsyncMethodNameBase(apmStatement);
+            var methodName = methodNameBase + "Async";
 
-            var tapStatement = StatementSyntax("task", objectName, methodName);
+            const string taskName = "task";
+            var tapStatement = StatementSyntax(taskName, objectName, methodName);
 
             var lambda = (ParenthesizedLambdaExpressionSyntax)invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
             switch (lambda.Body.Kind)
@@ -78,19 +80,28 @@ namespace Refactoring
                 case SyntaxKind.Block:
                     var lambdaBlock = (BlockSyntax)lambda.Body;
 
-                    var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodName);
-                    SyntaxNode awaitStatement = Syntax.ParseExpression("task.GetAwaiter().GetResult()");
+                    var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodNameBase);
+                    var awaitStatement = AwaitExpression(taskName);
                     lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
                     var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
                                              .AddBodyStatements(lambdaBlock.Statements.ToArray());
 
-                    return syntax.ReplaceNode(apmMethod, newMethod).Format();
+                    return syntax.ReplaceNode(apmMethod, newMethod)
+                                 .Format();
 
                 default:
                     // Might be any other SyntaxNode kind, such as InvocationExpression.
                     throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambda.Body.Kind + ": lambda: " + lambda);
             }
+        }
+
+        private static ExpressionSyntax AwaitExpression(string taskName)
+        {
+            // TODO: Use 'await' once available in the next CTP.
+            var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
+
+            return Syntax.ParseExpression(code);
         }
 
         private static SyntaxNode FindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string objectName, string methodName)

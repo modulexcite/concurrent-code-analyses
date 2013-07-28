@@ -42,6 +42,7 @@ namespace TextInput
     }
 }";
 
+        // TODO: Replace GetAwaiter().GetResult() with await task.ConfigureAwait(false) once available
         private const string RefactoredCode = @"using System;
 using System.Net;
 
@@ -56,7 +57,7 @@ namespace TextInput
 
             DoSomethingWhileGetResponseIsRunning();
 
-            var response = await task.ConfigureAwait(false);
+            var response = task.GetAwaiter().GetResult();
             DoSomethingWithResponse(response);
         }
 
