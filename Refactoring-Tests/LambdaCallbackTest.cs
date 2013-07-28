@@ -8,17 +8,28 @@ namespace Refactoring_Tests
     public class LambdaCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
-        public void TestThatTheSimpleCaseWithLambdaCallbackIsRefactoredCorrectly()
+        public void TestThatTheSimpleCaseWithParenthesizedLambdaCallbackIsRefactoredCorrectly()
         {
             StatementFinder actualStatementFinder =
                 syntax => syntax.DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, actualStatementFinder);
         }
 
-        private const string OriginalCode = @"using System;
+        [Test]
+        public void TestThatTheSimpleCaseWithSimpleLambdaCallbackIsRefactoredCorrectly()
+        {
+            StatementFinder actualStatementFinder =
+                syntax => syntax.DescendantNodes()
+                                .OfType<ExpressionStatementSyntax>()
+                                .First(invocation => invocation.ToString().Contains("Begin"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCode, actualStatementFinder);
+        }
+
+        private const string OriginalCodeWithParenthesizedLambda = @"using System;
 using System.Net;
 
 namespace TextInput
@@ -29,6 +40,30 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.google.com/"");
             request.BeginGetResponse((result) => {
+                var response = request.EndGetResponse(result);
+
+                DoSomethingWithResponse(response);
+            }, null);
+
+            DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithSimpleLambda = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.google.com/"");
+            request.BeginGetResponse(result => {
                 var response = request.EndGetResponse(result);
 
                 DoSomethingWithResponse(response);
