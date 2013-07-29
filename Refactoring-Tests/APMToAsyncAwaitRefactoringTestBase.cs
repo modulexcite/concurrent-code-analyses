@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using Refactoring;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
@@ -37,6 +38,8 @@ namespace Refactoring_Tests
         /// invocation expression statement that must be refactored.</param>
         protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, StatementFinder statementFinder)
         {
+            Console.WriteLine("=== CODE TO BE REFACTORED ===\n{0}\n=== END ===", originalCode);
+
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
             var originalSyntax = originalSyntaxTree.GetRoot();
@@ -53,11 +56,27 @@ namespace Refactoring_Tests
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var refactoredSyntax = refactoredSyntaxTree.GetRoot();
 
+            var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
+
+            // Test against refactored code
+            Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
+            Assert.That(actualRefactoredSyntax.ToString(), Is.EqualTo(refactoredSyntax.ToString()));
+        }
+
+        private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
+        {
+
+            Console.WriteLine("Starting refactoring operation ...");
+            var start = DateTime.UtcNow;
+
             // Perform actual refactoring
             var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(apmInvocation, originalSemanticModel);
 
-            Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
-            Assert.That(actualRefactoredSyntax.ToString(), Is.EqualTo(refactoredSyntax.ToString()));
+            var end = DateTime.UtcNow;
+            var time = end.Subtract(start).Milliseconds;
+            Console.WriteLine("Finished refactoring operation in {0} ms", time);
+
+            return actualRefactoredSyntax;
         }
     }
 }

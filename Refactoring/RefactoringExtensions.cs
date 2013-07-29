@@ -88,7 +88,10 @@ namespace Refactoring
                     lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
                     var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
-                                             .AddBodyStatements(lambdaBlock.Statements.ToArray());
+                                             .AddBodyStatements(lambdaBlock.Statements.ToArray())
+                                             .AddModifiers(
+                                                Syntax.Token(SyntaxKind.AsyncKeyword)
+                                             );
 
                     return syntax.ReplaceNode(apmMethod, newMethod)
                                  .Format();
@@ -173,7 +176,7 @@ namespace Refactoring
 
         private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
         {
-            var code = String.Format("var {0} = {1}.{2}();\n", taskName, objectName, methodName);
+            var code = String.Format("var {0} = {1}.{2}();\r\n", taskName, objectName, methodName);
 
             return Syntax.ParseStatement(code);
         }
