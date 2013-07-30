@@ -13,7 +13,7 @@ namespace Analysis
 {
     public abstract class AnalysisBase
     {
-        protected static readonly Logger Log = LogManager.GetLogger("Console");
+
 
 
         private readonly string _dirName;
@@ -65,7 +65,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+                Logs.Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
                 return null;
             }
         }
@@ -116,7 +116,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
+                    Logs.Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
                 }
                 else
                     throw;
@@ -155,7 +155,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
+                Logs.Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
                 return false;
             }
             return true;
@@ -172,7 +172,7 @@ namespace Analysis
             }
             catch (InvalidProjectFileException ex)
             {
-                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
+                Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
                 Result.generalResults.NumTotalSLOC -= sloc;
             }
         }

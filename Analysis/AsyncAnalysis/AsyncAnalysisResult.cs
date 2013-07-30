@@ -55,10 +55,8 @@ namespace Analysis
 
         public AsyncUsageResults asyncUsageResults { get; set; }
 
-        protected static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
-        protected static readonly Logger SyncClassifierLog = LogManager.GetLogger("SyncClassifierLog");
-        protected static readonly Logger AsyncClassifierLog = LogManager.GetLogger("AsyncClassifierLog");
-        protected static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
+       
+
 
         public AsyncAnalysisResult(string appName)
             : base(appName)
@@ -78,7 +76,7 @@ namespace Analysis
 
         public override void WriteSummaryLog()
         {
-            SummaryJSONLog.Info(@"{0}", JsonConvert.SerializeObject(this, Formatting.None));
+            Logs.SummaryJSONLog.Info(@"{0}", JsonConvert.SerializeObject(this, Formatting.None));
         }
         public bool ShouldSerializeasyncAwaitResults()
         {
@@ -117,7 +115,7 @@ namespace Analysis
             for (var i = 0; i < n; i++)
                 message += " ";
             message += node.Identifier + " " + n + " @ " + path + ":" + start;
-            CallTraceLog.Info(message);
+            Logs.CallTraceLog.Info(message);
         }
 
         internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol)
@@ -125,7 +123,7 @@ namespace Analysis
             if (Enums.AsyncDetected.None != type)
             {
                 var text = "///" + type.ToString() + "///  " + symbol.ToStringWithReturnType();
-                CallTraceLog.Info(text);
+                Logs.CallTraceLog.Info(text);
             }
         }
 
@@ -139,14 +137,14 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
+                Logs.AsyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
 
                 // Let's get rid of all generic information!
 
                 if (!symbol.ReturnsVoid)
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
-                AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
+                Logs.AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
             }
         }
 
@@ -166,7 +164,7 @@ namespace Analysis
                 else
                     returntype = symbol.ReturnType.ToString();
 
-                SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
+                Logs.SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
             }
         }
     }

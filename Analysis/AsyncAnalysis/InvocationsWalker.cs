@@ -18,9 +18,7 @@ namespace Analysis
 
         public IDocument Document { get; set; }
 
-        protected static readonly Logger TempLog = LogManager.GetLogger("TempLog");
-        protected static readonly Logger APMDiagnosisLog = LogManager.GetLogger("APMDiagnosisLog");
-        protected static readonly Logger APMDiagnosisLog2 = LogManager.GetLogger("APMDiagnosisLog2");
+
         private bool uiClass;
 
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
@@ -69,7 +67,7 @@ namespace Analysis
                             && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method => method.HasAsyncModifier()))
                     {
                         Result.syncUsageResults.NumGUIBlockingSyncUsages++;
-                        TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
+                        Logs.TempLog.Info(@"GUIBLOCKING {0}", node.Ancestors().OfType<MethodDeclarationSyntax>().First().ToString());
                     }
                 }
 
@@ -79,14 +77,14 @@ namespace Analysis
                     {
                         if ((symbol.ToString().Contains("BeginAction") || symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("Invoke"))
                         {
-                            TempLog.Info(@"FILTERED {0} {1} {2}", Document.FilePath, node, symbol);
+                            Logs.TempLog.Info(@"FILTERED {0} {1} {2}", Document.FilePath, node, symbol);
                             return;
                         }
                         //PRINT ALL APM BEGIN METHODS
-                        APMDiagnosisLog.Info(@"Document: {0}", Document.FilePath);
-                        APMDiagnosisLog.Info(@"Symbol: {0}", symbol);
-                        APMDiagnosisLog.Info(@"Invocation: {0}", node);
-                        APMDiagnosisLog.Info("---------------------------------------------------");
+                        Logs.APMDiagnosisLog.Info(@"Document: {0}", Document.FilePath);
+                        Logs.APMDiagnosisLog.Info(@"Symbol: {0}", symbol);
+                        Logs.APMDiagnosisLog.Info(@"Invocation: {0}", node);
+                        Logs.APMDiagnosisLog.Info("---------------------------------------------------");
 
                         Result.apmDiagnosisResults.NumAPMBeginMethods++;
                         var statement = node.Ancestors().OfType<StatementSyntax>().First();
@@ -108,7 +106,7 @@ namespace Analysis
                             if (isAPMFollowed)
                             {
                                 Result.apmDiagnosisResults.NumAPMBeginFollowed++;
-                                TempLog.Info(@"APMFOLLOWED {0}", method);
+                                Logs.TempLog.Info(@"APMFOLLOWED {0}", method);
                             }
                         }
 
@@ -125,7 +123,7 @@ namespace Analysis
                         {
                             if (c == i)
                             {
-                                APMDiagnosisLog2.Info("{0}: {1}", arg.Expression.Kind, arg);
+                                Logs.APMDiagnosisLog2.Info("{0}: {1}", arg.Expression.Kind, arg);
 
                                 if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
                                 {
@@ -137,12 +135,12 @@ namespace Analysis
 
                                         if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
                                         {
-                                            TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
+                                            Logs.TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
                                             Console.WriteLine("HEYOOO");
                                         }
                                         else
                                         {
-                                            TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
+                                            Logs.TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
                                             Console.WriteLine("FUCKK");
                                         }
                                     }
@@ -221,14 +219,22 @@ namespace Analysis
                     if (node.Body.ToString().Contains("ConfigureAwait"))
                     {
                         Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                        TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
+                        Logs.TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
                     }
                     if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
                     {
-                        TempLog.Info(@"BLOCKING {0}", node.ToString());
+                        Logs.TempLog.Info(@"BLOCKING {0}", node.ToString());
                         Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
                     }
                 }
+            }
+
+
+
+            if (node.HasEventArgsParameter())
+            {
+                Result.generalAsyncResults.NumEventHandlerMethods++;
+                Analysis.ProcessMethodCallsInMethod(node, 0);
             }
 
             base.VisitMethodDeclaration(node);

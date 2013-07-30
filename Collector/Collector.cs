@@ -12,9 +12,6 @@ namespace Collector
 {
     internal class Collector
     {
-        private static readonly Logger Log = LogManager.GetLogger("Console");
-
-
         private static string SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
 
         private readonly List<string> _analyzedApps;
@@ -49,7 +46,7 @@ namespace Collector
 
                 var app = new AsyncAnalysis(subdir, appName);
 
-                Log.Info(@"{0}: {1}", index, appName);
+                Logs.Log.Info(@"{0}: {1}", index, appName);
 
                 app.Analyze();
 
