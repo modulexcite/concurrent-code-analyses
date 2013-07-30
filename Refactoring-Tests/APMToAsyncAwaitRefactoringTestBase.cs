@@ -64,7 +64,7 @@ namespace Refactoring_Tests
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.
             //Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
-            Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString()));
+            Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
         }
 
         private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
