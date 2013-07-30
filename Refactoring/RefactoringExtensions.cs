@@ -68,7 +68,7 @@ namespace Refactoring
             var apmMethod = apmStatement.ContainingMethod();
 
             var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
-            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            var symbol = model.LookupMethodSymbol(invocation);
 
             var callbackIndex = FindCallbackParamIndex(symbol);
 
@@ -227,9 +227,7 @@ namespace Refactoring
             if (model == null) throw new ArgumentNullException("model");
 
             var invocation = (InvocationExpressionSyntax)statement.Expression;
-            Console.WriteLine(@"invocation: {0}", invocation.Expression);
-            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
-            Console.WriteLine(@"symbol: {0}", symbol);
+            var symbol = model.LookupMethodSymbol(invocation);
 
             var callbackParamIndex = FindCallbackParamIndex(symbol);
 
@@ -275,7 +273,7 @@ namespace Refactoring
             {
                 var expression = stmt.Declaration.Variables.First().Initializer.Value;
                 var id = stmt.Declaration.Variables.First().Identifier;
-                var type = model.GetTypeInfo(expression).Type;
+                var type = model.LookupTypeSymbol(expression);
 
                 parameters.Add(type + " " + id);
             }
@@ -295,7 +293,7 @@ namespace Refactoring
             if (model == null) throw new ArgumentNullException("model");
 
             var invocation = (InvocationExpressionSyntax)statement.Expression;
-            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            var symbol = model.LookupMethodSymbol(invocation);
 
             var callbackParamIndex = -1;
             for (var i = 0; i < symbol.Parameters.Count; i++)
@@ -310,7 +308,7 @@ namespace Refactoring
             var argumentExpression = invocation.ArgumentList.Arguments.ElementAt(callbackParamIndex).Expression;
             if (argumentExpression.Kind.ToString().Contains("IdentifierName"))
             {
-                var methodSymbol = model.GetSymbolInfo(argumentExpression).Symbol;
+                var methodSymbol = model.LookupSymbol(argumentExpression);
 
                 return (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
             }
