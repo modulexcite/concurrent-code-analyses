@@ -76,6 +76,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
+    <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
     <Compile Include="DelegateFieldRefCallbackTest.cs" />
     <Compile Include="LambdaCallbackTest.cs" />
     <Compile Include="MethodRefCallbackTest.cs" />
