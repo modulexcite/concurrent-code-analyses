@@ -90,7 +90,14 @@ namespace Refactoring
 
                     var endStatement = TryFindEndXxxCallSyntaxNode(lambdaBlock, methodNameBase);
 
-                    if (endStatement != null)
+                    if (endStatement == null)
+                    {
+                        // TODO: TryRecursiveRewrite(...)
+                        // Every method invocation might lead to the target EndXxx. Try to find it recursively.
+                        // Once found, rewrite the methods, one by one, while backtracking.
+                        throw new NotImplementedException("No EndXxx in syntax block.");
+                    }
+                    else
                     {
                         var awaitStatement = AwaitExpression(taskName);
                         lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
@@ -103,10 +110,6 @@ namespace Refactoring
 
                         return syntax.ReplaceNode(apmMethod, newMethod)
                             .Format();
-                    }
-                    else
-                    {
-                        throw new NotImplementedException("No EndXxx in syntax block.");
                     }
 
                 default:
