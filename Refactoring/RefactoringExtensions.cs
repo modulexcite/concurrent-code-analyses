@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
@@ -46,7 +47,7 @@ namespace Refactoring
 
             var apmMethod = apmStatement.ContainingMethod();
 
-            var oldCallback = apmStatement.FindCallbackMethod(model);
+            var oldCallback = apmStatement.FindCallbackMethodDeclaration(model);
             var newCallback = CreateNewCallbackMethod(oldCallback, model);
             var newCallingMethod = NewAsyncMethodDeclaration(apmStatement, apmMethod);
 
@@ -78,7 +79,7 @@ namespace Refactoring
             var methodName = methodNameBase + "Async";
 
             const string taskName = "task";
-            var tapStatement = StatementSyntax(taskName, objectName, methodName);
+            var tapStatement = NewVariableDeclarationStatement(taskName, objectName, methodName);
 
             var lambda = invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
             var lambdaBody = isParenthesized ? ((ParenthesizedLambdaExpressionSyntax)lambda).Body : ((SimpleLambdaExpressionSyntax)lambda).Body;
@@ -97,35 +98,21 @@ namespace Refactoring
                         // Once found, rewrite the methods, one by one, while backtracking.
                         throw new NotImplementedException("No EndXxx in syntax block.");
                     }
-                    else
-                    {
-                        var awaitStatement = AwaitExpression(taskName);
-                        lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
-                        var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
-                            .AddBodyStatements(lambdaBlock.Statements.ToArray())
-                            .AddModifiers(
-                                Syntax.Token(SyntaxKind.AsyncKeyword)
-                            );
+                    var awaitStatement = NewAwaitExpression(taskName);
+                    lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
-                        return syntax.ReplaceNode(apmMethod, newMethod)
-                            .Format();
-                    }
+                    var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
+                                             .AddBodyStatements(lambdaBlock.Statements.ToArray())
+                                             .AddModifiers(NewAsyncKeyword());
+
+                    return syntax.ReplaceNode(apmMethod, newMethod)
+                                 .Format();
 
                 default:
                     // Might be any other SyntaxNode kind, such as InvocationExpression.
                     throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambdaBody.Kind + ": lambda: " + lambda);
             }
-        }
-
-        private static ExpressionSyntax AwaitExpression(string taskName)
-        {
-            if (taskName == null) throw new ArgumentNullException("taskName");
-
-            // TODO: Use 'await' once available in the next CTP.
-            var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
-
-            return Syntax.ParseExpression(code);
         }
 
         private static SyntaxNode TryFindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string methodName)
@@ -144,7 +131,7 @@ namespace Refactoring
 
                 return endStatement.Parent;
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return null;
             }
@@ -156,6 +143,7 @@ namespace Refactoring
             if (apmMethod == null) throw new ArgumentNullException("apmMethod");
 
             const string taskName = "task";
+            const string resultName = "result";
 
             var invocationExpression = ((InvocationExpressionSyntax)apmInvocation.Expression);
             var memberAccessExpression = (MemberAccessExpressionSyntax)invocationExpression.Expression;
@@ -163,21 +151,21 @@ namespace Refactoring
             var objectName = memberAccessExpression.Expression.ToString();
             var methodName = AsyncMethodNameForAPMBeginInvocation(apmInvocation);
 
-            var tapInvocation = StatementSyntax(taskName, objectName, methodName);
+            var tapInvocation = NewVariableDeclarationStatement(taskName, objectName, methodName);
 
             var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
 
             var paramIdentifier = invocationExpression.ArgumentList.Arguments.Last().ToString();
-            var awaitCode = String.Format("var result = {0}.ConfigureAwait(false).GetAwaiter().GetResult();\n", taskName);
+
+            var responseDeclarationStatement = NewVariableDeclarationStatement(resultName, NewAwaitExpression(taskName));
+
             asyncMethod = asyncMethod.AddBodyStatements(
-                Syntax.ParseStatement(awaitCode),
+                responseDeclarationStatement,
                 Syntax.ParseStatement("Callback(" + paramIdentifier + ", result);")
             );
 
             asyncMethod = asyncMethod.WithModifiers(
-                asyncMethod.Modifiers.Add(
-                    Syntax.Token(SyntaxKind.AsyncKeyword)
-                )
+                asyncMethod.Modifiers.Add(NewAsyncKeyword())
             );
 
             return asyncMethod;
@@ -207,17 +195,6 @@ namespace Refactoring
             var apmMethodName = expression.Name.ToString();
             var methodNameBase = apmMethodName.Substring(5);
             return methodNameBase;
-        }
-
-        private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
-        {
-            if (taskName == null) throw new ArgumentNullException("taskName");
-            if (objectName == null) throw new ArgumentNullException("objectName");
-            if (methodName == null) throw new ArgumentNullException("methodName");
-
-            var code = String.Format("var {0} = {1}.{2}();\r\n", taskName, objectName, methodName);
-
-            return Syntax.ParseStatement(code);
         }
 
         /// <summary>
@@ -280,78 +257,101 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax CreateNewCallbackMethod(MethodDeclarationSyntax oldMethodDeclaration, SemanticModel model)
         {
+            if (oldMethodDeclaration == null) throw new ArgumentNullException("oldMethodDeclaration");
+            if (model == null) throw new ArgumentNullException("model");
+
             var oldMethodBody = oldMethodDeclaration.Body;
 
-            //Console.WriteLine("parameter "+oldMethodDeclaration.ParameterList);
+            var identifierIAsyncResult = oldMethodDeclaration.ParameterList.Parameters
+                                                             .First(a => a.Type.ToString().Equals("IAsyncResult"))
+                                                             .Identifier;
 
-            var identifierIAsyncResult = oldMethodDeclaration.ParameterList.ChildNodes().OfType<ParameterSyntax>().Where(a => a.Type.ToString().Equals("IAsyncResult")).First().Identifier;
+            var localDeclarationList = oldMethodBody.DescendantNodes()
+                                                    .OfType<LocalDeclarationStatementSyntax>()
+                                                    .Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
 
-            //Console.WriteLine("id: "+identifierIAsyncResult);
-
-            var localDeclarationList = oldMethodBody.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(a => a.ToString().Contains(identifierIAsyncResult.ToString()));
-
-            string parameterListText = "(";
-            int c = 0;
+            var parameters = new List<string>();
             foreach (var stmt in localDeclarationList)
             {
                 var expression = stmt.Declaration.Variables.First().Initializer.Value;
                 var id = stmt.Declaration.Variables.First().Identifier;
                 var type = model.GetTypeInfo(expression).Type;
 
-                if (c != 0)
-                    parameterListText += ", ";
-
-                parameterListText += type.ToString() + " " + id.ToString();
-                //Console.WriteLine("* "+ type + " " + id);
-                // * System.Net.WebRequest request,  System.Net.WebResponse response
-                c++;
+                parameters.Add(type + " " + id);
             }
-            parameterListText += ")";
+            var parameterListText = "(" + String.Join(", ", parameters) + ")";
 
             var newMethodBody = oldMethodBody.RemoveNodes(localDeclarationList, SyntaxRemoveOptions.KeepNoTrivia);
 
-            MethodDeclarationSyntax newMethodDeclaration =
-                Syntax.MethodDeclaration(oldMethodDeclaration.ReturnType, oldMethodDeclaration.Identifier.ToString())
-                .WithModifiers(oldMethodDeclaration.Modifiers)
-                .WithParameterList(Syntax.ParseParameterList(parameterListText))
-                .WithBody(newMethodBody);
-
-            return newMethodDeclaration;
+            return Syntax.MethodDeclaration(oldMethodDeclaration.ReturnType, oldMethodDeclaration.Identifier.ToString())
+                         .WithModifiers(oldMethodDeclaration.Modifiers)
+                         .WithParameterList(Syntax.ParseParameterList(parameterListText))
+                         .WithBody(newMethodBody);
         }
 
-        private static MethodDeclarationSyntax FindCallbackMethod(this ExpressionStatementSyntax statement, SemanticModel model)
+        private static MethodDeclarationSyntax FindCallbackMethodDeclaration(this ExpressionStatementSyntax statement, SemanticModel model)
         {
+            if (statement == null) throw new ArgumentNullException("statement");
+            if (model == null) throw new ArgumentNullException("model");
 
-            InvocationExpressionSyntax invocation = (InvocationExpressionSyntax)statement.Expression;
-            MethodSymbol symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            var invocation = (InvocationExpressionSyntax)statement.Expression;
+            var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
 
-            int c = 0;
-            int numCallbackParam = 0;
-            foreach (var arg in symbol.Parameters)
+            var callbackParamIndex = -1;
+            for (var i = 0; i < symbol.Parameters.Count; i++)
             {
-                if (arg.ToString().Contains("AsyncCallback"))
+                if (symbol.Parameters.ElementAt(i).ToString().Contains("AsyncCallback"))
                 {
-                    numCallbackParam = c;
-                    break; ;
+                    callbackParamIndex = i;
+                    break;
                 }
-                c++;
             }
 
-            c = 0;
-            foreach (var arg in invocation.ArgumentList.Arguments)
+            var argumentExpression = invocation.ArgumentList.Arguments.ElementAt(callbackParamIndex).Expression;
+            if (argumentExpression.Kind.ToString().Contains("IdentifierName"))
             {
-                if (c == numCallbackParam)
-                {
-                    if (arg.Expression.Kind.ToString().Contains("IdentifierName"))
-                    {
-                        var methodSymbol = model.GetSymbolInfo(arg.Expression).Symbol;
+                var methodSymbol = model.GetSymbolInfo(argumentExpression).Symbol;
 
-                        return (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
-                    }
-                }
-                c++;
+                return (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
             }
+
             return null;
+        }
+
+        private static StatementSyntax NewVariableDeclarationStatement(string variableName, string objectName, string methodName)
+        {
+            if (variableName == null) throw new ArgumentNullException("variableName");
+            if (objectName == null) throw new ArgumentNullException("objectName");
+            if (methodName == null) throw new ArgumentNullException("methodName");
+
+            var code = String.Format("{0}.{1}()", objectName, methodName);
+
+            return NewVariableDeclarationStatement(variableName, Syntax.ParseExpression(code));
+        }
+
+        private static StatementSyntax NewVariableDeclarationStatement(string resultName, ExpressionSyntax expression)
+        {
+            if (resultName == null) throw new ArgumentNullException("resultName");
+            if (expression == null) throw new ArgumentNullException("expression");
+
+            var awaitCode = String.Format("var {0} = {1};\n", resultName, expression);
+
+            return Syntax.ParseStatement(awaitCode);
+        }
+
+        private static ExpressionSyntax NewAwaitExpression(string taskName)
+        {
+            if (taskName == null) throw new ArgumentNullException("taskName");
+
+            // TODO: Use 'await' once available in the next CTP.
+            var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
+
+            return Syntax.ParseExpression(code);
+        }
+
+        private static SyntaxToken NewAsyncKeyword()
+        {
+            return Syntax.Token(SyntaxKind.AsyncKeyword);
         }
     }
 }

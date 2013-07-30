@@ -68,7 +68,7 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            var result = task.ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = task.GetAwaiter().GetResult();
             Callback(request, result);
         }
 
