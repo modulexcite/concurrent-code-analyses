@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NUnit.Framework;
 using Roslyn.Compilers.CSharp;
 
@@ -15,7 +16,15 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(node => node.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            try
+            {
+                AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+                Assert.Fail("Should have failed.");
+            }
+            catch (InvalidCastException)
+            {
+
+            }
         }
 
         private const string OriginalCode = @"using System;

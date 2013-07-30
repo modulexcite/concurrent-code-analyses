@@ -17,12 +17,9 @@ namespace Refactoring
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
         public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
-            if (syntax == null)
-                throw new NullReferenceException("syntax");
-            if (apmStatement == null)
-                throw new NullReferenceException("apmStatement");
-            if (model == null)
-                throw new NullReferenceException("model");
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (apmStatement == null) throw new ArgumentNullException("apmStatement");
+            if (model == null) throw new ArgumentNullException("model");
 
             var actualArgumentKind = DetectActualCallbackArgumentKind(apmStatement, model);
             switch (actualArgumentKind)
@@ -43,6 +40,10 @@ namespace Refactoring
 
         private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (apmStatement == null) throw new ArgumentNullException("apmStatement");
+            if (model == null) throw new ArgumentNullException("model");
+
             var apmMethod = apmStatement.ContainingMethod();
 
             var oldCallback = apmStatement.FindCallbackMethod(model);
@@ -59,6 +60,10 @@ namespace Refactoring
         private static CompilationUnitSyntax RefactorInstanceWithLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model,
             bool isParenthesized)
         {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (apmStatement == null) throw new ArgumentNullException("apmStatement");
+            if (model == null) throw new ArgumentNullException("model");
+
             var apmMethod = apmStatement.ContainingMethod();
 
             var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
@@ -83,18 +88,26 @@ namespace Refactoring
                 case SyntaxKind.Block:
                     var lambdaBlock = (BlockSyntax)lambdaBody;
 
-                    var endStatement = FindEndXxxCallSyntaxNode(lambdaBlock, objectName, methodNameBase);
-                    var awaitStatement = AwaitExpression(taskName);
-                    lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
+                    var endStatement = TryFindEndXxxCallSyntaxNode(lambdaBlock, methodNameBase);
 
-                    var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
-                                             .AddBodyStatements(lambdaBlock.Statements.ToArray())
-                                             .AddModifiers(
-                                                Syntax.Token(SyntaxKind.AsyncKeyword)
-                                             );
+                    if (endStatement != null)
+                    {
+                        var awaitStatement = AwaitExpression(taskName);
+                        lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
-                    return syntax.ReplaceNode(apmMethod, newMethod)
-                                 .Format();
+                        var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
+                            .AddBodyStatements(lambdaBlock.Statements.ToArray())
+                            .AddModifiers(
+                                Syntax.Token(SyntaxKind.AsyncKeyword)
+                            );
+
+                        return syntax.ReplaceNode(apmMethod, newMethod)
+                            .Format();
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("No EndXxx in syntax block.");
+                    }
 
                 default:
                     // Might be any other SyntaxNode kind, such as InvocationExpression.
@@ -104,26 +117,41 @@ namespace Refactoring
 
         private static ExpressionSyntax AwaitExpression(string taskName)
         {
+            if (taskName == null) throw new ArgumentNullException("taskName");
+
             // TODO: Use 'await' once available in the next CTP.
             var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
 
             return Syntax.ParseExpression(code);
         }
 
-        private static SyntaxNode FindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string objectName, string methodName)
+        private static SyntaxNode TryFindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string methodName)
         {
+            if (lambdaBlock == null) throw new ArgumentNullException("lambdaBlock");
+            if (methodName == null) throw new ArgumentNullException("methodName");
+
             // TODO: Check for correct signature, etc.
             // This can be done much smarter by e.g. using the BeginXxx method symbol, looking up the corresponding EndXxx symobl, and filtering on that.
 
-            var endStatement = lambdaBlock.DescendantNodes()
-                                          .OfType<MemberAccessExpressionSyntax>()
-                                          .First(stmt => stmt.Name.ToString().Equals("End" + methodName));
+            try
+            {
+                var endStatement = lambdaBlock.DescendantNodes()
+                    .OfType<MemberAccessExpressionSyntax>()
+                    .First(stmt => stmt.Name.ToString().Equals("End" + methodName));
 
-            return endStatement.Parent;
+                return endStatement.Parent;
+            }
+            catch (InvalidOperationException e)
+            {
+                return null;
+            }
         }
 
         private static MethodDeclarationSyntax NewAsyncMethodDeclaration(ExpressionStatementSyntax apmInvocation, MethodDeclarationSyntax apmMethod)
         {
+            if (apmInvocation == null) throw new ArgumentNullException("apmInvocation");
+            if (apmMethod == null) throw new ArgumentNullException("apmMethod");
+
             const string taskName = "task";
 
             var invocationExpression = ((InvocationExpressionSyntax)apmInvocation.Expression);
@@ -154,6 +182,8 @@ namespace Refactoring
 
         private static string AsyncMethodNameForAPMBeginInvocation(ExpressionStatementSyntax apmInvocation)
         {
+            if (apmInvocation == null) throw new ArgumentNullException("apmInvocation");
+
             // TODO: Look up the actual symbols to make sure that they exist/the right (TAP) method is chosen.
             // An example of where things might go wrong is the fact that EAP
             // and TAP method names usually both end with Async, and if both
@@ -167,6 +197,8 @@ namespace Refactoring
 
         private static string GetAsyncMethodNameBase(ExpressionStatementSyntax apmInvocation)
         {
+            if (apmInvocation == null) throw new ArgumentNullException("apmInvocation");
+
             var expression = (MemberAccessExpressionSyntax)((InvocationExpressionSyntax)apmInvocation.Expression).Expression;
 
             var apmMethodName = expression.Name.ToString();
@@ -176,6 +208,10 @@ namespace Refactoring
 
         private static StatementSyntax StatementSyntax(string taskName, string objectName, string methodName)
         {
+            if (taskName == null) throw new ArgumentNullException("taskName");
+            if (objectName == null) throw new ArgumentNullException("objectName");
+            if (methodName == null) throw new ArgumentNullException("methodName");
+
             var code = String.Format("var {0} = {1}.{2}();\r\n", taskName, objectName, methodName);
 
             return Syntax.ParseStatement(code);
@@ -193,8 +229,7 @@ namespace Refactoring
         /// <returns>The MethodDeclarationSyntax node of the method that contains the given expression statement.</returns>
         public static MethodDeclarationSyntax ContainingMethod(this ExpressionStatementSyntax statement)
         {
-            if (statement == null)
-                throw new ArgumentNullException("statement");
+            if (statement == null) throw new ArgumentNullException("statement");
 
             var node = statement.Parent;
 
@@ -208,8 +243,13 @@ namespace Refactoring
 
         private static SyntaxKind DetectActualCallbackArgumentKind(this ExpressionStatementSyntax statement, SemanticModel model)
         {
+            if (statement == null) throw new ArgumentNullException("statement");
+            if (model == null) throw new ArgumentNullException("model");
+
             var invocation = (InvocationExpressionSyntax)statement.Expression;
+            Console.WriteLine(@"invocation: {0}", invocation.Expression);
             var symbol = (MethodSymbol)model.GetSymbolInfo(invocation).Symbol;
+            Console.WriteLine(@"symbol: {0}", symbol);
 
             var callbackParamIndex = FindCallbackParamIndex(symbol);
 
@@ -221,6 +261,8 @@ namespace Refactoring
 
         private static int FindCallbackParamIndex(MethodSymbol symbol)
         {
+            if (symbol == null) throw new ArgumentNullException("symbol");
+
             for (var i = 0; i < symbol.Parameters.Count; i++)
             {
                 var parameter = symbol.Parameters.ElementAt(i);

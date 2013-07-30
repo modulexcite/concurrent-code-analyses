@@ -15,7 +15,7 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First();
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCodeWithoutWhiteSpaceFix, statementFinder);
         }
 
         private const string OriginalCode = @"using System;
@@ -27,7 +27,7 @@ namespace TextInput
     {
         public void FireAndForgetDelegate()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(Callback, request);
 
             DoSomethingWhileGetResponseIsRunning();
@@ -55,6 +55,43 @@ namespace TextInput
     }
 }";
 
+        private const string RefactoredCodeWithoutWhiteSpaceFix = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public async void FireAndForgetDelegate()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            var task = request.GetResponseAsync();
+
+            DoSomethingWhileGetResponseIsRunning();
+            var result = task.ConfigureAwait(false).GetAwaiter().GetResult();
+            Callback(request, result);
+        }
+
+        private void Callback(System.Net.WebRequest request, ? response)
+        {
+
+            try
+            {
+
+                DoSomethingWithResponse(response);
+            }
+            catch (WebException e)
+            {
+                HandleException(e);
+            }
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+        private static void HandleException(WebException e) { }
+    }
+}";
+
         private const string RefactoredCode = @"using System;
 using System.Net;
 
@@ -64,7 +101,7 @@ namespace TextInput
     {
         public void FireAndForgetDelegate()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();

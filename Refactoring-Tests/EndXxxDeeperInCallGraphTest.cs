@@ -31,10 +31,10 @@ namespace TextInput
             request.BeginGetResponse(result =>
             {
                 var response = Nested0(result, request);
-                DoSomethingWithResult(response);
+                DoSomethingWithResponse(response);
             }, null);
 
-            DoSomethingWhileWebRequestIsRunning();
+            DoSomethingWhileGetResponseIsRunning();
         }
 
         private static WebResponse Nested0(IAsyncResult result, WebRequest request)
@@ -46,6 +46,9 @@ namespace TextInput
         {
             return request.EndGetResponse(result);
         }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
     }
 }";
 
@@ -59,18 +62,22 @@ namespace TextInput
         public async void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.google.com/"");
-            var task = request.GetResponseAsync(result => Callback(result, request), null);
+            var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
 
-            Callback(task, request).GetAwaiter().GetResult();
+            var response = await Nested0(result, request);
+            DoSomethingWithResponse(response);
         }
 
-        private async Task Callback(Task<WebResponse> task, WebRequest, request)
+        private static Task<WebResponse> Nested0(Task<WebResponse> task, WebRequest request)
         {
-            var response = task.GetAwaiter().GetResult();
+            return Nested1(task, request);
+        }
 
-            DoSomethingWithResponse(response);
+        private static Task<WebResponse> Nested1(Task<WebResponse> task, WebRequest request)
+        {
+            return await task;
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }

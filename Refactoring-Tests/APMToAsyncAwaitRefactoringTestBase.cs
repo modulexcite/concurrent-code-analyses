@@ -48,6 +48,7 @@ namespace Refactoring_Tests
                 syntaxTrees: new[] { originalSyntaxTree },
                 references: new[] { mscorlib, system }
                 );
+
             var originalSemanticModel = originalCompilation.GetSemanticModel(originalSyntaxTree);
 
             var apmInvocation = statementFinder(originalSyntax);
@@ -58,9 +59,12 @@ namespace Refactoring_Tests
 
             var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
 
+            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax);
+
             // Test against refactored code
-            Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
-            Assert.That(actualRefactoredSyntax.ToString(), Is.EqualTo(refactoredSyntax.ToString()));
+            // TODO: The first assertion seems to regard \r\n as different from \n.
+            //Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
+            Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString()));
         }
 
         private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
