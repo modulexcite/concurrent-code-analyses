@@ -13,6 +13,7 @@ namespace Utilities
             switch (invocation.Expression.Kind)
             {
                 case SyntaxKind.MemberAccessExpression:
+                case SyntaxKind.IdentifierName:
                     var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
                     return (MethodSymbol)symbol;
 

@@ -10,14 +10,8 @@ namespace Refactoring_Tests
     /// Base class for APM-to-async/await refactoring testing.
     /// For clarity, use a single test class per test case.
     /// </summary>
-    public class APMToAsyncAwaitRefactoringTestBase
+    public class APMToAsyncAwaitRefactoringTestBase : RoslynUnitTestBase
     {
-        // ReSharper disable InconsistentNaming
-        private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
-
-        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
-        // ReSharper restore InconsistentNaming
-
         /// <summary>
         /// Find the invocation expression statement of the APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
@@ -42,15 +36,8 @@ namespace Refactoring_Tests
 
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
+            var originalSemanticModel = RoslynUnitTestBase.CreateSimpleSemanticModel(originalSyntaxTree);
             var originalSyntax = originalSyntaxTree.GetRoot();
-            var originalCompilation = Compilation.Create(
-                "OriginalCompilation",
-                syntaxTrees: new[] { originalSyntaxTree },
-                references: new[] { mscorlib, system }
-                );
-
-            var originalSemanticModel = originalCompilation.GetSemanticModel(originalSyntaxTree);
-
             var apmInvocation = statementFinder(originalSyntax);
 
             // Parse given refactored code

@@ -76,11 +76,13 @@
   </Choose>
   <ItemGroup>
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
+    <Compile Include="CallGraphWalkerTest.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
     <Compile Include="DelegateFieldRefCallbackTest.cs" />
     <Compile Include="LambdaCallbackTest.cs" />
     <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoslynUnitTestBase.cs" />
     <Compile Include="TryCatchBlockTest.cs" />
   </ItemGroup>
   <ItemGroup>

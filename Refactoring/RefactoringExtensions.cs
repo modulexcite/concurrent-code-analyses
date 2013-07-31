@@ -96,6 +96,7 @@ namespace Refactoring
                         // TODO: TryRecursiveRewrite(...)
                         // Every method invocation might lead to the target EndXxx. Try to find it recursively.
                         // Once found, rewrite the methods, one by one, while backtracking.
+
                         throw new NotImplementedException("No EndXxx in syntax block.");
                     }
 
