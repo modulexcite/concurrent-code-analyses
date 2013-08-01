@@ -97,6 +97,13 @@ namespace Refactoring
                         // Every method invocation might lead to the target EndXxx. Try to find it recursively.
                         // Once found, rewrite the methods, one by one, while backtracking.
 
+                        var pathToEndXxx = TryFindEndXxxCallGraphPath(lambdaBlock, methodNameBase, model);
+
+                        foreach (var component in pathToEndXxx)
+                        {
+                            Console.WriteLine(@"Path component: {0}", component);
+                        }
+
                         throw new NotImplementedException("No EndXxx in syntax block.");
                     }
 
@@ -116,21 +123,75 @@ namespace Refactoring
             }
         }
 
-        private static SyntaxNode TryFindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string methodName)
+        private static List<InvocationExpressionSyntax> TryFindEndXxxCallGraphPath(BlockSyntax block, String methodNameBase, SemanticModel model)
+        {
+            var endXxxNode = TryFindEndXxxCallSyntaxNode(block, methodNameBase);
+
+            if (endXxxNode != null)
+            {
+                return new List<InvocationExpressionSyntax> { endXxxNode };
+            }
+
+            var candidates = block.DescendantNodes()
+                                  .OfType<InvocationExpressionSyntax>()
+                                  .Where(node => NodeIsNotContainedInLambdaExpression(node, block))
+                                  .Select(node => node);
+
+            foreach (var candidate in candidates)
+            {
+                var methodSymbol = model.LookupMethodSymbol(candidate);
+                var methodSyntax = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
+                var potentialPath = TryFindEndXxxCallGraphPath(methodSyntax.Body, methodNameBase, model);
+
+                if (!potentialPath.Any()) continue;
+
+                potentialPath.Add(candidate);
+                return potentialPath;
+            }
+
+            return new List<InvocationExpressionSyntax>();
+        }
+
+        /// <summary>
+        /// Check that the path from the given node to the top node does not contain a simple or parenthesized lambda expression.
+        ///
+        /// Note: when topNode is not an ancestor of node, behavior is undefined.
+        /// </summary>
+        /// <param name="node">Node to check</param>
+        /// <param name="topNode">Top level node to check the path to</param>
+        /// <returns>true if the node is not contained in a lambda expression</returns>
+        private static bool NodeIsNotContainedInLambdaExpression(SyntaxNode node, SyntaxNode topNode)
+        {
+            while (node != null && node != topNode)
+            {
+                if (node.Kind == SyntaxKind.SimpleLambdaExpression ||
+                    node.Kind == SyntaxKind.ParenthesizedLambdaExpression)
+                {
+                    return false;
+                }
+
+                node = node.Parent;
+            }
+
+            return true;
+        }
+
+        private static InvocationExpressionSyntax TryFindEndXxxCallSyntaxNode(BlockSyntax lambdaBlock, string methodNameBase)
         {
             if (lambdaBlock == null) throw new ArgumentNullException("lambdaBlock");
-            if (methodName == null) throw new ArgumentNullException("methodName");
+            if (methodNameBase == null) throw new ArgumentNullException("methodNameBase");
 
             // TODO: Check for correct signature, etc.
             // This can be done much smarter by e.g. using the BeginXxx method symbol, looking up the corresponding EndXxx symobl, and filtering on that.
 
             try
             {
+                // TODO: Also considier IdentifierName EndXxx instances.
                 var endStatement = lambdaBlock.DescendantNodes()
-                    .OfType<MemberAccessExpressionSyntax>()
-                    .First(stmt => stmt.Name.ToString().Equals("End" + methodName));
+                                              .OfType<MemberAccessExpressionSyntax>()
+                                              .First(stmt => stmt.Name.ToString().Equals("End" + methodNameBase));
 
-                return endStatement.Parent;
+                return (InvocationExpressionSyntax)endStatement.Parent;
             }
             catch (InvalidOperationException)
             {

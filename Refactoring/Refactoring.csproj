@@ -56,7 +56,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallGraphWalker.cs" />
+    <Compile Include="CallGraphPath.cs" />
     <Compile Include="RefactoringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
