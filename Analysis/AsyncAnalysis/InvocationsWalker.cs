@@ -4,6 +4,7 @@ using Roslyn.Services;
 using System;
 using System.Configuration;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Utilities;
 
 namespace Analysis
@@ -99,6 +100,22 @@ namespace Analysis
 
                     if (!node.Body.ToString().Contains("await"))
                         Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
+
+
+                    foreach (var invocationNode in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                    {
+                        var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocationNode).Symbol;
+                        if (symbol != null)
+                        {
+                            var synctype = Analysis.DetectSynchronousUsages(invocationNode, (MethodSymbol)symbol.OriginalDefinition);
+                            if (synctype != Utilities.Enums.SyncDetected.None)
+                            {
+                                Logs.TempLog.Info("{0} - {1} {2} \r\n\r\n{3}\r\n --------------------------", Document.FilePath, synctype, invocationNode, node);
+                            }
+                        }
+                    }
+
+                    Logs.TempLog2.Info("{0}",Regex.Matches(node.Body.ToString(),"await").Count);
 
                     if (node.Body.ToString().Contains("ConfigureAwait"))
                     {

@@ -41,28 +41,27 @@ namespace Analysis
 
         protected override void VisitDocument(IDocument document, SyntaxNode root)
         {
-            if (FilterDocument(document))
+
+            SyntaxWalker walker;
+
+            //walker = new EventHandlerMethodsWalker()
+            //{
+            //    Analysis = this,
+            //    Result = Result,
+            //};
+
+            walker = new InvocationsWalker()
             {
-                SyntaxWalker walker;
+                Analysis = this,
+                Result = Result,
+                SemanticModel = (SemanticModel)document.GetSemanticModel(),
+                Document = document,
+            };
+            walker.Visit(root);
 
-                //walker = new EventHandlerMethodsWalker()
-                //{
-                //    Analysis = this,
-                //    Result = Result,
-                //};
-
-                walker = new InvocationsWalker()
-                {
-                    Analysis = this,
-                    Result = Result,
-                    SemanticModel = (SemanticModel)document.GetSemanticModel(),
-                    Document = document,
-                };
-                walker.Visit(root);
-            }
         }
 
-        private bool FilterDocument(IDocument doc)
+        protected override bool FilterDocument(IDocument doc)
         {
             if (Path.GetDirectoryName(doc.FilePath).Contains(@"\Service References\"))
                 return false;
@@ -171,9 +170,11 @@ namespace Analysis
 
 
 
+
+
         public void APMDiagnosisDetection(MethodSymbol symbol, InvocationExpressionSyntax node, IDocument document, SemanticModel semanticModel)
         {
-            
+
             if ((symbol.ToString().Contains("BeginAction") || symbol.ToString().Contains("System.Func") || symbol.ToString().Contains("System.Action")) && symbol.ToString().Contains("Invoke"))
             {
                 Logs.TempLog.Info(@"FILTERED {0} {1} {2}", document.FilePath, node, symbol);
@@ -234,12 +235,12 @@ namespace Analysis
 
                             if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
                             {
-                                Logs.TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
+                                Logs.TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", document.FilePath, node, arg.Expression, methodDefinition);
                                 Console.WriteLine("HEYOOO");
                             }
                             else
                             {
-                                Logs.TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
+                                Logs.TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", document.FilePath, node, arg.Expression, methodDefinition);
                                 Console.WriteLine("FUCKK");
                             }
                         }
@@ -290,5 +291,7 @@ namespace Analysis
 
             //}
         }
+
+
     }
 }

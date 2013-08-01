@@ -163,20 +163,23 @@ namespace Analysis
 
         protected void AnalyzeDocument(IDocument document)
         {
-            var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
-            var sloc = root.CountSLOC();
-            Result.generalResults.NumTotalSLOC += sloc;
-            try
+            if (FilterDocument(document))
             {
-                VisitDocument(document, root);
-            }
-            catch (InvalidProjectFileException ex)
-            {
-                Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                Result.generalResults.NumTotalSLOC -= sloc;
+                var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
+                var sloc = root.CountSLOC();
+                Result.generalResults.NumTotalSLOC += sloc;
+                try
+                {
+                    VisitDocument(document, root);
+                }
+                catch (InvalidProjectFileException ex)
+                {
+                    Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
+                    Result.generalResults.NumTotalSLOC -= sloc;
+                }
             }
         }
-
+        protected abstract bool FilterDocument(IDocument document);
         protected abstract void VisitDocument(IDocument document, SyntaxNode root);
 
         protected void OnAnalysisCompleted()
