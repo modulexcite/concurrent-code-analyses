@@ -38,7 +38,7 @@ namespace TextInput
 
         public void FireAndForgetDelegate()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(Callback, request);
 
             DoSomethingWhileGetResponseIsRunning();

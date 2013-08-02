@@ -38,7 +38,7 @@ namespace TextInput
     {
         public void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse((result) => {
                 var response = request.EndGetResponse(result);
 
@@ -62,7 +62,7 @@ namespace TextInput
     {
         public void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(result => {
                 var response = request.EndGetResponse(result);
 
@@ -86,7 +86,7 @@ namespace TextInput
     {
         public async void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
@@ -110,7 +110,7 @@ namespace TextInput
     {
         public async void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
