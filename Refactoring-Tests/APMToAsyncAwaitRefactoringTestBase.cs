@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Refactoring;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
+using Utilities;
 
 namespace Refactoring_Tests
 {
@@ -46,7 +47,7 @@ namespace Refactoring_Tests
 
             var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
 
-            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax);
+            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
 
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.

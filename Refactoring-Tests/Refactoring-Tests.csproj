@@ -89,6 +89,10 @@
       <Project>{11321C6A-D122-4B78-8D4B-DF0059AE8E0D}</Project>
       <Name>Refactoring</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{D943C4FB-5AF0-4965-95A6-7DD36977B63B}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
