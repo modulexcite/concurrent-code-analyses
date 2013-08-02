@@ -61,23 +61,22 @@ namespace TextInput
     {
         public async void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-
-            var response = await Nested0(result, request);
+            var response = Nested0(task, request).GetAwaiter().GetResult();
             DoSomethingWithResponse(response);
         }
 
-        private static Task<WebResponse> Nested0(Task<WebResponse> task, WebRequest request)
+        private static async Task<WebResponse> Nested0(Task<WebResponse> task, WebRequest request)
         {
-            return Nested1(task, request);
+            return Nested1(task, request).GetAwaiter().GetResult();
         }
 
-        private static Task<WebResponse> Nested1(Task<WebResponse> task, WebRequest request)
+        private static async Task<WebResponse> Nested1(Task<WebResponse> task, WebRequest request)
         {
-            return await task;
+            return task.GetAwaiter().GetResult();
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
