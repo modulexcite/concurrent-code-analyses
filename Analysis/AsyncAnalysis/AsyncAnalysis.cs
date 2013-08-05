@@ -48,7 +48,7 @@ namespace Analysis
             }
             if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]))
             {
-                walker = new AsyncUsageDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker = new AsyncUsageDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, IsEventHandlerWalkerEnabled = false };
                 walker.Visit(root);
             }
             if (bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]))
