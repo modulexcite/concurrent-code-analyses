@@ -1,7 +1,5 @@
-﻿using NLog;
-using Roslyn.Compilers.CSharp;
+﻿using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
-using System;
 using System.Configuration;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -61,7 +59,7 @@ namespace Analysis
 
                 if (bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]))
                 {
-                    var synctype = Analysis.DetectSynchronousUsages(node, (MethodSymbol)symbol.OriginalDefinition);
+                    var synctype = Analysis.DetectSynchronousUsages(SemanticModel, (MethodSymbol)symbol.OriginalDefinition);
                     Result.StoreDetectedSyncUsage(synctype);
                     Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
                     if (synctype != Utilities.Enums.SyncDetected.None
@@ -107,26 +105,33 @@ namespace Analysis
                         var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocationNode).Symbol;
                         if (symbol != null)
                         {
-                            var synctype = Analysis.DetectSynchronousUsages(invocationNode, (MethodSymbol)symbol.OriginalDefinition);
+                            var synctype = Analysis.DetectSynchronousUsages(SemanticModel, (MethodSymbol)symbol.OriginalDefinition);
+
                             if (synctype != Utilities.Enums.SyncDetected.None)
                             {
-                                Logs.TempLog.Info("{0} - {1} {2} \r\n\r\n{3}\r\n --------------------------", Document.FilePath, synctype, invocationNode, node);
+                                Logs.TempLog.Info("{0} {1}\r\n{2} {3} \r\n\r\n{4}\r\n --------------------------", synctype, Document.FilePath, symbol, invocationNode, node);
+                                Logs.TempLog2.Info("{0} {1}", symbol.ContainingType, symbol, synctype);
                             }
+
                         }
                     }
 
-                    Logs.TempLog2.Info("{0}",Regex.Matches(node.Body.ToString(),"await").Count);
 
-                    if (node.Body.ToString().Contains("ConfigureAwait"))
-                    {
-                        Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                        Logs.TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
-                    }
-                    if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
-                    {
-                        Logs.TempLog.Info(@"BLOCKING {0}", node.ToString());
-                        Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
-                    }
+                    int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
+
+                    if (numAwaits > 3)
+                        Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
+
+                    //if (node.Body.ToString().Contains("ConfigureAwait"))
+                    //{
+                    //    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
+                    //    Logs.TempLog.Info(@"CONFIGUREAWAIT {0}", node.ToString());
+                    //}
+                    //if (Constants.BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
+                    //{
+                    //    Logs.TempLog.Info(@"BLOCKING {0}", node.ToString());
+                    //    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
+                    //}
                 }
             }
 
@@ -135,7 +140,7 @@ namespace Analysis
                 if (node.HasEventArgsParameter())
                     Result.generalAsyncResults.NumEventHandlerMethods++;
             }
-           
+
 
             base.VisitMethodDeclaration(node);
         }

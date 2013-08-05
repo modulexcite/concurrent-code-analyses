@@ -43,21 +43,21 @@ namespace Analysis
         {
 
             SyntaxWalker walker;
+            SemanticModel semanticModel = (SemanticModel)document.GetSemanticModel();
 
-            //walker = new EventHandlerMethodsWalker()
-            //{
-            //    Analysis = this,
-            //    Result = Result,
-            //};
+
 
             walker = new InvocationsWalker()
             {
                 Analysis = this,
                 Result = Result,
-                SemanticModel = (SemanticModel)document.GetSemanticModel(),
+                SemanticModel = semanticModel,
                 Document = document,
             };
             walker.Visit(root);
+
+
+
 
         }
 
@@ -144,33 +144,33 @@ namespace Analysis
                 return Enums.AsyncDetected.None;
         }
 
-        public Enums.SyncDetected DetectSynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        public Enums.SyncDetected DetectSynchronousUsages(SemanticModel semanticModel, MethodSymbol methodCallSymbol)
         {
-            var list = methodCallSymbol.ContainingType.MemberNames;
+            var list = semanticModel.LookupSymbols(0, methodCallSymbol.ContainingType,
+                                                    options: LookupOptions.IncludeExtensionMethods);
+
 
             var name = methodCallSymbol.Name;
-
             Enums.SyncDetected type = Enums.SyncDetected.None;
+
+            if (name.Equals("Invoke"))
+                return type;
 
             foreach (var tmp in list)
             {
-                if (tmp.ToString().Equals("Begin" + name))
+
+                if (tmp.Name.Equals("Begin" + name))
                 {
                     type |= Enums.SyncDetected.APMReplacable;
                 }
-                if (tmp.ToString().Equals(name + "Async"))
+                if (tmp.Name.Equals(name + "Async"))
                 {
                     type |= Enums.SyncDetected.TAPReplacable;
-                    // TODO: look at return type of compilation.GetTypeByMetadataName(methodCallSymbol.ContainingType + "."+tmp) to check whether it is TAP or EAP
                 }
             }
 
             return type;
         }
-
-
-
-
 
         public void APMDiagnosisDetection(MethodSymbol symbol, InvocationExpressionSyntax node, IDocument document, SemanticModel semanticModel)
         {
