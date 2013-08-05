@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Exceptions;
-using NLog;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System;
@@ -13,9 +12,6 @@ namespace Analysis
 {
     public abstract class AnalysisBase
     {
-
-
-
         private readonly string _dirName;
         private readonly string _appName;
 
@@ -179,7 +175,9 @@ namespace Analysis
                 }
             }
         }
+
         protected abstract bool FilterDocument(IDocument document);
+
         protected abstract void VisitDocument(IDocument document, SyntaxNode root);
 
         protected void OnAnalysisCompleted()

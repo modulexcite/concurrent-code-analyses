@@ -1,5 +1,4 @@
-﻿using NLog;
-using Roslyn.Services;
+﻿using Roslyn.Services;
 using Utilities;
 
 namespace Analysis
@@ -21,8 +20,6 @@ namespace Analysis
         }
 
         public GeneralResults generalResults { get; set; }
-
-
 
         public AnalysisResultBase(string appName)
         {

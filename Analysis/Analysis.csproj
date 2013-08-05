@@ -84,13 +84,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisBase\AnalysisResultBase.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\APMDiagnosisDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\AsyncAnalysisResult.cs" />
     <Compile Include="AnalysisBase\AnalysisBase.cs" />
     <Compile Include="AsyncAnalysis\AsyncAnalysis.cs" />
-    <Compile Include="AsyncAnalysis\InvocationsWalker.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\AsyncAwaitDetectionWalker.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\AsyncUsageDetectionWalker.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\SyncUsageDetectionWalker.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\GeneralAsyncDetectionWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysis.cs" />
-    <Compile Include="AsyncAnalysis\EventHandlerMethodsWalker.cs" />
     <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisResult.cs" />
     <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisWalker.cs" />
   </ItemGroup>

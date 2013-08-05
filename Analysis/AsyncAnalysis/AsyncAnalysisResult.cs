@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
-using NLog;
 using Roslyn.Compilers.CSharp;
-using System;
 using System.Configuration;
 using Utilities;
 
@@ -55,9 +53,6 @@ namespace Analysis
 
         public AsyncUsageResults asyncUsageResults { get; set; }
 
-       
-
-
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
@@ -78,6 +73,7 @@ namespace Analysis
         {
             Logs.SummaryJSONLog.Info(@"{0}", JsonConvert.SerializeObject(this, Formatting.None));
         }
+
         public bool ShouldSerializeasyncAwaitResults()
         {
             return bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]);
@@ -94,7 +90,7 @@ namespace Analysis
         }
 
         public bool ShouldSerializeasyncUsageResults()
-        { 
+        {
             return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
         }
 
@@ -102,9 +98,6 @@ namespace Analysis
         {
             return bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]);
         }
-
-
-        
 
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
