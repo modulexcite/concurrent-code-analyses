@@ -210,8 +210,10 @@ namespace Analysis
             if (nodes == null || nodes.Count == 0)
                 return null;
 
-            if (nodes.First() is MethodDeclarationSyntax)
-                return (MethodDeclarationSyntax)nodes.First();
+            var methodDeclarationNodes = nodes.OfType<MethodDeclarationSyntax>();
+
+            if (methodDeclarationNodes.Count() != 0)
+                return methodDeclarationNodes.First();
 
             return null;
 

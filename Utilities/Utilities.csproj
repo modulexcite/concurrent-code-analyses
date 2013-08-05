@@ -65,7 +65,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonSyntaxNodeExtensions.cs" />
-    <Compile Include="Constants.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Logs.cs" />

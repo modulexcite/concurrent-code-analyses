@@ -1,5 +1,7 @@
 ﻿using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using Utilities;
@@ -9,6 +11,8 @@ namespace Analysis
     public class AsyncAnalysis : AnalysisBase
     {
         private AsyncAnalysisResult result;
+
+        private List<String> AnalyzedMethods;
 
         public override AnalysisResultBase ResultObject
         {
@@ -24,6 +28,7 @@ namespace Analysis
             : base(dirName, appName)
         {
             result = new AsyncAnalysisResult(appName);
+            AnalyzedMethods = new List<String>();
         }
 
         protected override bool FilterProject(Enums.ProjectType type)
@@ -63,7 +68,7 @@ namespace Analysis
             }
             if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
             {
-                walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethods };
                 walker.Visit(root);
             }
         }
