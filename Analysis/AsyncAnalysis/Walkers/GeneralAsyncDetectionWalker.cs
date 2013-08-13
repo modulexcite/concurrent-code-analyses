@@ -1,12 +1,15 @@
 ﻿using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
 
 namespace Analysis
 {
-    internal class EventHandlerMethodsWalker : SyntaxWalker
+    internal class GeneralAsyncDetectionWalker : SyntaxWalker
     {
-        public AsyncAnalysis Analysis { get; set; }
-
         public AsyncAnalysisResult Result { get; set; }
+
+        public SemanticModel SemanticModel { get; set; }
+
+        public IDocument Document { get; set; }
 
         private bool uiClass;
 
@@ -23,23 +26,8 @@ namespace Analysis
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             if (node.HasEventArgsParameter())
-            {
                 Result.generalAsyncResults.NumEventHandlerMethods++;
-                Analysis.ProcessMethodCallsInMethod(node, 0);
-            }
 
-            if (node.HasAsyncModifier())
-            {
-                if (node.ReturnType.ToString().Equals("void"))
-                {
-                    if (node.HasEventArgsParameter())
-                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
-                    else
-                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
-                }
-                else
-                    Result.asyncAwaitResults.NumAsyncTaskMethods++;
-            }
             base.VisitMethodDeclaration(node);
         }
     }

@@ -7,29 +7,25 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using Utilities;
+
 
 namespace Collector
 {
     internal class Collector
     {
-        private static readonly Logger Log = LogManager.GetLogger("Console");
-
-
         private static string SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
 
-        private readonly List<string> _analyzedProjects;
-        private readonly IEnumerable<string> _subdirsToAnalyze;
+        private readonly List<string> _analyzedApps;
+        private readonly IEnumerable<string> _appsToAnalyze;
 
-        public Collector(String topDir, int batchSize)
+        public Collector(String[] apps, int batchSize)
         {
-            _analyzedProjects = File.Exists(SummaryJSONLogPath)
+            _analyzedApps = File.Exists(SummaryJSONLogPath)
                 ? Collector.AnalyzedAppsFromJSONLog()
                 : new List<string>();
 
-            _subdirsToAnalyze = Directory.GetDirectories(topDir)
-                                         .Where(IsNotYetAnalyzed)
-                                         .OrderBy(s => s)
-                                         .Take(batchSize);
+            _appsToAnalyze = apps.Where(IsNotYetAnalyzed).OrderBy(s => s).Take(batchSize);
         }
 
         private static List<string> AnalyzedAppsFromJSONLog()
@@ -39,20 +35,20 @@ namespace Collector
 
         private bool IsNotYetAnalyzed(string subdir)
         {
-            return !_analyzedProjects.Any(s => subdir.Split('\\').Last().Equals(s));
+            return !_analyzedApps.Any(s => subdir.Split('\\').Last().Equals(s));
         }
 
         public void Run()
         {
             var index = 1;
 
-            foreach (var subdir in _subdirsToAnalyze)
+            foreach (var subdir in _appsToAnalyze)
             {
                 var appName = subdir.Split('\\').Last();
 
                 var app = new AsyncAnalysis(subdir, appName);
 
-                Log.Info(@"{0}: {1}", index, appName);
+                Logs.Log.Info(@"{0}: {1}", index, appName);
 
                 app.Analyze();
 

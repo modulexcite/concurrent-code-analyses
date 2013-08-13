@@ -1,5 +1,4 @@
 ﻿using Microsoft.Build.Exceptions;
-using NLog;
 using Roslyn.Compilers.CSharp;
 using Roslyn.Services;
 using System;
@@ -13,9 +12,6 @@ namespace Analysis
 {
     public abstract class AnalysisBase
     {
-        protected static readonly Logger Log = LogManager.GetLogger("Console");
-
-
         private readonly string _dirName;
         private readonly string _appName;
 
@@ -65,7 +61,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+                Logs.Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
                 return null;
             }
         }
@@ -116,7 +112,7 @@ namespace Analysis
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
+                    Logs.Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
                 }
                 else
                     throw;
@@ -155,7 +151,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
+                Logs.Log.Info("Solution could not be upgraded: {0}: Reason: {1}", solutionPath, ex.Message);
                 return false;
             }
             return true;
@@ -163,19 +159,24 @@ namespace Analysis
 
         protected void AnalyzeDocument(IDocument document)
         {
-            var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
-            var sloc = root.CountSLOC();
-            Result.generalResults.NumTotalSLOC += sloc;
-            try
+            if (FilterDocument(document))
             {
-                VisitDocument(document, root);
-            }
-            catch (InvalidProjectFileException ex)
-            {
-                Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                Result.generalResults.NumTotalSLOC -= sloc;
+                var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
+                var sloc = root.CountSLOC();
+                Result.generalResults.NumTotalSLOC += sloc;
+                try
+                {
+                    VisitDocument(document, root);
+                }
+                catch (InvalidProjectFileException ex)
+                {
+                    Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
+                    Result.generalResults.NumTotalSLOC -= sloc;
+                }
             }
         }
+
+        protected abstract bool FilterDocument(IDocument document);
 
         protected abstract void VisitDocument(IDocument document, SyntaxNode root);
 

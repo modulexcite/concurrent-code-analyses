@@ -1,0 +1,124 @@
+﻿using Microsoft.Build.Exceptions;
+using Roslyn.Compilers.CSharp;
+using Roslyn.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Utilities;
+
+namespace Analysis
+{
+    internal class AsyncUsageDetectionWalker : SyntaxWalker
+    {
+        public AsyncAnalysisResult Result { get; set; }
+
+        public SemanticModel SemanticModel { get; set; }
+
+        public IDocument Document { get; set; }
+
+        public bool IsEventHandlerWalkerEnabled { get; set; }
+
+        public override void VisitClassDeclaration(Roslyn.Compilers.CSharp.ClassDeclarationSyntax node)
+        {
+            if ((node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
+            {
+                // IGNORE WCF SERVICES WHICH ARE GENERATED AUTOMATICALLY
+            }
+            else
+                base.VisitClassDeclaration(node);
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+
+            if (symbol != null)
+            {
+                var asynctype = DetectAsynchronousUsages(node, symbol);
+                Result.StoreDetectedAsyncUsage(asynctype);
+                Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
+            }
+        }
+
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            if (node.HasEventArgsParameter() && IsEventHandlerWalkerEnabled)
+                Result.generalAsyncResults.NumEventHandlerMethods++;
+
+            base.VisitMethodDeclaration(node);
+        }
+
+        private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        {
+            var methodCallName = methodCall.Expression.ToString().ToLower();
+
+            // DETECT ASYNC CALLS
+            if (methodCallSymbol.IsThreadStart())
+                return Enums.AsyncDetected.Thread;
+            else if (methodCallSymbol.IsThreadPoolQueueUserWorkItem())
+                return Enums.AsyncDetected.Threadpool;
+            else if (methodCallSymbol.IsAsyncDelegate())
+                return Enums.AsyncDetected.AsyncDelegate;
+            else if (methodCallSymbol.IsBackgroundWorkerMethod())
+                return Enums.AsyncDetected.BackgroundWorker;
+            else if (methodCallSymbol.IsTPLMethod())
+                return Enums.AsyncDetected.TPL;
+            // DETECT GUI UPDATE CALLS
+            else if (methodCallSymbol.IsISynchronizeInvokeMethod())
+                return Enums.AsyncDetected.ISynchronizeInvoke;
+            else if (methodCallSymbol.IsControlBeginInvoke())
+                return Enums.AsyncDetected.ControlInvoke;
+            else if (methodCallSymbol.IsDispatcherBeginInvoke())
+                return Enums.AsyncDetected.Dispatcher;
+            // DETECT PATTERNS
+            else if (methodCallSymbol.IsAPMBeginMethod())
+                return Enums.AsyncDetected.APM;
+            else if (methodCall.IsEAPMethod())
+                return Enums.AsyncDetected.EAP;
+            else if (methodCallSymbol.IsTAPMethod())
+                return Enums.AsyncDetected.TAP;
+
+            //
+            else
+                return Enums.AsyncDetected.None;
+        }
+
+        private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
+        {
+            var newMethods = new List<MethodDeclarationSyntax>();
+            Result.WriteNodeToCallTrace(node, n);
+
+            try
+            {
+                foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                {
+                    var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
+
+                    var type = DetectAsynchronousUsages(methodCall, methodCallSymbol);
+                    Result.StoreDetectedAsyncUsage(type);
+                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol);
+
+                    var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
+
+                    // go down only 3 deep levels
+                    if (methodDeclarationNode != null && n < 3 && methodDeclarationNode != node)
+                        newMethods.Add(methodDeclarationNode);
+                }
+
+                foreach (var newMethod in newMethods)
+                    ProcessMethodCallsInMethod(newMethod, n + 1);
+            }
+            catch (Exception ex)
+            {
+                Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}:{2}", node, Document.FilePath, node.Span.Start, ex);
+
+                if (!(ex is InvalidProjectFileException ||
+                      ex is FormatException ||
+                      ex is ArgumentException ||
+                      ex is PathTooLongException))
+                    throw;
+            }
+        }
+    }
+}

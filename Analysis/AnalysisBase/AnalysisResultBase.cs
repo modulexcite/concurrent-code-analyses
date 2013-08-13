@@ -1,5 +1,4 @@
-﻿using NLog;
-using Roslyn.Services;
+﻿using Roslyn.Services;
 using Utilities;
 
 namespace Analysis
@@ -21,10 +20,6 @@ namespace Analysis
         }
 
         public GeneralResults generalResults { get; set; }
-
-        protected static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
-        protected static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
-        protected static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
 
         public AnalysisResultBase(string appName)
         {
@@ -70,9 +65,9 @@ namespace Analysis
 
         public void WritePhoneProjects(IProject project)
         {
-            phoneProjectListLog.Info(project.FilePath);
+            Logs.phoneProjectListLog.Info(project.FilePath);
             //if (!hasPhoneProjectInThisSolution)
-            phoneSolutionListLog.Info(project.Solution.FilePath);
+            Logs.phoneSolutionListLog.Info(project.Solution.FilePath);
             //hasPhoneProjectInThisSolution = true;
         }
 

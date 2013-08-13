@@ -1,28 +1,27 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
+using System.Linq;
 
 namespace Collector
 {
     internal class CollectMain
     {
         private static string AppsPath = ConfigurationManager.AppSettings["AppsPath"];
+        private static string AsyncAwaitApps = ConfigurationManager.AppSettings["AsyncAwaitApps"];
 
         private static void Main(string[] args)
         {
-            if (args.Length > 0)
-            {
-                var batchSize = int.Parse(args[0]);
-                var topDir = args[1];
 
-                var collector = new Collector(topDir, batchSize);
-                collector.Run();
-            }
+            string[] appsToAnalyze;
+            if (bool.Parse(ConfigurationManager.AppSettings["OnlyAnalyzeAsyncAwaitApps"]))
+                appsToAnalyze = File.ReadAllLines(AsyncAwaitApps).Select(appName => AppsPath+appName).ToArray<string>();
             else
-            {
-                var collector = new Collector(AppsPath, 1000);
-                collector.Run();
-            }
+                appsToAnalyze = Directory.GetDirectories(AppsPath).ToArray<string>();
 
+            var collector = new Collector(appsToAnalyze, 1000);
+            collector.Run();
+            
             Console.WriteLine(@"Program finished. Press any key to quit ...");
             Console.ReadKey();
         }

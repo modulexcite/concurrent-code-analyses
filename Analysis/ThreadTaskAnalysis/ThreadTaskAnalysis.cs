@@ -41,5 +41,10 @@ namespace Analysis
 
             loopWalker.Visit(root);
         }
+
+        protected override bool FilterDocument(IDocument doc)
+        {
+            return true;
+        }
     }
 }

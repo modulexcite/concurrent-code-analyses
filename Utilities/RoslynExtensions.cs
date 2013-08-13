@@ -210,8 +210,10 @@ namespace Analysis
             if (nodes == null || nodes.Count == 0)
                 return null;
 
-            if (nodes.First() is MethodDeclarationSyntax)
-                return (MethodDeclarationSyntax)nodes.First();
+            var methodDeclarationNodes = nodes.OfType<MethodDeclarationSyntax>();
+
+            if (methodDeclarationNodes.Count() != 0)
+                return methodDeclarationNodes.First();
 
             return null;
 
@@ -223,6 +225,9 @@ namespace Analysis
             //{
             //    //methodCallSymbol.DeclaringSyntaxNodes.Firs
             //    var loc = def.Locations.First();
+
+            //    Solution s;
+            //    s.
             //    var node = loc.SourceTree.GetRoot().FindToken(loc.SourceSpan.Start).Parent;
             //    if (node is MethodDeclarationSyntax)
             //        return (MethodDeclarationSyntax)node;
