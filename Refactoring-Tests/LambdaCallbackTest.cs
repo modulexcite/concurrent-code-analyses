@@ -15,7 +15,7 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
         }
 
         private const string OriginalCodeWithParenthesizedLambda = @"using System;
@@ -38,7 +38,7 @@ namespace TextInput
     {
         public void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse((result) => {
                 var response = request.EndGetResponse(result);
 
@@ -62,7 +62,7 @@ namespace TextInput
     {
         public void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(result => {
                 var response = request.EndGetResponse(result);
 
@@ -70,6 +70,29 @@ namespace TextInput
             }, null);
 
             DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string RefactoredCodeWithoutWhitespaceFixes = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public async void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            var task = request.GetResponseAsync();
+
+            DoSomethingWhileGetResponseIsRunning();
+            var response = task.GetAwaiter().GetResult();
+
+            DoSomethingWithResponse(response);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
@@ -87,7 +110,7 @@ namespace TextInput
     {
         public async void FireAndForget()
         {
-            var request = WebRequest.Create(""http://www.google.com/"");
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
