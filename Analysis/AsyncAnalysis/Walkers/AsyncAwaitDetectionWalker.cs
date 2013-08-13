@@ -26,38 +26,46 @@ namespace Analysis
         {
             if (node.HasAsyncModifier())
             {
-                if (node.ReturnType.ToString().Equals("void"))
-                {
-                    if (node.HasEventArgsParameter())
-                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
-                    else
-                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
-                }
-                else
-                    Result.asyncAwaitResults.NumAsyncTaskMethods++;
+                //if (node.ReturnType.ToString().Equals("void"))
+                //{
+                //    if (node.HasEventArgsParameter())
+                //        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
+                //    else
+                //        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
+                //}
+                //else
+                //    Result.asyncAwaitResults.NumAsyncTaskMethods++;
 
-                if (!node.Body.ToString().Contains("await"))
-                {
-                    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
-                    Logs.TempLog.Info(@"NOTHAVINGAWAIT {0} \r\n------------------------------", node);
-                }
+                //if (!node.Body.ToString().Contains("await"))
+                //{
+                //    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
+                //    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
+                //}
 
-                int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
+                //int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
 
-                if (numAwaits > 6)
-                    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
+                //if (numAwaits > 6)
+                //    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
 
-                if (node.Body.ToString().Contains("ConfigureAwait"))
-                {
-                    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                    Logs.TempLog.Info(@"CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
-                }
-                if (BlockingMethodCalls.Any(a => node.Body.ToString().Contains(a)))
-                {
-                    Logs.TempLog.Info(@"BLOCKING {0} \r\n------------------------------", node);
-                    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
-                }
-                ProcessMethodCallsInMethod(node, 0);
+                //if (node.Body.ToString().Contains("ConfigureAwait"))
+                //{
+                //    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
+                //    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
+                //}
+
+                //var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
+                //if (blockings.Count() > 0)
+                //{
+                //    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
+                //    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
+                //}
+                //ProcessMethodCallsInMethod(node, 0);
+            }
+
+            if (node.HasEventArgsParameter())
+            {
+                ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
+
             }
 
             base.VisitMethodDeclaration(node);
@@ -90,7 +98,7 @@ namespace Analysis
         }
 
 
-        private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
+        private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n, string topAncestor)
         {
             var hashcode = node.Identifier.ToString() + node.ParameterList.ToString();
             if (!AnalyzedMethods.Contains(hashcode))
@@ -103,27 +111,33 @@ namespace Analysis
                 {
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
+                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModel();
 
-                        var synctype = DetectSynchronousUsages((MethodSymbol)methodCallSymbol.OriginalDefinition);
+                        var methodCallSymbol = (MethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
 
-                        if (synctype != Utilities.Enums.SyncDetected.None)
+                        if (methodCallSymbol != null)
                         {
-                            Logs.TempLog.Info("{0} {1} {2}\r\n{3} {4} \r\n\r\n{5}\r\n --------------------------", synctype, n, Document.FilePath, methodCallSymbol, methodCall, node);
-                            Logs.TempLog2.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
-                        }
+                            var synctype = DetectSynchronousUsages((MethodSymbol)methodCallSymbol.OriginalDefinition);
 
-                        var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
-                        if (methodDeclarationNode != null)
-                            newMethods.Add(methodDeclarationNode);
+                            if (synctype != Utilities.Enums.SyncDetected.None)
+                            {
+                                Logs.TempLog.Info("{0} {1} {2} {3}\r\n{4} {5} \r\n\r\n{6}\r\n --------------------------", synctype, n, topAncestor, Document.FilePath, methodCallSymbol, methodCall, node);
+                                Logs.TempLog2.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
+                            }
+
+                            var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
+                            if (methodDeclarationNode != null)
+                                newMethods.Add(methodDeclarationNode);
+                        }
                     }
 
                     foreach (var newMethod in newMethods)
-                        ProcessMethodCallsInMethod(newMethod, n + 1);
+                        ProcessMethodCallsInMethod(newMethod, n + 1, topAncestor);
                 }
                 catch (Exception ex)
                 {
-                    Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}:{2}", node, Document.FilePath, node.Span.Start, ex);
+
+                    Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
 
                     if (!(ex is InvalidProjectFileException ||
                           ex is FormatException ||
@@ -132,6 +146,7 @@ namespace Analysis
                         throw;
                 }
             }
+
         }
     }
 }

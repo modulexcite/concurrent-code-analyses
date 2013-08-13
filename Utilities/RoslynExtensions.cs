@@ -225,6 +225,9 @@ namespace Analysis
             //{
             //    //methodCallSymbol.DeclaringSyntaxNodes.Firs
             //    var loc = def.Locations.First();
+
+            //    Solution s;
+            //    s.
             //    var node = loc.SourceTree.GetRoot().FindToken(loc.SourceSpan.Start).Parent;
             //    if (node is MethodDeclarationSyntax)
             //        return (MethodDeclarationSyntax)node;
