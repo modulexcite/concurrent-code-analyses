@@ -1,8 +1,4 @@
-﻿
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Xml;

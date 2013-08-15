@@ -1,12 +1,9 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
 using Refactoring;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Utilities;
+using System;
 
 namespace Refactoring_Tests
 {
@@ -60,7 +57,6 @@ namespace Refactoring_Tests
 
         private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
         {
-
             Console.WriteLine("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 

@@ -1,13 +1,11 @@
 ﻿using Analysis;
 using Newtonsoft.Json;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
 using Utilities;
-
 
 namespace Collector
 {
@@ -54,7 +52,5 @@ namespace Collector
                 index++;
             }
         }
-
-
     }
 }

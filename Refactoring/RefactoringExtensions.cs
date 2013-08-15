@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Utilities;
 
 namespace Refactoring
@@ -552,7 +552,6 @@ namespace Refactoring
         private static ParameterSyntax NewTaskParameter(string taskName)
         {
             if (taskName == null) throw new ArgumentNullException("taskName");
-
 
             return SyntaxFactory.Parameter(identifier: SyntaxFactory.Identifier(taskName));
             //return SyntaxFactory.Parameter(

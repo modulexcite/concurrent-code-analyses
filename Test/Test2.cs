@@ -1,8 +1,4 @@
-﻿
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -11,7 +7,8 @@ namespace TestApps
 {
     internal class Test2
     {
-        static MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+        private static MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+
         public static void execute()
         {
             //const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\CodeplexMostDownloaded1000Projects";
@@ -68,10 +65,8 @@ namespace TestApps
     {
         public static bool IsInteresting(this Project project)
         {
-
                 //return project.IsCSProject() && project.IsWP8Project();
                 return true;
-
         }
     }
 }

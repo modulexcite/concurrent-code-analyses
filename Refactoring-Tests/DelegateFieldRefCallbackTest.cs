@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
+using System.Linq;
 
 namespace Refactoring_Tests
 {
@@ -26,7 +23,6 @@ namespace Refactoring_Tests
             }
             catch (InvalidCastException)
             {
-
             }
         }
 
@@ -51,6 +47,7 @@ namespace TextInput
         private static void DoSomethingWithResponse(WebResponse response) { }
     }
 }";
+
         private const string RefactoredCode = @"";
     }
 }

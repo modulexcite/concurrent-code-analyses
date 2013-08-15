@@ -1,5 +1,4 @@
-﻿
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Utilities;
 
 namespace Analysis
@@ -68,7 +66,6 @@ namespace Analysis
             if (node.HasEventArgsParameter())
             {
                 ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
-
             }
 
             base.VisitMethodDeclaration(node);
@@ -99,7 +96,6 @@ namespace Analysis
 
             return type;
         }
-
 
         private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n, string topAncestor)
         {
@@ -139,7 +135,6 @@ namespace Analysis
                 }
                 catch (Exception ex)
                 {
-
                     Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
 
                     if (!(
@@ -149,7 +144,6 @@ namespace Analysis
                         throw;
                 }
             }
-
         }
     }
 }

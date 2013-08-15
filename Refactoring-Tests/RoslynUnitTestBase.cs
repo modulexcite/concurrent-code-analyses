@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Refactoring_Tests
 {
@@ -10,6 +8,7 @@ namespace Refactoring_Tests
     {
         // ReSharper disable InconsistentNaming
         protected static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
+
         protected static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
         // ReSharper restore InconsistentNaming
 

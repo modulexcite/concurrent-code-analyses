@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Challenges
 {
-    class EndXxxDeeperInCallGraph
+    internal class EndXxxDeeperInCallGraph
     {
         public void FireAndForget()
         {
@@ -49,7 +49,12 @@ namespace Challenges
             return await result;
         }
 
-        private static void DoSomethingWhileWebRequestIsRunning() { }
-        private static void DoSomethingWithResult(WebResponse response) { }
+        private static void DoSomethingWhileWebRequestIsRunning()
+        {
+        }
+
+        private static void DoSomethingWithResult(WebResponse response)
+        {
+        }
     }
 }

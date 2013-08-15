@@ -1,10 +1,4 @@
 ﻿using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace Utilities
 {
@@ -15,7 +9,6 @@ namespace Utilities
         public static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
         public static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
         public static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");
-
 
         public static readonly Logger TempLog = LogManager.GetLogger("TempLog");
         public static readonly Logger TempLog2 = LogManager.GetLogger("TempLog2");
@@ -29,6 +22,5 @@ namespace Utilities
 
         public static readonly Logger APMDiagnosisLog = LogManager.GetLogger("APMDiagnosisLog");
         public static readonly Logger APMDiagnosisLog2 = LogManager.GetLogger("APMDiagnosisLog2");
-
     }
 }
