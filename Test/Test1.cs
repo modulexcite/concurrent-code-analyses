@@ -1,4 +1,8 @@
-﻿using Roslyn.Services;
+﻿
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.IO;
 using System.Xml;
@@ -12,11 +16,11 @@ namespace Test
             string dir = @"Z:\C#PROJECTS\PhoneApps\codetitans";
 
             //var app = new AsyncAnalysis(@"C:\Users\Semih\Desktop\facebook-windows-phone-sample-master","facebook");
-
+            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
             var solutionPaths = Directory.GetFiles(dir, "*.sln", SearchOption.AllDirectories);
             foreach (var solutionPath in solutionPaths)
             {
-                var solution = Solution.Load(solutionPath);
+                var solution = workspace.OpenSolutionAsync(solutionPath).Result;
                 int a = 0;
                 foreach (var project in solution.Projects)
                 {
@@ -24,14 +28,14 @@ namespace Test
                     Console.WriteLine(a + " project: " + project.FilePath);
                     if (project.Documents == null)
                         Console.WriteLine("****************");
-                    //IDocument doc = project.Documents.First();
+                    //Document doc = project.Documents.First();
                     //doc.LanguageServices.GetService<IExtractMethodService>();
                 }
             }
             Console.ReadLine();
         }
 
-        public static int IsWindowsPhoneProject(IProject project)
+        public static int IsWindowsPhoneProject(Project project)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(project.FilePath);

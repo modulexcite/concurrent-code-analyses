@@ -1,5 +1,4 @@
 ﻿using Analysis;
-using Microsoft.Build.Evaluation;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -51,8 +50,6 @@ namespace Collector
                 Logs.Log.Info(@"{0}: {1}", index, appName);
 
                 app.Analyze();
-
-                ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
 
                 index++;
             }

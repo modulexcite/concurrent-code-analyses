@@ -1,5 +1,8 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using Utilities;
 
@@ -11,7 +14,7 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
@@ -33,8 +36,7 @@ namespace Analysis
 
         public Enums.SyncDetected DetectSynchronousUsages(MethodSymbol methodCallSymbol)
         {
-            var list = SemanticModel.LookupSymbols(0, methodCallSymbol.ContainingType,
-                                                    options: LookupOptions.IncludeExtensionMethods);
+            var list = SemanticModel.LookupSymbols(0, methodCallSymbol.ContainingType, includeReducedExtensionMethods:true);
 
             var name = methodCallSymbol.Name;
             Enums.SyncDetected type = Enums.SyncDetected.None;

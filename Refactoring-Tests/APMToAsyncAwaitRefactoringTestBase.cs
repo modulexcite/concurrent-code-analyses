@@ -1,8 +1,11 @@
 ﻿using System;
 using NUnit.Framework;
 using Refactoring;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Utilities;
 
 namespace Refactoring_Tests
@@ -38,16 +41,16 @@ namespace Refactoring_Tests
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
             var originalSemanticModel = RoslynUnitTestBase.CreateSimpleSemanticModel(originalSyntaxTree);
-            var originalSyntax = originalSyntaxTree.GetRoot();
+            var originalSyntax = originalSyntaxTree.GetCompilationUnitRoot();
             var apmInvocation = statementFinder(originalSyntax);
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
-            var refactoredSyntax = refactoredSyntaxTree.GetRoot();
+            var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
 
             var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
 
-            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
+            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax);
 
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.

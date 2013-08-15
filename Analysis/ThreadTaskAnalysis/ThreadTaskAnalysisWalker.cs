@@ -1,5 +1,8 @@
-﻿using Roslyn.Compilers.Common;
-using Roslyn.Compilers.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Linq;
 using Utilities;
@@ -29,7 +32,7 @@ namespace Analysis
 
         public ThreadTaskAnalysis Outer;
         public String Id;
-        public ISemanticModel SemanticModel;
+        public SemanticModel SemanticModel;
         public string Namespace;
 
         private readonly ThreadTaskAnalysisResult _summary;

@@ -1,5 +1,8 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -41,10 +44,10 @@ namespace Analysis
             return false;
         }
 
-        protected override void VisitDocument(IDocument document, SyntaxNode root)
+        protected override void VisitDocument(Document document, SyntaxNode root)
         {
             SyntaxWalker walker;
-            SemanticModel semanticModel = (SemanticModel)document.GetSemanticModel();
+            SemanticModel semanticModel = (SemanticModel)document.GetSemanticModelAsync().Result;
 
             if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]))
             {
@@ -73,7 +76,7 @@ namespace Analysis
             }
         }
 
-        protected override bool FilterDocument(IDocument doc)
+        protected override bool FilterDocument(Document doc)
         {
             if (Path.GetDirectoryName(doc.FilePath).Contains(@"\Service References\"))
                 return false;

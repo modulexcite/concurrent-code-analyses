@@ -1,6 +1,9 @@
-﻿using Microsoft.Build.Exceptions;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +19,7 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         public List<String> AnalyzedMethods { get; set; }
 
@@ -73,8 +76,8 @@ namespace Analysis
 
         public Enums.SyncDetected DetectSynchronousUsages(MethodSymbol methodCallSymbol)
         {
-            var list = SemanticModel.LookupSymbols(0, methodCallSymbol.ContainingType,
-                                                    options: LookupOptions.IncludeExtensionMethods);
+            var list = SemanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
+                                includeReducedExtensionMethods: true);
 
             var name = methodCallSymbol.Name;
             Enums.SyncDetected type = Enums.SyncDetected.None;
@@ -111,7 +114,7 @@ namespace Analysis
                 {
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModel();
+                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModelAsync().Result;
 
                         var methodCallSymbol = (MethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
 
@@ -139,7 +142,7 @@ namespace Analysis
 
                     Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
 
-                    if (!(ex is InvalidProjectFileException ||
+                    if (!(
                           ex is FormatException ||
                           ex is ArgumentException ||
                           ex is PathTooLongException))

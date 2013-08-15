@@ -1,25 +1,26 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using System.Xml;
-using Utilities;
 
-namespace Analysis
+namespace Utilities
 {
     /// <summary>
     /// Several handy extension methods for Roslyn types.
     /// </summary>
     public static class RoslynExtensions
     {
-        public static bool IsCSProject(this IProject project)
+        public static bool IsCSProject(this Project project)
         {
-            return project.LanguageServices.Language.Equals("C#");
+            return project.Language.Equals("C#");
         }
 
         public static int CountSLOC(this SyntaxNode node)
         {
             var text = node.GetText();
-            var totalLines = text.LineCount;
+            var totalLines = text.Lines.Count();
 
             var linesWithNoText = 0;
             foreach (var l in text.Lines)
@@ -32,7 +33,7 @@ namespace Analysis
             return totalLines - linesWithNoText; ;
         }
 
-        public static Enums.ProjectType GetProjectType(this IProject project)
+        public static Enums.ProjectType GetProjectType(this Project project)
         {
             var result = project.IsWindowsPhoneProject();
             if (result == 1)
@@ -58,7 +59,7 @@ namespace Analysis
         }
 
         // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1.
-        public static int IsWindowsPhoneProject(this IProject project)
+        public static int IsWindowsPhoneProject(this Project project)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(project.FilePath);
@@ -90,22 +91,22 @@ namespace Analysis
             return 0;
         }
 
-        public static bool IsWPProject(this IProject project)
+        public static bool IsWPProject(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone") || a.Display.Contains("WindowsPhone"));
         }
 
-        public static bool IsWP8Project(this IProject project)
+        public static bool IsWP8Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone\\v8"));
         }
 
-        public static bool IsNet40Project(this IProject project)
+        public static bool IsNet40Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.0"));
         }
 
-        public static bool IsNet45Project(this IProject project)
+        public static bool IsNet45Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.5") || a.Display.Contains(".NETCore\\v4.5"));
         }
@@ -205,9 +206,9 @@ namespace Analysis
             if (methodCallSymbol == null)
                 return null;
 
-            var nodes = methodCallSymbol.DeclaringSyntaxNodes;
+            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a=> a.GetSyntax());
 
-            if (nodes == null || nodes.Count == 0)
+            if (nodes == null || nodes.Count() == 0)
                 return null;
 
             var methodDeclarationNodes = nodes.OfType<MethodDeclarationSyntax>();

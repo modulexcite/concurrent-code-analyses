@@ -1,5 +1,9 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Utilities;
 
 namespace Analysis
 {
@@ -9,7 +13,7 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         private bool uiClass;
 
