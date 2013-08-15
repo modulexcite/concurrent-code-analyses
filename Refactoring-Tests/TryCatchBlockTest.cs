@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
-using Roslyn.Compilers.CSharp;
+using System.Linq;
 
 namespace Refactoring_Tests
 {
@@ -74,10 +74,8 @@ namespace TextInput
 
         private void Callback(System.Net.WebRequest request, ? response)
         {
-
             try
             {
-
                 DoSomethingWithResponse(response);
             }
             catch (WebException e)

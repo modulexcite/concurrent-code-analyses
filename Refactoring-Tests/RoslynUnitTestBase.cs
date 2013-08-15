@@ -1,5 +1,6 @@
-﻿using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
 
 namespace Refactoring_Tests
 {
@@ -7,6 +8,7 @@ namespace Refactoring_Tests
     {
         // ReSharper disable InconsistentNaming
         protected static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
+
         protected static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
         // ReSharper restore InconsistentNaming
 

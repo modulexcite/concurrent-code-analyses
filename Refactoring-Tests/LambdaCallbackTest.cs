@@ -1,6 +1,6 @@
-﻿using System.Linq;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
-using Roslyn.Compilers.CSharp;
+using System.Linq;
 
 namespace Refactoring_Tests
 {

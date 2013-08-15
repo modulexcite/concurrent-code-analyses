@@ -1,4 +1,4 @@
-﻿using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
 using Utilities;
 
 namespace Analysis
@@ -63,7 +63,7 @@ namespace Analysis
             generalResults.NumTotalProjects++;
         }
 
-        public void WritePhoneProjects(IProject project)
+        public void WritePhoneProjects(Project project)
         {
             Logs.phoneProjectListLog.Info(project.FilePath);
             //if (!hasPhoneProjectInThisSolution)

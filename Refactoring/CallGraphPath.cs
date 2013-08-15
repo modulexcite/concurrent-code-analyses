@@ -1,5 +1,5 @@
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
-using Roslyn.Compilers.CSharp;
 
 namespace Refactoring
 {

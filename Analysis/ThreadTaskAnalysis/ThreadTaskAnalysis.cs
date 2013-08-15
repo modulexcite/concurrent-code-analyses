@@ -1,5 +1,6 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Utilities;
 
 namespace Analysis
@@ -29,20 +30,20 @@ namespace Analysis
             return true;
         }
 
-        protected override void VisitDocument(IDocument document, SyntaxNode root)
+        protected override void VisitDocument(Document document, SyntaxNode root)
         {
             var loopWalker = new ThreadTaskAnalysisWalker(Result)
             {
                 Outer = this,
                 Namespace = "System.Threading.Tasks",
-                SemanticModel = document.GetSemanticModel(),
+                SemanticModel = (SemanticModel) document.GetSemanticModelAsync().Result,
                 Id = Result.AppName + " " + document.Id
             };
 
             loopWalker.Visit(root);
         }
 
-        protected override bool FilterDocument(IDocument doc)
+        protected override bool FilterDocument(Document doc)
         {
             return true;
         }

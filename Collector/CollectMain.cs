@@ -12,7 +12,6 @@ namespace Collector
 
         private static void Main(string[] args)
         {
-
             string[] appsToAnalyze;
             if (bool.Parse(ConfigurationManager.AppSettings["OnlyAnalyzeAsyncAwaitApps"]))
                 appsToAnalyze = File.ReadAllLines(AsyncAwaitApps).Select(appName => AppsPath+appName).ToArray<string>();
@@ -21,7 +20,7 @@ namespace Collector
 
             var collector = new Collector(appsToAnalyze, 1000);
             collector.Run();
-            
+
             Console.WriteLine(@"Program finished. Press any key to quit ...");
             Console.ReadKey();
         }

@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
-using Roslyn.Compilers.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 using System.Configuration;
 using Utilities;
 

@@ -1,5 +1,5 @@
-﻿using NUnit.Framework;
-using Roslyn.Compilers.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NUnit.Framework;
 using System.Linq;
 
 namespace Refactoring_Tests
@@ -65,7 +65,6 @@ namespace TextInput
 
         private void CallBack(System.Net.WebRequest request, System.Net.WebResponse response)
         {
-
             DoSomethingWithResponse(response);
         }
 

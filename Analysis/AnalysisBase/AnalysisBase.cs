@@ -1,6 +1,6 @@
-﻿using Microsoft.Build.Exceptions;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +15,8 @@ namespace Analysis
         private readonly string _dirName;
         private readonly string _appName;
 
-        protected ISolution CurrentSolution;
+        protected MSBuildWorkspace workspace;
+        protected Solution CurrentSolution;
         protected bool hasPhoneProjectInThisSolution;
 
         public AnalysisResultBase Result
@@ -29,6 +30,7 @@ namespace Analysis
         {
             _dirName = dirName;
             _appName = appName;
+            workspace = MSBuildWorkspace.Create();
         }
 
         public void Analyze()
@@ -53,11 +55,11 @@ namespace Analysis
             OnAnalysisCompleted();
         }
 
-        private static ISolution TryLoadSolution(string solutionPath)
+        private Solution TryLoadSolution(string solutionPath)
         {
             try
             {
-                return Solution.Load(solutionPath);
+                return workspace.OpenSolutionAsync(solutionPath).Result;
             }
             catch (Exception ex)
             {
@@ -66,10 +68,10 @@ namespace Analysis
             }
         }
 
-        public void AnalyzeProject(IProject project)
+        public void AnalyzeProject(Project project)
         {
             Result.AddProject();
-            IEnumerable<IDocument> documents;
+            IEnumerable<Document> documents;
 
             if ((documents = TryLoadProject(project)) != null
                 && project.IsCSProject())
@@ -97,9 +99,9 @@ namespace Analysis
         protected abstract bool FilterProject(Enums.ProjectType type);
 
         // I did not make it extension method, because it is better to see all exception handling in this file.
-        private static IEnumerable<IDocument> TryLoadProject(IProject project)
+        private static IEnumerable<Document> TryLoadProject(Project project)
         {
-            IEnumerable<IDocument> documents = null;
+            IEnumerable<Document> documents = null;
             try
             {
                 documents = project.Documents;
@@ -107,8 +109,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                if (ex is InvalidProjectFileException ||
-                    ex is FormatException ||
+                if (ex is FormatException ||
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
@@ -157,28 +158,28 @@ namespace Analysis
             return true;
         }
 
-        protected void AnalyzeDocument(IDocument document)
+        protected void AnalyzeDocument(Document document)
         {
             if (FilterDocument(document))
             {
-                var root = (SyntaxNode)document.GetSyntaxTree().GetRoot();
+                var root = (SyntaxNode)document.GetSyntaxRootAsync().Result;
                 var sloc = root.CountSLOC();
                 Result.generalResults.NumTotalSLOC += sloc;
-                try
-                {
+                //try
+                //{
                     VisitDocument(document, root);
-                }
-                catch (InvalidProjectFileException ex)
-                {
-                    Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                    Result.generalResults.NumTotalSLOC -= sloc;
-                }
+                //}
+                //catch (InvalidProjectFileException ex)
+                //{
+                //    Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
+                //    Result.generalResults.NumTotalSLOC -= sloc;
+                //}
             }
         }
 
-        protected abstract bool FilterDocument(IDocument document);
+        protected abstract bool FilterDocument(Document document);
 
-        protected abstract void VisitDocument(IDocument document, SyntaxNode root);
+        protected abstract void VisitDocument(Document document, SyntaxNode root);
 
         protected void OnAnalysisCompleted()
         {
