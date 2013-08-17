@@ -355,22 +355,23 @@ namespace Refactoring
 
             var tapInvocation = NewVariableDeclarationStatement(taskName, objectName, methodName);
 
-            var asyncMethod = apmMethod.ReplaceNode(apmInvocation, tapInvocation);
-
             var paramIdentifier = invocationExpression.ArgumentList.Arguments.Last().ToString();
 
-            var responseDeclarationStatement = NewVariableDeclarationStatement(resultName, NewAwaitExpression(taskName));
-
-            asyncMethod = asyncMethod.AddBodyStatements(
-                responseDeclarationStatement,
-                Syntax.ParseStatement("Callback(" + paramIdentifier + ", result);")
-            );
-
-            asyncMethod = asyncMethod.WithModifiers(
-                asyncMethod.Modifiers.Add(NewAsyncKeyword())
-            );
-
-            return asyncMethod;
+            return apmMethod
+                .ReplaceNode(
+                    apmInvocation,
+                    tapInvocation
+                )
+                .AddModifiers(
+                    NewAsyncKeyword()
+                )
+                .AddBodyStatements(
+                    NewVariableDeclarationStatement(
+                        resultName,
+                        NewAwaitExpression(taskName)
+                    ),
+                    Syntax.ParseStatement("Callback(" + paramIdentifier + ", result);")
+                );
         }
 
         private static string AsyncMethodNameForAPMBeginInvocation(ExpressionStatementSyntax apmInvocation)
