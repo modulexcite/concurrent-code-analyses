@@ -131,7 +131,10 @@ namespace Refactoring
 
                         replacements.Add(new SyntaxNodeExtensions.ReplacementPair(apmMethod, newMethod));
 
-                        // TODO: Do something with method containing EndXxx call.
+                        var oldEndXxxContainingMethod = endXxxCall.ContainingMethod();
+                        var newEndXxxContainingMethod = RewriteEndXxxContainingMethod(oldEndXxxContainingMethod, endXxxCall, taskType);
+
+                        replacements.Add(new SyntaxNodeExtensions.ReplacementPair(oldEndXxxContainingMethod, newEndXxxContainingMethod));
 
                         return syntax.ReplaceAll(replacements)
                                      .Format();
@@ -182,6 +185,32 @@ namespace Refactoring
             return lambdaBlock;
         }
 
+        private static MethodDeclarationSyntax RewriteEndXxxContainingMethod(MethodDeclarationSyntax originalMethod, InvocationExpressionSyntax endXxxCall, string taskType)
+        {
+            const string taskName = "task";
+
+            // TODO: void return type
+            var returnType = NewGenericTaskWithArgumentType(originalMethod.ReturnType);
+
+            var replacements = new List<SyntaxNodeExtensions.ReplacementPair>();
+
+            var asyncResultParameter = FindIAsyncResultParameter(originalMethod.ParameterList);
+            var taskParameter = NewTaskParameter(taskName, taskType);
+            replacements.Add(new SyntaxNodeExtensions.ReplacementPair(asyncResultParameter, taskParameter));
+
+            replacements.Add(new SyntaxNodeExtensions.ReplacementPair(
+                endXxxCall,
+                NewAwaitExpression(taskName)
+            ));
+
+            return originalMethod
+                .ReplaceAll(replacements)
+                .AddModifiers(
+                    NewAsyncKeyword()
+                )
+                .WithReturnType(returnType);
+        }
+
         private static MethodDeclarationSyntax MakeCallGraphPathComponentAsync(InvocationExpressionSyntax invocation, MethodDeclarationSyntax method, String taskType)
         {
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -204,7 +233,7 @@ namespace Refactoring
                                                         .Where(id => id.Identifier.ValueText.Equals(asyncResultParam.Identifier.ValueText))
                                                         .Select(asyncResultRef => new SyntaxNodeExtensions.ReplacementPair(asyncResultRef, taskRef))
                                                         .ToList();
-            replacements.Add(AwaitedReplacementForInvocation(invocation, asyncResultParam, taskRef));
+            replacements.Add(AwaitedReplacementForCallGraphComponentInvocation(invocation, asyncResultParam, taskRef));
 
             foreach (var replacement in replacements)
             {
@@ -219,7 +248,7 @@ namespace Refactoring
                          .WithBody(body);
         }
 
-        private static SyntaxNodeExtensions.ReplacementPair AwaitedReplacementForInvocation(InvocationExpressionSyntax invocation, ParameterSyntax asyncResultParam, IdentifierNameSyntax taskRef)
+        private static SyntaxNodeExtensions.ReplacementPair AwaitedReplacementForCallGraphComponentInvocation(InvocationExpressionSyntax invocation, ParameterSyntax asyncResultParam, IdentifierNameSyntax taskRef)
         {
             var invocationAsyncResultRef = invocation.DescendantNodes()
                                                      .OfType<IdentifierNameSyntax>()
