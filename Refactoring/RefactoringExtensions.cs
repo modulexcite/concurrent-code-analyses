@@ -114,20 +114,14 @@ namespace Refactoring
                             var containingMethod = invocationOnPath.ContainingMethod();
                             var asyncMethod = MakeCallGraphPathComponentAsync(invocationOnPath, containingMethod, taskType);
 
-                            Console.WriteLine("Rewritten as:\n{0}", asyncMethod.Format());
-
                             replacements.Add(new SyntaxNodeExtensions.ReplacementPair(containingMethod, asyncMethod));
                         }
-
-                        Console.WriteLine("Rewriting originating method:\n{0}", apmMethod.Format());
 
                         var rewrittenLambdaBlock = RewriteOriginatingMethodLambdaBlock(isParenthesized, lambda, initialCall, taskName, lambdaBlock);
 
                         var newMethod = apmMethod.ReplaceNode(apmStatement, tapStatement)
                                                  .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray())
                                                  .AddModifiers(NewAsyncKeyword());
-
-                        Console.WriteLine("Rewritten originating method:\n{0}", newMethod.Format());
 
                         replacements.Add(new SyntaxNodeExtensions.ReplacementPair(apmMethod, newMethod));
 
@@ -216,8 +210,6 @@ namespace Refactoring
             if (invocation == null) throw new ArgumentNullException("invocation");
             if (method == null) throw new ArgumentNullException("method");
 
-            Console.WriteLine("Rewriting method:\n{0}", method.Format());
-
             var asyncResultParam = FindIAsyncResultParameter(method.ParameterList);
             const string taskName = "task";
 
@@ -234,11 +226,6 @@ namespace Refactoring
                                                         .Select(asyncResultRef => new SyntaxNodeExtensions.ReplacementPair(asyncResultRef, taskRef))
                                                         .ToList();
             replacements.Add(AwaitedReplacementForCallGraphComponentInvocation(invocation, asyncResultParam, taskRef));
-
-            foreach (var replacement in replacements)
-            {
-                Console.WriteLine("Replacement: {0}: with: {1}", replacement.OldNode, replacement.NewNode);
-            }
 
             var body = method.Body.ReplaceAll(replacements);
 
