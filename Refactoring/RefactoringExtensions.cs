@@ -100,17 +100,19 @@ namespace Refactoring
                         var invocationPathToEndXxx = TryFindEndXxxCallGraphPath(lambdaBlock, methodNameBase, model);
 
                         // These two get special treatment.
-                        var endXxxContainingMethod = invocationPathToEndXxx.First();
+                        var endXxxCall = invocationPathToEndXxx.First();
                         var initialCall = invocationPathToEndXxx.Last();
 
-                        invocationPathToEndXxx.Remove(endXxxContainingMethod);
+                        invocationPathToEndXxx.Remove(endXxxCall);
                         invocationPathToEndXxx.Remove(initialCall);
+
+                        var taskType = model.LookupMethodSymbol(endXxxCall).ReturnType.Name;
 
                         var replacements = new List<SyntaxNodeExtensions.ReplacementPair>(invocationPathToEndXxx.Count);
                         foreach (var invocationOnPath in invocationPathToEndXxx)
                         {
                             var containingMethod = invocationOnPath.ContainingMethod();
-                            var asyncMethod = MakeCallGraphPathComponentAsync(invocationOnPath, containingMethod, model);
+                            var asyncMethod = MakeCallGraphPathComponentAsync(invocationOnPath, containingMethod, taskType);
 
                             Console.WriteLine("Rewritten as:\n{0}", asyncMethod.Format());
 
@@ -180,7 +182,7 @@ namespace Refactoring
             return lambdaBlock;
         }
 
-        private static MethodDeclarationSyntax MakeCallGraphPathComponentAsync(InvocationExpressionSyntax invocation, MethodDeclarationSyntax method, SemanticModel model)
+        private static MethodDeclarationSyntax MakeCallGraphPathComponentAsync(InvocationExpressionSyntax invocation, MethodDeclarationSyntax method, String taskType)
         {
             if (invocation == null) throw new ArgumentNullException("invocation");
             if (method == null) throw new ArgumentNullException("method");
@@ -192,7 +194,7 @@ namespace Refactoring
 
             var returnType = NewGenericTaskWithArgumentType(method.ReturnType);
 
-            var taskParam = NewTaskParameter(taskName);
+            var taskParam = NewTaskParameter(taskName, taskType);
             var parameterList = method.ParameterList.ReplaceNode(asyncResultParam, taskParam);
 
             var taskRef = Syntax.IdentifierName(taskName);
@@ -544,14 +546,16 @@ namespace Refactoring
             return Syntax.Token(SyntaxKind.AsyncKeyword);
         }
 
-        private static ParameterSyntax NewTaskParameter(string taskName)
+        private static ParameterSyntax NewTaskParameter(string taskName, string taskType)
         {
             if (taskName == null) throw new ArgumentNullException("taskName");
 
             return Syntax.Parameter(
                 null,
                 Syntax.TokenList(),
-                Syntax.ParseTypeName("Task"),
+                NewGenericTaskWithArgumentType(
+                    Syntax.ParseTypeName(taskType)
+                ),
                 Syntax.Identifier(taskName),
                 null
             );
