@@ -27,6 +27,7 @@ namespace Refactoring
             {
                 case SyntaxKind.IdentifierName:
                     return RefactorInstanceWithMethodReferenceCallback(syntax, apmStatement, model);
+                    // TODO: return RefactorInstanceWithMethodReferenceCallback_New(syntax, apmStatement, model);
 
                 case SyntaxKind.SimpleLambdaExpression:
                     return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model, false);
@@ -37,6 +38,41 @@ namespace Refactoring
                 default:
                     throw new NotImplementedException("Unsupported actual argument syntax node kind: " + actualArgumentKind);
             }
+        }
+
+        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback_New(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (apmStatement == null) throw new ArgumentNullException("apmStatement");
+            if (model == null) throw new ArgumentNullException("model");
+
+            var invocationExpression = ((InvocationExpressionSyntax)apmStatement.Expression);
+
+            var methodSymbol = model.LookupMethodSymbol(invocationExpression);
+            var callbackParamIndex = FindCallbackParamIndex(methodSymbol);
+
+            var callbackArgument = invocationExpression.ArgumentList.Arguments.ElementAt(callbackParamIndex);
+
+            var lambdaArgument = Syntax.Argument(
+                    Syntax.SimpleLambdaExpression(
+                        Syntax.Parameter(
+                            null,
+                            Syntax.TokenList(),
+                            null,
+                            Syntax.Identifier("result"),
+                            null
+                        ),
+                        Syntax.Block(
+                            apmStatement
+                        )
+                    )
+                );
+
+            var lambafiedStatement = apmStatement.ReplaceNode(callbackArgument, lambdaArgument);
+
+            return syntax
+                .ReplaceNode(apmStatement, lambafiedStatement)
+                .RefactorAPMToAsyncAwait(lambafiedStatement, model);
         }
 
         private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
