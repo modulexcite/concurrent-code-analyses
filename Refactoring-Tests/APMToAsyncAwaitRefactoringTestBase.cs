@@ -33,7 +33,7 @@ namespace Refactoring_Tests
         /// invocation expression statement that must be refactored.</param>
         protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, StatementFinder statementFinder)
         {
-            Console.WriteLine("=== CODE TO BE REFACTORED ===\n{0}\n=== END ===", originalCode);
+            Console.WriteLine("=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
 
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);

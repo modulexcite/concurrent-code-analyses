@@ -153,9 +153,7 @@ namespace Refactoring
             }
         }
 
-        private static BlockSyntax RewriteOriginatingMethodLambdaBlock(bool isParenthesized, ExpressionSyntax lambda,
-                                                                       InvocationExpressionSyntax initialCall, string taskName,
-                                                                       BlockSyntax lambdaBlock)
+        private static BlockSyntax RewriteOriginatingMethodLambdaBlock(bool isParenthesized, ExpressionSyntax lambda, InvocationExpressionSyntax initialCall, string taskName, BlockSyntax lambdaBlock)
         {
             ParameterSyntax lambdaParam;
             if (isParenthesized)
@@ -168,16 +166,15 @@ namespace Refactoring
                 var simpleLambda = (SimpleLambdaExpressionSyntax)lambda;
                 lambdaParam = simpleLambda.Parameter;
             }
-            var asyncResultRef = initialCall.ArgumentList.Arguments.First(
-                arg => ((IdentifierNameSyntax)arg.Expression).Identifier.ValueText.Equals(lambdaParam.Identifier.ValueText)
-                );
+
+            var asyncResultRef = initialCall.ArgumentList.Arguments.First(arg => ((IdentifierNameSyntax)arg.Expression).Identifier.ValueText.Equals(lambdaParam.Identifier.ValueText));
             var taskRef = Syntax.IdentifierName(taskName);
             var awaitStatement = NewAwaitExpression(
                 initialCall.ReplaceNode(
                     asyncResultRef,
                     Syntax.Argument(taskRef)
-                    )
-                );
+                )
+            );
 
             lambdaBlock = lambdaBlock.ReplaceNode(initialCall, awaitStatement);
             return lambdaBlock;
@@ -224,15 +221,15 @@ namespace Refactoring
         {
             var invocationAsyncResultRef = invocation.DescendantNodes()
                                                      .OfType<IdentifierNameSyntax>()
-                                                     .First(
-                                                         id =>
-                                                         id.Identifier.ValueText.Equals(asyncResultParam.Identifier.ValueText));
+                                                     .First(id => id.Identifier.ValueText.Equals(asyncResultParam.Identifier.ValueText));
+
             var awaitReplacement = new SyntaxNodeExtensions.ReplacementPair(
                 invocation,
                 NewAwaitExpression(
                     invocation.ReplaceNode(invocationAsyncResultRef, taskRef)
-                    )
-                );
+                )
+            );
+
             return awaitReplacement;
         }
 
@@ -247,8 +244,7 @@ namespace Refactoring
 
             var candidates = block.DescendantNodes()
                                   .OfType<InvocationExpressionSyntax>()
-                                  .Where(node => NodeIsNotContainedInLambdaExpression(node, block))
-                                  .Select(node => node);
+                                  .Where(node => NodeIsNotContainedInLambdaExpression(node, block));
 
             foreach (var candidate in candidates)
             {
