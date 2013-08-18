@@ -81,7 +81,7 @@
     <Compile Include="LambdaCallbackTest.cs" />
     <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RoslynUnitTestBase.cs" />
+    <Compile Include="ScratchpadTest.cs" />
     <Compile Include="TryCatchBlockTest.cs" />
   </ItemGroup>
   <ItemGroup>

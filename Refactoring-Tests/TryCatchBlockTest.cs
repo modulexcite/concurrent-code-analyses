@@ -11,11 +11,11 @@ namespace Refactoring_Tests
         public void TestThatEndXxxInTryBlockIsRefactoredCorrectly()
         {
             StatementFinder statementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First();
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCodeWithoutWhiteSpaceFix, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
         }
 
         private const string OriginalCode = @"using System;
@@ -25,7 +25,7 @@ namespace TextInput
 {
     class SimpleAPMCase
     {
-        public void FireAndForgetDelegate()
+        public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(Callback, request);
@@ -39,44 +39,7 @@ namespace TextInput
 
             try
             {
-                var response = result.EndGetResponse(result);
-
-                DoSomethingWithResponse(response);
-            }
-            catch (WebException e)
-            {
-                HandleException(e);
-            }
-        }
-
-        private static void DoSomethingWhileGetResponseIsRunning() { }
-        private static void DoSomethingWithResponse(WebResponse response) { }
-        private static void HandleException(WebException e) { }
-    }
-}";
-
-        private const string RefactoredCodeWithoutWhiteSpaceFix = @"using System;
-using System.Net;
-
-namespace TextInput
-{
-    class SimpleAPMCase
-    {
-        public async void FireAndForgetDelegate()
-        {
-            var request = WebRequest.Create(""http://www.microsoft.com/"");
-            var task = request.GetResponseAsync();
-
-            DoSomethingWhileGetResponseIsRunning();
-            var result = task.GetAwaiter().GetResult();
-            Callback(request, result);
-        }
-
-        private void Callback(System.Net.WebRequest request, ? response)
-        {
-
-            try
-            {
+                var response = request.EndGetResponse(result);
 
                 DoSomethingWithResponse(response);
             }
@@ -99,18 +62,18 @@ namespace TextInput
 {
     class SimpleAPMCase
     {
-        public void FireAndForgetDelegate()
+        public async void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-
-            Callback(task);
+            Callback(task).GetAwaiter().GetResult();
         }
 
-        private void Callback(Task<WebResponse> task)
+        private async Task Callback(Task<WebResponse> task)
         {
+
             try
             {
                 var response = task.GetAwaiter().GetResult();

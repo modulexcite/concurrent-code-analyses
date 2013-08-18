@@ -11,14 +11,14 @@ namespace Refactoring_Tests
     /// Base class for APM-to-async/await refactoring testing.
     /// For clarity, use a single test class per test case.
     /// </summary>
-    public class APMToAsyncAwaitRefactoringTestBase : RoslynUnitTestBase
+    public class APMToAsyncAwaitRefactoringTestBase
     {
         /// <summary>
         /// Find the invocation expression statement of the APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
-        /// <param name="syntax">The compilation unit in which the invocation expression must be found.</param>
+        /// <param name="syntaxTree">The SyntaxTree in which the invocation expression must be found.</param>
         /// <returns>The invocation expression statement.</returns>
-        public delegate ExpressionStatementSyntax StatementFinder(CompilationUnitSyntax syntax);
+        public delegate ExpressionStatementSyntax StatementFinder(SyntaxTree syntaxTree);
 
         /// <summary>
         /// Assert that given original code containing both the BeginXxx method
@@ -37,15 +37,18 @@ namespace Refactoring_Tests
 
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
-            var originalSemanticModel = RoslynUnitTestBase.CreateSimpleSemanticModel(originalSyntaxTree);
-            var originalSyntax = originalSyntaxTree.GetRoot();
-            var apmInvocation = statementFinder(originalSyntax);
+
+            // Replace invocation of interest with annotated version.
+            var originalApmInvocation = statementFinder(originalSyntaxTree);
+            var annotatedApmInvocation = originalApmInvocation.WithAdditionalAnnotations(new InvocationOfInterestAnnotation());
+            var annotatedSyntax = originalSyntaxTree.GetRoot().ReplaceNode(originalApmInvocation, annotatedApmInvocation);
+            originalSyntaxTree = SyntaxTree.Create(annotatedSyntax);
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var refactoredSyntax = refactoredSyntaxTree.GetRoot();
 
-            var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
+            var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree);
 
             Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
 
@@ -55,14 +58,13 @@ namespace Refactoring_Tests
             Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
+        private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax)
         {
-
             Console.WriteLine("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
-            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(apmInvocation, originalSemanticModel);
+            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait();
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;

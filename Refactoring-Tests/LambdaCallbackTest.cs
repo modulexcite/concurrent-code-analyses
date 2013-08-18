@@ -11,7 +11,7 @@ namespace Refactoring_Tests
         public void TestThatTheSimpleCaseWithParenthesizedLambdaCallbackIsRefactoredCorrectly()
         {
             StatementFinder actualStatementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
@@ -22,7 +22,7 @@ namespace Refactoring_Tests
         public void TestThatTheSimpleCaseWithSimpleLambdaCallbackIsRefactoredCorrectly()
         {
             StatementFinder actualStatementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 

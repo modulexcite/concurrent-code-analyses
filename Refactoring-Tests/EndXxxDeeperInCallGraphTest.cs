@@ -11,7 +11,7 @@ namespace Refactoring_Tests
         public void TestThatNestedEndGetResponseIsRefactoredCorrectly()
         {
             StatementFinder statementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First();
 

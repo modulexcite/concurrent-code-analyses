@@ -8,11 +8,11 @@ namespace Refactoring_Tests
     [TestFixture]
     public class DelegateFieldRefCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
-        [TestCase]
+        [TestCase(Ignore = true, IgnoreReason = "Delegates are only sometimes refactorable")]
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
             StatementFinder statementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(node => node.ToString().Contains("Begin"));
 

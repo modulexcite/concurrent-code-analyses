@@ -10,42 +10,50 @@ namespace Utilities
             if (model == null) throw new ArgumentNullException("model");
             if (invocation == null) throw new ArgumentNullException("invocation");
 
-            switch (invocation.Expression.Kind)
+            var expression = invocation.Expression;
+            Console.WriteLine(@"DEBUG: Looking up symbol for: {0}", expression);
+
+            switch (expression.Kind)
             {
                 case SyntaxKind.MemberAccessExpression:
                 case SyntaxKind.IdentifierName:
-                    var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
-                    return (MethodSymbol)symbol;
+
+                    var symbol = model.GetSymbolInfo(expression).Symbol;
+
+                    if (symbol != null)
+                    {
+                        return (MethodSymbol)symbol;
+                    }
+
+                    throw new Exception("No symbol for invocation expression: " + invocation);
 
                 default:
-                    throw new NotImplementedException(
-                        String.Format(@"Unsupported expression kind: {0}: {1}", invocation.Expression.Kind, invocation)
-                    );
+                    throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
             }
         }
 
-        public static TypeSymbol LookupTypeSymbol(this SemanticModel model, ExpressionSyntax expression)
-        {
-            if (model == null) throw new ArgumentNullException("model");
-            if (expression == null) throw new ArgumentNullException("expression");
+        //public static TypeSymbol LookupTypeSymbol(this SemanticModel model, ExpressionSyntax expression)
+        //{
+        //    if (model == null) throw new ArgumentNullException("model");
+        //    if (expression == null) throw new ArgumentNullException("expression");
 
-            return model.GetTypeInfo(expression).Type;
-        }
+        //    return model.GetTypeInfo(expression).Type;
+        //}
 
-        public static Symbol LookupSymbol(this SemanticModel model, ExpressionSyntax expression)
-        {
-            if (model == null) throw new ArgumentNullException("model");
-            if (expression == null) throw new ArgumentNullException("expression");
+        //public static Symbol LookupSymbol(this SemanticModel model, ExpressionSyntax expression)
+        //{
+        //    if (model == null) throw new ArgumentNullException("model");
+        //    if (expression == null) throw new ArgumentNullException("expression");
 
-            var symbolInfo = model.GetSymbolInfo(expression);
+        //    var symbolInfo = model.GetSymbolInfo(expression);
 
-            if (symbolInfo.Symbol != null)
-            {
-                return symbolInfo.Symbol;
-            }
+        //    if (symbolInfo.Symbol != null)
+        //    {
+        //        return symbolInfo.Symbol;
+        //    }
 
-            Console.WriteLine(@"No symbol found for expression: {0}", expression);
-            return null;
-        }
+        //    Console.WriteLine(@"No symbol found for expression: {0}", expression);
+        //    return null;
+        //}
     }
 }
