@@ -32,25 +32,27 @@ namespace Refactoring
             switch (actualArgumentKind)
             {
                 case SyntaxKind.IdentifierName:
-                    //return RefactorInstanceWithMethodReferenceCallback(syntax, apmStatement, model);
-                    return RefactorInstanceWithMethodReferenceCallback_New(syntax, apmStatement, model);
-
-                case SyntaxKind.SimpleLambdaExpression:
-                    return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model, false);
+                    return RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model);
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model, true);
+                    return RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model);
+
+                case SyntaxKind.SimpleLambdaExpression:
+                    // TODO: Rewrite body as block if it is a non-block body (add test case first).
+                    return RefactorInstanceWithLambdaCallback(syntax, apmStatement, model);
 
                 default:
                     throw new NotImplementedException("Unsupported actual argument syntax node kind: " + actualArgumentKind);
             }
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallback_New(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (apmStatement == null) throw new ArgumentNullException("apmStatement");
             if (model == null) throw new ArgumentNullException("model");
+
+            const string lambdaParamName = "result";
 
             var invocationExpression = ((InvocationExpressionSyntax)apmStatement.Expression);
 
@@ -59,36 +61,44 @@ namespace Refactoring
 
             var callbackArgument = invocationExpression.ArgumentList.Arguments.ElementAt(callbackParamIndex);
 
-            const string lambdaParamName = "result";
-            const string callbackMethodName = "Callback";
-
-            var lambdaArgument = Syntax.Argument(
-                    Syntax.SimpleLambdaExpression(
-                        NewUntypedParameter(lambdaParamName),
-                        Syntax.Block(
-                            Syntax.List(
-                                Syntax.ExpressionStatement(
-                                    Syntax.InvocationExpression(
-                                        Syntax.IdentifierName(callbackMethodName),
-                                        Syntax.ArgumentList(
-                                            Syntax.SeparatedList(
-                                                Syntax.Argument(
-                                                    Syntax.IdentifierName(lambdaParamName)
-                                                )
-                                            )
-                                        )
+            var lambda = Syntax.SimpleLambdaExpression(
+                             NewUntypedParameter(lambdaParamName),
+                             NewBlock(
+                                NewInvocationStatement(
+                                    callbackArgument.Expression,
+                                    NewSingletonArgumentList(
+                                        Syntax.IdentifierName(lambdaParamName)
                                     )
                                 )
                             )
-                        )
-                    )
-                );
+                        );
 
-            var lambdafiedStatement = apmStatement.ReplaceNode(callbackArgument, lambdaArgument);
+            var lambdafiedSyntax = syntax.ReplaceNode(callbackArgument.Expression, lambda);
+
+            return SyntaxTree.Create(lambdafiedSyntax)
+                             .RefactorAPMToAsyncAwait();
+        }
+
+        private static CompilationUnitSyntax RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax statement, SemanticModel model)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (statement == null) throw new ArgumentNullException("statement");
+
+            var invocationExpression = ((InvocationExpressionSyntax)statement.Expression);
+            var methodSymbol = model.LookupMethodSymbol(invocationExpression);
+            var callbackParamIndex = FindCallbackParamIndex(methodSymbol);
+
+            var callbackArgument = invocationExpression.ArgumentList.Arguments.ElementAt(callbackParamIndex);
+            var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)callbackArgument.Expression;
+
+            var simpleLambda = Syntax.SimpleLambdaExpression(
+                parenthesizedLambda.ParameterList.Parameters.First(),
+                parenthesizedLambda.Body
+            );
 
             return SyntaxTree
                 .Create(
-                    syntax.ReplaceNode(apmStatement, lambdafiedStatement)
+                    syntax.ReplaceNode((SyntaxNode)parenthesizedLambda, simpleLambda)
                 )
                 .RefactorAPMToAsyncAwait();
         }
@@ -112,12 +122,13 @@ namespace Refactoring
         //    }).Format();
         //}
 
-        private static CompilationUnitSyntax RefactorInstanceWithLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model,
-            bool isParenthesized)
+        private static CompilationUnitSyntax RefactorInstanceWithLambdaCallback(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (apmStatement == null) throw new ArgumentNullException("apmStatement");
             if (model == null) throw new ArgumentNullException("model");
+
+            const bool isParenthesized = false;
 
             var apmMethod = apmStatement.ContainingMethod();
 
@@ -136,7 +147,7 @@ namespace Refactoring
             var tapStatement = NewVariableDeclarationStatement(taskName, objectName, methodName);
 
             var lambda = invocation.ArgumentList.Arguments.ElementAt(callbackIndex).Expression;
-            var lambdaBody = isParenthesized ? ((ParenthesizedLambdaExpressionSyntax)lambda).Body : ((SimpleLambdaExpressionSyntax)lambda).Body;
+            var lambdaBody = ((SimpleLambdaExpressionSyntax)lambda).Body;
 
             switch (lambdaBody.Kind)
             {
@@ -712,6 +723,43 @@ namespace Refactoring
                     Syntax.SeparatedList(
                         returnType
                     )
+                )
+            );
+        }
+
+        private static BlockSyntax NewBlock<T>(params T[] statements) where T : StatementSyntax
+        {
+            if (statements == null) throw new ArgumentNullException("statements");
+
+            return Syntax.Block(
+                Syntax.List(
+                    statements
+                )
+            );
+        }
+
+        private static ArgumentListSyntax NewSingletonArgumentList(ExpressionSyntax expression)
+        {
+            if (expression == null) throw new ArgumentNullException("expression");
+
+            return Syntax.ArgumentList(
+                Syntax.SeparatedList(
+                    Syntax.Argument(
+                        expression
+                    )
+                )
+            );
+        }
+
+        private static ExpressionStatementSyntax NewInvocationStatement(ExpressionSyntax expression, ArgumentListSyntax argumentList)
+        {
+            if (expression == null) throw new ArgumentNullException("expression");
+            if (argumentList == null) throw new ArgumentNullException("argumentList");
+
+            return Syntax.ExpressionStatement(
+                Syntax.InvocationExpression(
+                    expression,
+                    argumentList
                 )
             );
         }
