@@ -18,6 +18,28 @@ namespace Refactoring_Tests
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, actualStatementFinder);
         }
 
+        [Test]
+        public void TestThatSimpleLambdaWithoutBlockIsRefactoredCorrectly()
+        {
+            StatementFinder actualStatementFinder =
+                syntax => syntax.GetRoot().DescendantNodes()
+                                .OfType<ExpressionStatementSyntax>()
+                                .First(invocation => invocation.ToString().Contains("Begin"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
+        }
+
+        [Test]
+        public void TestThatParenthesizedLambdaWithoutBlockIsRefactoredCorrectly()
+        {
+            StatementFinder actualStatementFinder =
+                syntax => syntax.GetRoot().DescendantNodes()
+                                .OfType<ExpressionStatementSyntax>()
+                                .First(invocation => invocation.ToString().Contains("Begin"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
+        }
+
         private const string OriginalCode = @"using System;
 using System.Net;
 
@@ -29,6 +51,62 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(Callback, request);
+
+            DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private void Callback(IAsyncResult result)
+        {
+            var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
+
+            DoSomethingWithResponse(response);
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithSimpleLambdaWithoutBlock = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            request.BeginGetResponse(result => Callback(result), request);
+
+            DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private void Callback(IAsyncResult result)
+        {
+            var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
+
+            DoSomethingWithResponse(response);
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithParenthesizedLambdaWithoutBlock = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            request.BeginGetResponse((result) => Callback(result), request);
 
             DoSomethingWhileGetResponseIsRunning();
         }

@@ -24,9 +24,9 @@ namespace Refactoring
             var model = compilation.GetSemanticModel(syntaxTree);
             var syntax = syntaxTree.GetRoot();
 
-            var apmStatement = syntaxTree.GetRoot().DescendantNodes()
-                .OfType<ExpressionStatementSyntax>()
-                .First(node => node.HasAnnotations<InvocationOfInterestAnnotation>());
+            var apmStatement = syntax.DescendantNodes()
+                                     .OfType<ExpressionStatementSyntax>()
+                                     .First(node => node.HasAnnotations<InvocationOfInterestAnnotation>());
 
             var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
 
@@ -42,12 +42,52 @@ namespace Refactoring
                     return RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model);
 
                 case SyntaxKind.SimpleLambdaExpression:
-                    // TODO: Rewrite body as block if it is a non-block body (add test case first).
-                    return RefactorInstance(syntax, apmStatement, model);
+                    return RefactorInstanceWithSimpleLambdaCallback(syntax, model, apmStatement, (SimpleLambdaExpressionSyntax)callbackExpression);
 
                 default:
-                    throw new NotImplementedException("Unsupported actual argument syntax node kind: " + callbackExpression.Kind);
+                    throw new NotImplementedException(
+                        "Unsupported actual argument syntax node kind: " + callbackExpression.Kind
+                        + ": callback argument: " + callbackArgument
+                    );
             }
+        }
+
+        private static CompilationUnitSyntax RefactorInstanceWithSimpleLambdaCallback(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (model == null) throw new ArgumentNullException("model");
+            if (apmStatement == null) throw new ArgumentNullException("apmStatement");
+            if (lambda == null) throw new ArgumentNullException("lambda");
+
+            if (lambda.Body.Kind == SyntaxKind.Block)
+            {
+                return RefactorSimpleLambdaInstance(syntax, apmStatement, model);
+            }
+
+            switch (lambda.Body.Kind)
+            {
+                case SyntaxKind.InvocationExpression:
+                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, model, apmStatement, lambda);
+
+                default:
+                    throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
+                                                      lambda);
+            }
+        }
+
+        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda)
+        {
+            var invocation = (InvocationExpressionSyntax)lambda.Body;
+
+            var rewrittenSyntax = syntax.ReplaceNode(
+                lambda.Body,
+                NewBlock(
+                    Syntax.ExpressionStatement(invocation)
+                )
+            );
+
+            return SyntaxTree.Create(rewrittenSyntax)
+                             .RefactorAPMToAsyncAwait();
         }
 
         private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
@@ -102,13 +142,11 @@ namespace Refactoring
                 .RefactorAPMToAsyncAwait();
         }
 
-        private static CompilationUnitSyntax RefactorInstance(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (apmStatement == null) throw new ArgumentNullException("apmStatement");
             if (model == null) throw new ArgumentNullException("model");
-
-            const bool isParenthesized = false;
 
             var apmMethod = apmStatement.ContainingMethod();
 
