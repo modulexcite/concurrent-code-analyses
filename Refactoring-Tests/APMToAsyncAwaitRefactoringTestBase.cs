@@ -40,7 +40,7 @@ namespace Refactoring_Tests
 
             // Replace invocation of interest with annotated version.
             var originalApmInvocation = statementFinder(originalSyntaxTree);
-            var annotatedApmInvocation = originalApmInvocation.WithAdditionalAnnotations(new InvocationOfInterestAnnotation());
+            var annotatedApmInvocation = originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
             var annotatedSyntax = originalSyntaxTree.GetRoot().ReplaceNode(originalApmInvocation, annotatedApmInvocation);
             originalSyntaxTree = SyntaxTree.Create(annotatedSyntax);
 

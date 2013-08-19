@@ -31,29 +31,5 @@ namespace Utilities
                     throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
             }
         }
-
-        //public static TypeSymbol LookupTypeSymbol(this SemanticModel model, ExpressionSyntax expression)
-        //{
-        //    if (model == null) throw new ArgumentNullException("model");
-        //    if (expression == null) throw new ArgumentNullException("expression");
-
-        //    return model.GetTypeInfo(expression).Type;
-        //}
-
-        //public static Symbol LookupSymbol(this SemanticModel model, ExpressionSyntax expression)
-        //{
-        //    if (model == null) throw new ArgumentNullException("model");
-        //    if (expression == null) throw new ArgumentNullException("expression");
-
-        //    var symbolInfo = model.GetSymbolInfo(expression);
-
-        //    if (symbolInfo.Symbol != null)
-        //    {
-        //        return symbolInfo.Symbol;
-        //    }
-
-        //    Console.WriteLine(@"No symbol found for expression: {0}", expression);
-        //    return null;
-        //}
     }
 }

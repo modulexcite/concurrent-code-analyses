@@ -57,7 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompilationUtils.cs" />
-    <Compile Include="InvocationOfInterestAnnotation.cs" />
+    <Compile Include="RefactorableAPMInstance.cs" />
     <Compile Include="RefactoringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

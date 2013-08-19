@@ -26,7 +26,7 @@ namespace Refactoring
 
             var apmStatement = syntax.DescendantNodes()
                                      .OfType<ExpressionStatementSyntax>()
-                                     .First(node => node.HasAnnotations<InvocationOfInterestAnnotation>());
+                                     .First(node => node.HasAnnotations<RefactorableAPMInstance>());
 
             var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
 
