@@ -1,4 +1,5 @@
-﻿using Roslyn.Compilers;
+﻿using System;
+using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 
 namespace Refactoring
@@ -14,6 +15,8 @@ namespace Refactoring
 
         public static Compilation CreateCompilation(params SyntaxTree[] originalSyntaxTrees)
         {
+            if (originalSyntaxTrees == null) throw new ArgumentNullException("originalSyntaxTrees");
+
             var originalCompilation = Compilation.Create(
                 "Compilation",
                 syntaxTrees: originalSyntaxTrees,

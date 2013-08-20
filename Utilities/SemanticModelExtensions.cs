@@ -1,17 +1,21 @@
 ﻿using System;
+using NLog;
 using Roslyn.Compilers.CSharp;
 
 namespace Utilities
 {
     public static class SemanticModelExtensions
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public static MethodSymbol LookupMethodSymbol(this SemanticModel model, InvocationExpressionSyntax invocation)
         {
             if (model == null) throw new ArgumentNullException("model");
             if (invocation == null) throw new ArgumentNullException("invocation");
 
             var expression = invocation.Expression;
-            Console.WriteLine(@"DEBUG: Looking up symbol for: {0}", expression);
+
+            Logger.Trace("Looking up symbol for: {0}", expression);
 
             switch (expression.Kind)
             {

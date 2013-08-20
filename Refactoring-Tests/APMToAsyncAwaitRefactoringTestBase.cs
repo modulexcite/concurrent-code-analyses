@@ -1,4 +1,5 @@
 ﻿using System;
+using NLog;
 using NUnit.Framework;
 using Refactoring;
 using Roslyn.Compilers;
@@ -13,6 +14,8 @@ namespace Refactoring_Tests
     /// </summary>
     public class APMToAsyncAwaitRefactoringTestBase
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Find the invocation expression statement of the APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
@@ -33,7 +36,7 @@ namespace Refactoring_Tests
         /// invocation expression statement that must be refactored.</param>
         protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, StatementFinder statementFinder)
         {
-            Console.WriteLine("=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
+            Logger.Debug("=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
 
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
@@ -50,7 +53,7 @@ namespace Refactoring_Tests
 
             var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree);
 
-            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
+            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
 
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.
@@ -60,7 +63,7 @@ namespace Refactoring_Tests
 
         private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax)
         {
-            Console.WriteLine("Starting refactoring operation ...");
+            Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
@@ -68,7 +71,7 @@ namespace Refactoring_Tests
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;
-            Console.WriteLine("Finished refactoring operation in {0} ms", time);
+            Logger.Trace("Finished refactoring operation in {0} ms", time);
 
             return actualRefactoredSyntax;
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Roslyn.Compilers;
 using Roslyn.Compilers.CSharp;
 using Utilities;
@@ -9,6 +10,8 @@ namespace Refactoring
 {
     public static class RefactoringExtensions
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
@@ -18,7 +21,7 @@ namespace Refactoring
         {
             if (syntaxTree == null) throw new ArgumentNullException("syntaxTree");
 
-            Console.WriteLine("### REFACTORING CODE:\n{0}\n### END OF CODE", syntaxTree.GetRoot().Format());
+            Logger.Trace("### REFACTORING CODE:\n{0}\n### END OF CODE", syntaxTree.GetRoot().Format());
 
             var compilation = CompilationUtils.CreateCompilation(syntaxTree);
             var model = compilation.GetSemanticModel(syntaxTree);
