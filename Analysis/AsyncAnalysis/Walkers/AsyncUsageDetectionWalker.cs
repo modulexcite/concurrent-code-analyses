@@ -1,6 +1,8 @@
-﻿using Microsoft.Build.Exceptions;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,11 +17,11 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         public bool IsEventHandlerWalkerEnabled { get; set; }
 
-        public override void VisitClassDeclaration(Roslyn.Compilers.CSharp.ClassDeclarationSyntax node)
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             if ((node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
             {
@@ -32,21 +34,22 @@ namespace Analysis
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
-
+            
             if (symbol != null)
             {
                 var asynctype = DetectAsynchronousUsages(node, symbol);
                 Result.StoreDetectedAsyncUsage(asynctype);
                 Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
+                if (asynctype == Enums.AsyncDetected.APM)
+                {
+                    if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
+                        Result.asyncUsageResults.APMWP7++;
+                    else
+                        Result.asyncUsageResults.APMWP8++;
+                }
+                
             }
-        }
-
-        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-            if (node.HasEventArgsParameter() && IsEventHandlerWalkerEnabled)
-                Result.generalAsyncResults.NumEventHandlerMethods++;
-
-            base.VisitMethodDeclaration(node);
+            base.VisitInvocationExpression(node);
         }
 
         private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
@@ -64,13 +67,17 @@ namespace Analysis
                 return Enums.AsyncDetected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
                 return Enums.AsyncDetected.TPL;
-            // DETECT GUI UPDATE CALLS
-            else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-                return Enums.AsyncDetected.ISynchronizeInvoke;
-            else if (methodCallSymbol.IsControlBeginInvoke())
-                return Enums.AsyncDetected.ControlInvoke;
-            else if (methodCallSymbol.IsDispatcherBeginInvoke())
-                return Enums.AsyncDetected.Dispatcher;
+
+
+            //// DETECT GUI UPDATE CALLS
+            //else if (methodCallSymbol.IsISynchronizeInvokeMethod())
+            //    return Enums.AsyncDetected.ISynchronizeInvoke;
+            //else if (methodCallSymbol.IsControlBeginInvoke())
+            //    return Enums.AsyncDetected.ControlInvoke;
+            //else if (methodCallSymbol.IsDispatcherBeginInvoke())
+            //    return Enums.AsyncDetected.Dispatcher;
+
+
             // DETECT PATTERNS
             else if (methodCallSymbol.IsAPMBeginMethod())
                 return Enums.AsyncDetected.APM;
@@ -79,7 +86,7 @@ namespace Analysis
             else if (methodCallSymbol.IsTAPMethod())
                 return Enums.AsyncDetected.TAP;
 
-            //
+            
             else
                 return Enums.AsyncDetected.None;
         }
@@ -113,7 +120,7 @@ namespace Analysis
             {
                 Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}:{2}", node, Document.FilePath, node.Span.Start, ex);
 
-                if (!(ex is InvalidProjectFileException ||
+                if (!(
                       ex is FormatException ||
                       ex is ArgumentException ||
                       ex is PathTooLongException))

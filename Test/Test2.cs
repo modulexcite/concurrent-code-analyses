@@ -1,5 +1,4 @@
-﻿using Microsoft.Build.Exceptions;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -8,6 +7,8 @@ namespace TestApps
 {
     internal class Test2
     {
+        private static MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+
         public static void execute()
         {
             //const string candidatesDir = @"C:\Users\david\Downloads\C# Projects\CodeplexMostDownloaded1000Projects";
@@ -47,11 +48,11 @@ namespace TestApps
             }
         }
 
-        private static ISolution TryLoadSolution(string filename)
+        private static Solution TryLoadSolution(string filename)
         {
             try
             {
-                return Solution.Load(filename);
+                return workspace.OpenSolutionAsync(filename).Result;
             }
             catch (ArgumentException)
             {
@@ -62,17 +63,10 @@ namespace TestApps
 
     internal static class Extensions
     {
-        public static bool IsInteresting(this IProject project)
+        public static bool IsInteresting(this Project project)
         {
-            try
-            {
                 //return project.IsCSProject() && project.IsWP8Project();
                 return true;
-            }
-            catch (InvalidProjectFileException)
-            {
-                return false;
-            }
         }
     }
 }

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using NUnit.Framework;
 using Refactoring;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
-using Utilities;
+using System;
 
 namespace Refactoring_Tests
 {
@@ -49,7 +49,7 @@ namespace Refactoring_Tests
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
-            var refactoredSyntax = refactoredSyntaxTree.GetRoot();
+            var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
 
             var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree);
 

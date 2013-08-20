@@ -1,6 +1,8 @@
-﻿using Microsoft.Build.Exceptions;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +18,7 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         public List<String> AnalyzedMethods { get; set; }
 
@@ -26,55 +28,60 @@ namespace Analysis
         {
             if (node.HasAsyncModifier())
             {
-                //if (node.ReturnType.ToString().Equals("void"))
-                //{
-                //    if (node.HasEventArgsParameter())
-                //        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
-                //    else
-                //        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
-                //}
-                //else
-                //    Result.asyncAwaitResults.NumAsyncTaskMethods++;
-
-                //if (!node.Body.ToString().Contains("await"))
-                //{
-                //    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
-                //    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
-                //}
-
-                //int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
-
-                //if (numAwaits > 6)
-                //    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
-
-                //if (node.Body.ToString().Contains("ConfigureAwait"))
-                //{
-                //    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                //    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
-                //}
-
-                //var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
-                //if (blockings.Count() > 0)
-                //{
-                //    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
-                //    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
-                //}
-                //ProcessMethodCallsInMethod(node, 0);
+                if (node.ReturnType.ToString().Equals("void"))
+                {
+                    if (node.HasEventArgsParameter())
+                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
+                    else
+                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
+                }
+                else
+                    Result.asyncAwaitResults.NumAsyncTaskMethods++;
             }
 
             if (node.HasEventArgsParameter())
             {
-                ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
 
+                if (!node.Body.ToString().Contains("await"))
+                {
+                    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
+                    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
+                }
+
+                int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
+
+                if (numAwaits > 6)
+                    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
+
+                if (node.Body.ToString().Contains("ConfigureAwait"))
+                {
+                    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
+                    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
+                }
+
+                var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
+                if (blockings.Count() > 0)
+                {
+                    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
+                    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
+                }
+ 
+                ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
             }
+
+            //if (node.HasEventArgsParameter())
+            //{
+            //    ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
+
+            //}
 
             base.VisitMethodDeclaration(node);
         }
 
         public Enums.SyncDetected DetectSynchronousUsages(MethodSymbol methodCallSymbol)
         {
-            var list = SemanticModel.LookupSymbols(0, methodCallSymbol.ContainingType,
-                                                    options: LookupOptions.IncludeExtensionMethods);
+            var list = SemanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
+                                includeReducedExtensionMethods: true);
 
             var name = methodCallSymbol.Name;
             Enums.SyncDetected type = Enums.SyncDetected.None;
@@ -97,7 +104,6 @@ namespace Analysis
             return type;
         }
 
-
         private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n, string topAncestor)
         {
             var hashcode = node.Identifier.ToString() + node.ParameterList.ToString();
@@ -111,7 +117,7 @@ namespace Analysis
                 {
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModel();
+                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModelAsync().Result;
 
                         var methodCallSymbol = (MethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
 
@@ -136,17 +142,15 @@ namespace Analysis
                 }
                 catch (Exception ex)
                 {
-
                     Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
 
-                    if (!(ex is InvalidProjectFileException ||
+                    if (!(
                           ex is FormatException ||
                           ex is ArgumentException ||
                           ex is PathTooLongException))
                         throw;
                 }
             }
-
         }
     }
 }

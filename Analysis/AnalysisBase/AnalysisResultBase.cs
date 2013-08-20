@@ -1,4 +1,4 @@
-﻿using Roslyn.Services;
+﻿using Microsoft.CodeAnalysis;
 using Utilities;
 
 namespace Analysis
@@ -6,6 +6,7 @@ namespace Analysis
     public abstract class AnalysisResultBase
     {
         public string AppName;
+        public Enums.ProjectType CurrentAnalyzedProjectType;
 
         public class GeneralResults
         {
@@ -17,6 +18,8 @@ namespace Analysis
             public int NumNet45Projects;
             public int NumOtherNetProjects;
             public int NumTotalSLOC;
+            public int SLOCWP7;
+            public int SLOCWP8;
         }
 
         public GeneralResults generalResults { get; set; }
@@ -63,12 +66,17 @@ namespace Analysis
             generalResults.NumTotalProjects++;
         }
 
-        public void WritePhoneProjects(IProject project)
+        public void WritePhoneProjects(Project project)
         {
             Logs.phoneProjectListLog.Info(project.FilePath);
             //if (!hasPhoneProjectInThisSolution)
             Logs.phoneSolutionListLog.Info(project.Solution.FilePath);
             //hasPhoneProjectInThisSolution = true;
+        }
+
+        public bool ShouldSerializeCurrentAnalyzedProjectType()
+        {
+            return false;
         }
 
         public abstract void WriteSummaryLog();

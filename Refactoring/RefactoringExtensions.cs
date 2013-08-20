@@ -1,9 +1,12 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
-using Roslyn.Compilers;
-using Roslyn.Compilers.CSharp;
 using Utilities;
 
 namespace Refactoring
@@ -321,7 +324,7 @@ namespace Refactoring
             var taskParam = NewGenericTaskParameter(taskName, taskType);
             var parameterList = method.ParameterList.ReplaceNode(asyncResultParam, taskParam);
 
-            var taskRef = Syntax.IdentifierName(taskName);
+            var taskRef = SyntaxFactory.IdentifierName(taskName);
 
             var replacements = method.Body.DescendantNodes()
                                                         .OfType<IdentifierNameSyntax>()
@@ -497,7 +500,7 @@ namespace Refactoring
             if (symbol == null) throw new ArgumentNullException("symbol");
             if (parameterTypeName == null) throw new ArgumentNullException("parameterTypeName");
 
-            for (var i = 0; i < symbol.Parameters.Count; i++)
+            for (var i = 0; i < symbol.Parameters.Count(); i++)
             {
                 var parameter = symbol.Parameters.ElementAt(i);
                 if (parameter.Type.ToDisplayString().Equals(parameterTypeName))
@@ -568,7 +571,7 @@ namespace Refactoring
 
             var awaitCode = String.Format("var {0} = {1};\n", resultName, expression);
 
-            return Syntax.ParseStatement(awaitCode);
+            return SyntaxFactory.ParseStatement(awaitCode);
         }
 
         private static ExpressionSyntax NewAwaitExpression(ExpressionSyntax expression)
@@ -578,7 +581,7 @@ namespace Refactoring
             // TODO: Use 'await' once available in the next CTP.
             var code = String.Format(@"{0}.GetAwaiter().GetResult()", expression);
 
-            return Syntax.ParseExpression(code);
+            return SyntaxFactory.ParseExpression(code);
         }
 
         private static ExpressionSyntax NewAwaitExpression(string taskName)
@@ -588,12 +591,12 @@ namespace Refactoring
             // TODO: Use 'await' once available in the next CTP.
             var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
 
-            return Syntax.ParseExpression(code);
+            return SyntaxFactory.ParseExpression(code);
         }
 
         private static SyntaxToken NewAsyncKeyword()
         {
-            return Syntax.Token(
+            return SyntaxFactory.Token(
                 SyntaxKind.AsyncKeyword
             );
         }
@@ -669,10 +672,10 @@ namespace Refactoring
             if (identifier == null) throw new ArgumentNullException("identifier");
             if (returnType == null) throw new ArgumentNullException("returnType");
 
-            return Syntax.GenericName(
+            return SyntaxFactory.GenericName(
                 identifier,
-                Syntax.TypeArgumentList(
-                    Syntax.SeparatedList(
+                SyntaxFactory.TypeArgumentList(
+                    SyntaxFactory.SeparatedList(
                         returnType
                     )
                 )

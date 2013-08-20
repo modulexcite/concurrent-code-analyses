@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
-using Roslyn.Compilers.CSharp;
+using System;
 
 namespace Utilities
 {
@@ -19,7 +22,8 @@ namespace Utilities
 
             switch (expression.Kind)
             {
-                case SyntaxKind.MemberAccessExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
+                case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.IdentifierName:
 
                     var symbol = model.GetSymbolInfo(expression).Symbol;

@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
-using Roslyn.Compilers.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 using System.Configuration;
 using Utilities;
 
@@ -40,6 +41,8 @@ namespace Analysis
 
         public class AsyncUsageResults
         {
+            public int APMWP7;
+            public int APMWP8;
             public int[] NumAsyncProgrammingUsages = new int[11];
         }
 
@@ -78,6 +81,7 @@ namespace Analysis
         {
             return bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]);
         }
+
 
         public bool ShouldSerializeapmDiagnosisResults()
         {

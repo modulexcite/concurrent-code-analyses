@@ -1,5 +1,7 @@
-﻿using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using System.Xml;
 
@@ -10,15 +12,15 @@ namespace Utilities
     /// </summary>
     public static class RoslynExtensions
     {
-        public static bool IsCSProject(this IProject project)
+        public static bool IsCSProject(this Project project)
         {
-            return project.LanguageServices.Language.Equals("C#");
+            return project.Language.Equals("C#");
         }
 
         public static int CountSLOC(this SyntaxNode node)
         {
             var text = node.GetText();
-            var totalLines = text.LineCount;
+            var totalLines = text.Lines.Count();
 
             var linesWithNoText = 0;
             foreach (var l in text.Lines)
@@ -31,7 +33,7 @@ namespace Utilities
             return totalLines - linesWithNoText; ;
         }
 
-        public static Enums.ProjectType GetProjectType(this IProject project)
+        public static Enums.ProjectType GetProjectType(this Project project)
         {
             var result = project.IsWindowsPhoneProject();
             if (result == 1)
@@ -57,7 +59,7 @@ namespace Utilities
         }
 
         // return 2 if the project targets windows phone 8 os, return 1 if targetting windows phone 7,7.1.
-        public static int IsWindowsPhoneProject(this IProject project)
+        public static int IsWindowsPhoneProject(this Project project)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(project.FilePath);
@@ -66,45 +68,37 @@ namespace Utilities
             mgr.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
 
             var node = doc.SelectSingleNode("//x:TargetFrameworkIdentifier", mgr);
-            if (node != null)
-            {
-                if (node.InnerText.ToString().Equals("WindowsPhone"))
-                    return 2;
-                else if (node.InnerText.ToString().Equals("Silverlight"))
-                {
-                    var profileNode = doc.SelectSingleNode("//x:TargetFrameworkProfile", mgr);
-                    if (profileNode != null && profileNode.InnerText.ToString().Contains("WindowsPhone"))
-                        return 1;
-                }
-            }
-            else
-            {
-                var node2 = doc.SelectSingleNode("//x:XnaPlatform", mgr);
-                if (node2 != null)
-                {
-                    if (node2.InnerText.ToString().Equals("Windows Phone"))
-                        return 1;
-                }
-            }
+            if (node != null && node.InnerText.ToString().Equals("WindowsPhone"))
+                return 2;
+
+            var profileNode = doc.SelectSingleNode("//x:TargetFrameworkProfile", mgr);
+            if (profileNode != null && profileNode.InnerText.ToString().Contains("WindowsPhone"))
+                return 1;
+
+            var node2 = doc.SelectSingleNode("//x:XnaPlatform", mgr);
+            if (node2 != null && node2.InnerText.ToString().Equals("Windows Phone"))
+                return 1;
+
+
             return 0;
         }
 
-        public static bool IsWPProject(this IProject project)
+        public static bool IsWPProject(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone") || a.Display.Contains("WindowsPhone"));
         }
 
-        public static bool IsWP8Project(this IProject project)
+        public static bool IsWP8Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Windows Phone\\v8"));
         }
 
-        public static bool IsNet40Project(this IProject project)
+        public static bool IsNet40Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.0"));
         }
 
-        public static bool IsNet45Project(this IProject project)
+        public static bool IsNet45Project(this Project project)
         {
             return project.MetadataReferences.Any(a => a.Display.Contains("Framework\\v4.5") || a.Display.Contains(".NETCore\\v4.5"));
         }
@@ -126,7 +120,7 @@ namespace Utilities
 
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
+            return !IsAsyncDelegate(symbol) && symbol.Parameters.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
@@ -152,7 +146,8 @@ namespace Utilities
 
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
-            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke");
+            return symbol.ToString().Contains("Invoke") &&
+                !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
@@ -170,6 +165,11 @@ namespace Utilities
         public static bool IsDispatcherBeginInvoke(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
+        }
+
+        public static bool IsDispatcherInvoke(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Dispatcher.Invoke");
         }
 
         // END
@@ -194,6 +194,7 @@ namespace Utilities
             return method.ParameterList.Parameters.Any(param => param.Type.ToString().EndsWith("EventArgs"));
         }
 
+
         public static bool HasAsyncModifier(this MethodDeclarationSyntax method)
         {
             return method.Modifiers.ToString().Contains("async");
@@ -204,9 +205,9 @@ namespace Utilities
             if (methodCallSymbol == null)
                 return null;
 
-            var nodes = methodCallSymbol.DeclaringSyntaxNodes;
+            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a=> a.GetSyntax());
 
-            if (nodes == null || nodes.Count == 0)
+            if (nodes == null || nodes.Count() == 0)
                 return null;
 
             var methodDeclarationNodes = nodes.OfType<MethodDeclarationSyntax>();
