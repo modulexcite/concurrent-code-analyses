@@ -37,6 +37,7 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.CodeAnalysis, Version=0.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.0.6.30812-beta\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
@@ -75,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisBase\AnalysisResultBase.cs" />
+    <Compile Include="AsyncAnalysis\Walkers\DispatcherDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\Walkers\APMDiagnosisDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\AsyncAnalysisResult.cs" />
     <Compile Include="AnalysisBase\AnalysisBase.cs" />
