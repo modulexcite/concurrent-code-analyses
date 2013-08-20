@@ -2,9 +2,8 @@
 using Roslyn.Services;
 using System.Linq;
 using System.Xml;
-using Utilities;
 
-namespace Analysis
+namespace Utilities
 {
     /// <summary>
     /// Several handy extension methods for Roslyn types.
