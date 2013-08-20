@@ -1,7 +1,9 @@
 import os
 import re
 from urllib2 import urlopen, URLError, HTTPError
-
+from datetime import datetime
+import mechanize
+import urllib2
 
 dir= "/Volumes/Data/CodeCorpus/"
 
@@ -41,8 +43,24 @@ def dlfile(name):
     except URLError, e:
         print "URL Error:", e.reason, url
 
+def dlfilev2(name): # some apps does not have changeset. they provide source code as a zip file.
+    f = urlopen("http://" +name + ".codeplex.com/SourceControl/BrowseLatest");
 
-
+    isFound = False
+    for line in f.readlines(): 
+        if '<a class="FileNameLink"' in line:
+           
+            link = line.split('href="')[1].split('"')[0]
+            print link
+            project_dir= dir + name
+            os.makedirs(project_dir)
+            isFound=True
+            f= urlopen(link)
+            with open(project_dir+"/archive.zip", "wb") as local_file:
+                local_file.write(f.read())
+    if not isFound:
+        print "*************"
+        
 def main():
         address= "http://www.codeplex.com/site/search?query=windows%20phone&sortBy=Relevance&licenses=|&refinedSearch=true&size=100&page="
         f = open("codeplexapps.txt", "wb")
@@ -92,12 +110,13 @@ def main():
 
 
 def read():
-    f = open("codeplexapps.txt", "r")
+    f = open("undownloaded.txt", "r")
     i=1
     for line in f.readlines():
-        name = line.split(",")[0]
+        name = line.split(",")[0].replace('\n','')
         if name != "name":
             print str(i) + " "+ name
-            dlfile(name)
+            os.makedirs(dir+name)
             i+=1
+     
 read()
