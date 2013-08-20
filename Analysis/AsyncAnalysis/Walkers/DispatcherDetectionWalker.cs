@@ -1,6 +1,9 @@
 ﻿using Microsoft.Build.Exceptions;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,7 +20,7 @@ namespace Analysis
 
         public SemanticModel SemanticModel { get; set; }
 
-        public IDocument Document { get; set; }
+        public Document Document { get; set; }
 
         public Dictionary<String, int> AnalyzedMethods { get; set; }
 
@@ -66,7 +69,7 @@ namespace Analysis
                 {
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModel();
+                        var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModelAsync().Result;
 
                         var methodCallSymbol = (MethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
 

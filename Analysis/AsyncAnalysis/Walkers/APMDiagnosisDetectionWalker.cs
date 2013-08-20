@@ -130,7 +130,7 @@ namespace Analysis
                 var methodSymbol = SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol;
 
                 if (methodSymbol.Kind.ToString().Equals("Method"))
-                    callbackBody = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
+                    callbackBody = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
             }
             else if (callbackArg.Expression.Kind.ToString().Contains("LambdaExpression"))
                 callbackBody = node;
@@ -143,27 +143,10 @@ namespace Analysis
                     Logs.TempLog3.Info("NO APMEND in Callback:\r\n{0}\r\nCaller: {1}\r\nDeclaringSyntaxNodes:\r\n{2}\r\n--------------------------------------------------", Document.FilePath, node, callbackBody);
             }
 
-<<<<<<< HEAD
-                        if (methodSymbol.Kind.ToString().Equals("Method"))
-                        {
-                            var methodDefinition = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
 
-                            if (methodDefinition.Body.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
-                            {
-                                Logs.TempLog.Info(@"HEYOOO: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
-                                Console.WriteLine("HEYOOO");
-                            }
-                            else
-                            {
-                                Logs.TempLog.Info(@"FUCKK: {0} {1} \r\n Argument: {2} \r\n DeclaringSyntaxNodes: {3}", Document.FilePath, node, arg.Expression, methodDefinition);
-                                Console.WriteLine("FUCKK");
-                            }
-                        }
-                    }
-=======
             
         }
->>>>>>> Latest improvements
+
 
         private int GetIndexCallbackArgument(MethodSymbol symbol)
         {

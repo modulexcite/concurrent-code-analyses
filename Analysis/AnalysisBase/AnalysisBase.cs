@@ -81,6 +81,7 @@ namespace Analysis
                     }
                 }
             }
+            
 
             OnAnalysisCompleted();
         }
@@ -128,11 +129,10 @@ namespace Analysis
         // I did not make it extension method, because it is better to see all exception handling in this file.
         private static IEnumerable<Document> TryLoadProject(Project project)
         {
-            IEnumerable<Document> documents = null;
             try
             {
-                documents = project.Documents;
-                var totalDocuments = documents.Count();
+                if (project.HasDocuments)
+                    return project.Documents;
             }
             catch (Exception ex)
             {
@@ -145,7 +145,7 @@ namespace Analysis
                 else
                     throw;
             }
-            return documents;
+            return null;
         }
 
     

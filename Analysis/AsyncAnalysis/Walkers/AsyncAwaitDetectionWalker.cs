@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Utilities;
 
 namespace Analysis
@@ -36,11 +37,11 @@ namespace Analysis
                 }
                 else
                     Result.asyncAwaitResults.NumAsyncTaskMethods++;
+            }
 
-<<<<<<< HEAD
             if (node.HasEventArgsParameter())
             {
-=======
+
                 if (!node.Body.ToString().Contains("await"))
                 {
                     Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
@@ -64,7 +65,7 @@ namespace Analysis
                     Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
                     Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
                 }
->>>>>>> Latest improvements
+ 
                 ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
             }
 
