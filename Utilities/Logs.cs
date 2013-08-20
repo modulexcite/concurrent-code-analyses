@@ -12,6 +12,9 @@ namespace Utilities
 
         public static readonly Logger TempLog = LogManager.GetLogger("TempLog");
         public static readonly Logger TempLog2 = LogManager.GetLogger("TempLog2");
+        public static readonly Logger TempLog3 = LogManager.GetLogger("TempLog3");
+        public static readonly Logger TempLog4 = LogManager.GetLogger("TempLog4");
+        public static readonly Logger TempLog5 = LogManager.GetLogger("TempLog5");
 
         public static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
 
@@ -21,6 +24,6 @@ namespace Utilities
         public static readonly Logger AsyncClassifierOriginalLog = LogManager.GetLogger("AsyncClassifierOriginalLog");
 
         public static readonly Logger APMDiagnosisLog = LogManager.GetLogger("APMDiagnosisLog");
-        public static readonly Logger APMDiagnosisLog2 = LogManager.GetLogger("APMDiagnosisLog2");
+
     }
 }

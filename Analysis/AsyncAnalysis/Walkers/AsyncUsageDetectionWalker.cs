@@ -34,21 +34,22 @@ namespace Analysis
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
-
+            
             if (symbol != null)
             {
                 var asynctype = DetectAsynchronousUsages(node, symbol);
                 Result.StoreDetectedAsyncUsage(asynctype);
                 Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
+                if (asynctype == Enums.AsyncDetected.APM)
+                {
+                    if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
+                        Result.asyncUsageResults.APMWP7++;
+                    else
+                        Result.asyncUsageResults.APMWP8++;
+                }
+                
             }
-        }
-
-        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-            if (node.HasEventArgsParameter() && IsEventHandlerWalkerEnabled)
-                Result.generalAsyncResults.NumEventHandlerMethods++;
-
-            base.VisitMethodDeclaration(node);
+            base.VisitInvocationExpression(node);
         }
 
         private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
@@ -66,13 +67,17 @@ namespace Analysis
                 return Enums.AsyncDetected.BackgroundWorker;
             else if (methodCallSymbol.IsTPLMethod())
                 return Enums.AsyncDetected.TPL;
-            // DETECT GUI UPDATE CALLS
-            else if (methodCallSymbol.IsISynchronizeInvokeMethod())
-                return Enums.AsyncDetected.ISynchronizeInvoke;
-            else if (methodCallSymbol.IsControlBeginInvoke())
-                return Enums.AsyncDetected.ControlInvoke;
-            else if (methodCallSymbol.IsDispatcherBeginInvoke())
-                return Enums.AsyncDetected.Dispatcher;
+
+
+            //// DETECT GUI UPDATE CALLS
+            //else if (methodCallSymbol.IsISynchronizeInvokeMethod())
+            //    return Enums.AsyncDetected.ISynchronizeInvoke;
+            //else if (methodCallSymbol.IsControlBeginInvoke())
+            //    return Enums.AsyncDetected.ControlInvoke;
+            //else if (methodCallSymbol.IsDispatcherBeginInvoke())
+            //    return Enums.AsyncDetected.Dispatcher;
+
+
             // DETECT PATTERNS
             else if (methodCallSymbol.IsAPMBeginMethod())
                 return Enums.AsyncDetected.APM;
@@ -81,7 +86,7 @@ namespace Analysis
             else if (methodCallSymbol.IsTAPMethod())
                 return Enums.AsyncDetected.TAP;
 
-            //
+            
             else
                 return Enums.AsyncDetected.None;
         }

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -68,26 +68,18 @@ namespace Utilities
             mgr.AddNamespace("x", "http://schemas.microsoft.com/developer/msbuild/2003");
 
             var node = doc.SelectSingleNode("//x:TargetFrameworkIdentifier", mgr);
-            if (node != null)
-            {
-                if (node.InnerText.ToString().Equals("WindowsPhone"))
-                    return 2;
-                else if (node.InnerText.ToString().Equals("Silverlight"))
-                {
-                    var profileNode = doc.SelectSingleNode("//x:TargetFrameworkProfile", mgr);
-                    if (profileNode != null && profileNode.InnerText.ToString().Contains("WindowsPhone"))
-                        return 1;
-                }
-            }
-            else
-            {
-                var node2 = doc.SelectSingleNode("//x:XnaPlatform", mgr);
-                if (node2 != null)
-                {
-                    if (node2.InnerText.ToString().Equals("Windows Phone"))
-                        return 1;
-                }
-            }
+            if (node != null && node.InnerText.ToString().Equals("WindowsPhone"))
+                return 2;
+
+            var profileNode = doc.SelectSingleNode("//x:TargetFrameworkProfile", mgr);
+            if (profileNode != null && profileNode.InnerText.ToString().Contains("WindowsPhone"))
+                return 1;
+
+            var node2 = doc.SelectSingleNode("//x:XnaPlatform", mgr);
+            if (node2 != null && node2.InnerText.ToString().Equals("Windows Phone"))
+                return 1;
+
+
             return 0;
         }
 
@@ -128,7 +120,7 @@ namespace Utilities
 
         public static bool IsAPMBeginMethod(this MethodSymbol symbol)
         {
-            return symbol.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
+            return !IsAsyncDelegate(symbol) && symbol.Parameters.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
@@ -154,7 +146,8 @@ namespace Utilities
 
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
-            return (symbol.ToString().StartsWith("System.Func") || symbol.ToString().StartsWith("System.Action")) && symbol.ToString().Contains("BeginInvoke");
+            return symbol.ToString().Contains("Invoke") &&
+                !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
@@ -172,6 +165,11 @@ namespace Utilities
         public static bool IsDispatcherBeginInvoke(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
+        }
+
+        public static bool IsDispatcherInvoke(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Dispatcher.Invoke");
         }
 
         // END
@@ -195,6 +193,7 @@ namespace Utilities
         {
             return method.ParameterList.Parameters.Any(param => param.Type.ToString().EndsWith("EventArgs"));
         }
+
 
         public static bool HasAsyncModifier(this MethodDeclarationSyntax method)
         {

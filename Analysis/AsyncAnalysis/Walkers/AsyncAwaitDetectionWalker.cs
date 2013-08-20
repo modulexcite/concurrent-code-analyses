@@ -27,46 +27,52 @@ namespace Analysis
         {
             if (node.HasAsyncModifier())
             {
-                //if (node.ReturnType.ToString().Equals("void"))
-                //{
-                //    if (node.HasEventArgsParameter())
-                //        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
-                //    else
-                //        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
-                //}
-                //else
-                //    Result.asyncAwaitResults.NumAsyncTaskMethods++;
+                if (node.ReturnType.ToString().Equals("void"))
+                {
+                    if (node.HasEventArgsParameter())
+                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
+                    else
+                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
+                }
+                else
+                    Result.asyncAwaitResults.NumAsyncTaskMethods++;
 
-                //if (!node.Body.ToString().Contains("await"))
-                //{
-                //    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
-                //    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
-                //}
-
-                //int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
-
-                //if (numAwaits > 6)
-                //    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
-
-                //if (node.Body.ToString().Contains("ConfigureAwait"))
-                //{
-                //    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                //    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
-                //}
-
-                //var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
-                //if (blockings.Count() > 0)
-                //{
-                //    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
-                //    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
-                //}
-                //ProcessMethodCallsInMethod(node, 0);
-            }
-
+<<<<<<< HEAD
             if (node.HasEventArgsParameter())
             {
+=======
+                if (!node.Body.ToString().Contains("await"))
+                {
+                    Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
+                    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
+                }
+
+                int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
+
+                if (numAwaits > 6)
+                    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
+
+                if (node.Body.ToString().Contains("ConfigureAwait"))
+                {
+                    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
+                    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
+                }
+
+                var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
+                if (blockings.Count() > 0)
+                {
+                    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
+                    Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
+                }
+>>>>>>> Latest improvements
                 ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
             }
+
+            //if (node.HasEventArgsParameter())
+            //{
+            //    ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
+
+            //}
 
             base.VisitMethodDeclaration(node);
         }

@@ -7,6 +7,7 @@ using System.Configuration;
 using System.IO;
 using Utilities;
 
+
 namespace Analysis
 {
     public class AsyncAnalysis : AnalysisBase
@@ -14,6 +15,8 @@ namespace Analysis
         private AsyncAnalysisResult result;
 
         private List<String> AnalyzedMethods;
+
+        private Dictionary<String,int> AnalyzedMethodsDict;
 
         public override AnalysisResultBase ResultObject
         {
@@ -30,6 +33,7 @@ namespace Analysis
         {
             result = new AsyncAnalysisResult(appName);
             AnalyzedMethods = new List<String>();
+            AnalyzedMethodsDict = new Dictionary<string, int>();
         }
 
         protected override bool FilterProject(Enums.ProjectType type)
@@ -70,6 +74,16 @@ namespace Analysis
             if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
             {
                 walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethods };
+                walker.Visit(root);
+            }
+            if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
+            {
+                walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethods };
+                walker.Visit(root);
+            }
+            if (bool.Parse(ConfigurationManager.AppSettings["DispatcherDetectionEnabled"]))
+            {
+                walker = new DispatcherDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethodsDict };
                 walker.Visit(root);
             }
         }
