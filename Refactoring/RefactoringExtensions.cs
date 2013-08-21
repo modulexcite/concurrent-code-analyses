@@ -61,7 +61,7 @@ namespace Refactoring
                     return RefactorInstanceWithSimpleLambdaCallback(syntax, model, invocation, (SimpleLambdaExpressionSyntax)callbackExpression, workspace);
 
                 case SyntaxKind.ObjectCreationExpression:
-                    throw new NotImplementedException("ObjectCreationExpression is not yet implemented: " + callbackArgument);
+                    return RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
 
                 default:
                     throw new NotImplementedException(
@@ -155,6 +155,39 @@ namespace Refactoring
                     syntax.ReplaceNode((SyntaxNode)parenthesizedLambda, simpleLambda)
                 )
                 .RefactorAPMToAsyncAwait(workspace);
+        }
+
+        private static CompilationUnitSyntax RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (objectCreation == null) throw new ArgumentNullException("objectCreation");
+            if (workspace == null) throw new ArgumentNullException("workspace");
+
+            if (!objectCreation.Type.ToString().Equals("AsyncCallback"))
+            {
+                Logger.Error("Unknown ObjectCreation type in callback: {0}", objectCreation);
+
+                throw new NotImplementedException("Unknown ObjectCreation type in callback: " + objectCreation);
+            }
+
+            var expression = objectCreation.ArgumentList.Arguments.First().Expression;
+
+            switch (expression.Kind)
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.IdentifierName:
+                    return SyntaxTree
+                        .Create(
+                            syntax.ReplaceNode((SyntaxNode)objectCreation, expression)
+                        )
+                        .RefactorAPMToAsyncAwait(workspace);
+
+                default:
+                    Logger.Error("Unsupported expression type as argument of AsyncCallback constructor: {0}: {1}", expression.Kind, objectCreation);
+
+                    throw new NotImplementedException("Unsupported expression type as argument of AsyncCallback constructor: " + expression.Kind + ": " + objectCreation);
+            }
         }
 
         private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
