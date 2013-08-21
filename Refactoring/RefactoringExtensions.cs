@@ -228,7 +228,7 @@ namespace Refactoring
 
                 var rewrittenLambdaBlock = RewriteOriginatingMethodLambdaBlock(lambda, initialCall, taskName);
 
-                var statement = invocation.Parent;
+                var statement = invocation.ContainingStatement();
 
                 var newMethod = apmMethod.ReplaceNode(statement, tapStatement)
                                          .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray())
@@ -249,7 +249,7 @@ namespace Refactoring
                 var awaitStatement = NewAwaitExpression(taskName);
                 lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
-                var statement = invocation.Parent;
+                var statement = invocation.ContainingStatement();
 
                 var newMethod = apmMethod.ReplaceNode(statement, tapStatement)
                                          .AddBodyStatements(lambdaBlock.Statements.ToArray())
@@ -494,6 +494,27 @@ namespace Refactoring
                 if (parent.Kind == SyntaxKind.MethodDeclaration)
                 {
                     return (MethodDeclarationSyntax)parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return null;
+        }
+
+        // TODO: This method does not consider e.g. lambda expressions.
+        private static StatementSyntax ContainingStatement(this SyntaxNode node)
+        {
+            if (node == null) throw new ArgumentNullException("node");
+
+            var parent = node.Parent;
+
+            while (parent != null)
+            {
+                var syntax = parent as StatementSyntax;
+                if (syntax != null)
+                {
+                    return syntax;
                 }
 
                 parent = parent.Parent;
