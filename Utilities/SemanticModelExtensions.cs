@@ -33,11 +33,19 @@ namespace Utilities
                         return (MethodSymbol)symbol;
                     }
 
-                    throw new Exception("No symbol for invocation expression: " + invocation);
+                    throw new SymbolMissingException(invocation);
 
                 default:
                     throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
             }
+        }
+    }
+
+    public class SymbolMissingException : Exception
+    {
+        public SymbolMissingException(InvocationExpressionSyntax invocation)
+            : base("No symbol found for: " + invocation)
+        {
         }
     }
 }
