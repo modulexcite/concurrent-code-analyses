@@ -23,6 +23,7 @@ namespace Refactoring_BatchTool
         }
 
         public InvocationExpressionSyntax BeginXxxSyntax { get; private set; }
+        public MethodSymbol BeginXxxSymbol { get; private set; }
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
@@ -30,7 +31,6 @@ namespace Refactoring_BatchTool
 
             if (BeginXxxSyntax != null)
             {
-                Logger.Warn("BeginXxxSyntax is already set.");
                 return;
             }
 
@@ -53,6 +53,7 @@ namespace Refactoring_BatchTool
                 Logger.Info("Found APM Begin method invocation: {0}", node);
                 Logger.Info("  At {0}:{1}", node.SyntaxTree.FilePath, node.Span.Start);
                 BeginXxxSyntax = node;
+                BeginXxxSymbol = symbol;
             }
             else
             {

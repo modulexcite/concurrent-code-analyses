@@ -8,7 +8,7 @@ namespace Refactoring_Tests
     [TestFixture]
     public class DelegateFieldRefCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
-        [TestCase(Ignore = true, IgnoreReason = "Delegates are only sometimes refactorable")]
+        // TODO [Test] Delegates are only sometimes refactorable
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
             StatementFinder statementFinder =

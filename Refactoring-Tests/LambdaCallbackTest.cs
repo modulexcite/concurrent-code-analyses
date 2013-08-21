@@ -15,7 +15,7 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, actualStatementFinder);
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace Refactoring_Tests
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCode, actualStatementFinder);
         }
 
         private const string OriginalCodeWithParenthesizedLambda = @"using System;
@@ -77,29 +77,6 @@ namespace TextInput
     }
 }";
 
-        private const string RefactoredCodeWithoutWhitespaceFixes = @"using System;
-using System.Net;
-
-namespace TextInput
-{
-    class SimpleAPMCase
-    {
-        public async void FireAndForget()
-        {
-            var request = WebRequest.Create(""http://www.microsoft.com/"");
-            var task = request.GetResponseAsync();
-
-            DoSomethingWhileGetResponseIsRunning();
-            var response = task.GetAwaiter().GetResult();
-
-            DoSomethingWithResponse(response);
-        }
-
-        private static void DoSomethingWhileGetResponseIsRunning() { }
-        private static void DoSomethingWithResponse(WebResponse response) { }
-    }
-}";
-
         // TODO: Replace GetAwaiter().GetResult() with await task.ConfigureAwait(false) once available
         private const string RefactoredCode = @"using System;
 using System.Net;
@@ -114,8 +91,8 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-
             var response = task.GetAwaiter().GetResult();
+
             DoSomethingWithResponse(response);
         }
 

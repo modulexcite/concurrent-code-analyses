@@ -28,12 +28,13 @@ namespace Utilities
 
                     var symbol = model.GetSymbolInfo(expression).Symbol;
 
-                    if (symbol != null)
+                    var methodSymbol = symbol as MethodSymbol;
+                    if (methodSymbol != null)
                     {
-                        return (MethodSymbol)symbol;
+                        return methodSymbol;
                     }
 
-                    throw new SymbolMissingException(invocation);
+                    throw new MethodSymbolMissingException(invocation);
 
                 default:
                     throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
@@ -43,8 +44,16 @@ namespace Utilities
 
     public class SymbolMissingException : Exception
     {
-        public SymbolMissingException(InvocationExpressionSyntax invocation)
-            : base("No symbol found for: " + invocation)
+        public SymbolMissingException(String message)
+            : base(message)
+        {
+        }
+    }
+
+    public class MethodSymbolMissingException : SymbolMissingException
+    {
+        public MethodSymbolMissingException(InvocationExpressionSyntax invocation)
+            : base("No method symbol found for invocation: " + invocation)
         {
         }
     }

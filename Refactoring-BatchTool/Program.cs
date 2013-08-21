@@ -14,7 +14,7 @@ namespace Refactoring_BatchTool
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\APM-to-AA-Test\APM-to-AA-Test.sln";
+        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
 
         static void Main()
         {
@@ -51,8 +51,6 @@ namespace Refactoring_BatchTool
 
         private static void CheckTree(this MSBuildWorkspace workspace, SyntaxTree tree)
         {
-            Logger.Trace("Checking tree:\n{0}", tree.GetRoot().Format(workspace));
-
             var compilation = CompilationUtils.CreateCompilation(tree);
             var model = compilation.GetSemanticModel(tree);
 
