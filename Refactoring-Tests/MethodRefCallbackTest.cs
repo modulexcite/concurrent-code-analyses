@@ -11,11 +11,33 @@ namespace Refactoring_Tests
         public void TestThatTheSimpleCaseWithMethodRefCallbackIsRefactoredCorrectly()
         {
             StatementFinder actualStatementFinder =
-                syntax => syntax.DescendantNodes()
+                syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<ExpressionStatementSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCodeWithoutWhiteSpaceFix, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, actualStatementFinder);
+        }
+
+        [Test]
+        public void TestThatSimpleLambdaWithoutBlockIsRefactoredCorrectly()
+        {
+            StatementFinder actualStatementFinder =
+                syntax => syntax.GetRoot().DescendantNodes()
+                                .OfType<ExpressionStatementSyntax>()
+                                .First(invocation => invocation.ToString().Contains("Begin"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
+        }
+
+        [Test]
+        public void TestThatParenthesizedLambdaWithoutBlockIsRefactoredCorrectly()
+        {
+            StatementFinder actualStatementFinder =
+                syntax => syntax.GetRoot().DescendantNodes()
+                                .OfType<ExpressionStatementSyntax>()
+                                .First(invocation => invocation.ToString().Contains("Begin"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
         }
 
         private const string OriginalCode = @"using System;
@@ -28,12 +50,12 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            request.BeginGetResponse(CallBack, request);
+            request.BeginGetResponse(Callback, request);
 
             DoSomethingWhileGetResponseIsRunning();
         }
 
-        private void CallBack(IAsyncResult result)
+        private void Callback(IAsyncResult result)
         {
             var request = (WebRequest)result.AsyncState;
             var response = request.EndGetResponse(result);
@@ -46,25 +68,54 @@ namespace TextInput
     }
 }";
 
-        private const string RefactoredCodeWithoutWhiteSpaceFix = @"using System;
+        private const string OriginalCodeWithSimpleLambdaWithoutBlock = @"using System;
 using System.Net;
 
 namespace TextInput
 {
     class SimpleAPMCase
     {
-        public async void FireAndForget()
+        public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            var task = request.GetResponseAsync();
+            request.BeginGetResponse(result => Callback(result), request);
 
             DoSomethingWhileGetResponseIsRunning();
-            var result = task.GetAwaiter().GetResult();
-            Callback(request, result);
         }
 
-        private void CallBack(System.Net.WebRequest request, System.Net.WebResponse response)
+        private void Callback(IAsyncResult result)
         {
+            var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
+
+            DoSomethingWithResponse(response);
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithParenthesizedLambdaWithoutBlock = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            request.BeginGetResponse((result) => Callback(result), request);
+
+            DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private void Callback(IAsyncResult result)
+        {
+            var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
+
             DoSomethingWithResponse(response);
         }
 
@@ -86,13 +137,13 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-
-            var response = await task.ConfigureAwait(false);
-            CallBack(response, request);
+            Callback(task).GetAwaiter().GetResult();
         }
 
-        private void CallBack(WebResponse response, WebRequest request)
+        private async Task Callback(Task<WebResponse> task)
         {
+            var response = task.GetAwaiter().GetResult();
+
             DoSomethingWithResponse(response);
         }
 

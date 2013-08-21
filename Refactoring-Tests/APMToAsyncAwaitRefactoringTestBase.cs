@@ -1,9 +1,12 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NLog;
 using NUnit.Framework;
 using Refactoring;
 using System;
+using Utilities;
 
 namespace Refactoring_Tests
 {
@@ -11,14 +14,16 @@ namespace Refactoring_Tests
     /// Base class for APM-to-async/await refactoring testing.
     /// For clarity, use a single test class per test case.
     /// </summary>
-    public class APMToAsyncAwaitRefactoringTestBase : RoslynUnitTestBase
+    public class APMToAsyncAwaitRefactoringTestBase
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Find the invocation expression statement of the APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
-        /// <param name="syntax">The compilation unit in which the invocation expression must be found.</param>
+        /// <param name="syntaxTree">The SyntaxTree in which the invocation expression must be found.</param>
         /// <returns>The invocation expression statement.</returns>
-        public delegate ExpressionStatementSyntax StatementFinder(CompilationUnitSyntax syntax);
+        public delegate ExpressionStatementSyntax StatementFinder(SyntaxTree syntaxTree);
 
         /// <summary>
         /// Assert that given original code containing both the BeginXxx method
@@ -33,21 +38,26 @@ namespace Refactoring_Tests
         /// invocation expression statement that must be refactored.</param>
         protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, StatementFinder statementFinder)
         {
-            Console.WriteLine("=== CODE TO BE REFACTORED ===\n{0}\n=== END ===", originalCode);
+            Logger.Debug("=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
 
             // Parse given original code
             var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
-            var originalSemanticModel = RoslynUnitTestBase.CreateSimpleSemanticModel(originalSyntaxTree);
-            var originalSyntax = originalSyntaxTree.GetCompilationUnitRoot();
-            var apmInvocation = statementFinder(originalSyntax);
+
+            // Replace invocation of interest with annotated version.
+            var originalApmInvocation = statementFinder(originalSyntaxTree);
+            var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
+            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNodes(new[] { originalApmInvocation }, (node, x) => annotatedApmInvocation);
+            originalSyntaxTree = SyntaxTree.Create(annotatedSyntax);
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
 
-            var actualRefactoredSyntax = PerformRefactoring(originalSyntax, apmInvocation, originalSemanticModel);
+            var workspace = new CustomWorkspace();
 
-            Console.WriteLine("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax);
+            var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree, workspace);
+
+            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format(workspace));
 
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.
@@ -55,17 +65,17 @@ namespace Refactoring_Tests
             Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(CompilationUnitSyntax originalSyntax, ExpressionStatementSyntax apmInvocation, SemanticModel originalSemanticModel)
+        private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax, Workspace workspace)
         {
-            Console.WriteLine("Starting refactoring operation ...");
+            Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
-            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(apmInvocation, originalSemanticModel);
+            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(workspace);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;
-            Console.WriteLine("Finished refactoring operation in {0} ms", time);
+            Logger.Trace("Finished refactoring operation in {0} ms", time);
 
             return actualRefactoredSyntax;
         }
