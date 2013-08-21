@@ -80,6 +80,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
+    <Compile Include="AsyncCallbackObjectCreationTest.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
     <Compile Include="DelegateFieldRefCallbackTest.cs" />
     <Compile Include="LambdaCallbackTest.cs" />
