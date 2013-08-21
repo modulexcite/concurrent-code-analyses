@@ -42,6 +42,7 @@ namespace Analysis
                 Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
                 if (asynctype == Enums.AsyncDetected.APM)
                 {
+                    
                     if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
                         Result.asyncUsageResults.APMWP7++;
                     else
@@ -49,7 +50,16 @@ namespace Analysis
                 }
                 
             }
+
+
             base.VisitInvocationExpression(node);
+        }
+
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            if (node.ToString().Contains("PostAsync(string url, string postData, object user)"))
+                Console.WriteLine(node);
+            base.VisitMethodDeclaration(node);
         }
 
         private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)

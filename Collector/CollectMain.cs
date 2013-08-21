@@ -31,12 +31,13 @@ namespace Collector
             else
                 appsToAnalyze = Directory.GetDirectories(AppsPath).ToArray<string>();
 
-            var collector = new Collector(appsToAnalyze, 25);
+            var collector = new Collector(appsToAnalyze, 1000);
             collector.Run();
 
+            
 
             Console.WriteLine(@"Program finished. Press any key to quit ...");
-
+            Console.ReadLine();
         }
 
 
@@ -47,11 +48,11 @@ namespace Collector
 
             
 
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\apmApps.txt"))
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\subsetApps.txt"))
             {
                 foreach (var result in results)
                 {
-                    if(result.asyncUsageResults.NumAsyncProgrammingUsages[(int) Enums.AsyncDetected.APM]>0)
+                    if(result.asyncAwaitResults.NumAsyncTaskMethods+ result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods+result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods>0)
                         file.WriteLine("{0}", result.AppName);
                 }
             }

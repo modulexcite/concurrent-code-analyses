@@ -37,32 +37,29 @@ namespace Analysis
                 }
                 else
                     Result.asyncAwaitResults.NumAsyncTaskMethods++;
-            }
 
-            if (node.HasEventArgsParameter())
-            {
 
                 if (!node.Body.ToString().Contains("await"))
                 {
                     Result.asyncAwaitResults.NumAsyncMethodsNotHavingAwait++;
-                    Logs.TempLog.Info("NOTHAVINGAWAIT {0} \r\n------------------------------", node);
+                    Logs.TempLog.Info("NOTHAVINGAWAIT\r\n{0}\r\n------------------------------", node);
                 }
 
                 int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
 
                 if (numAwaits > 6)
-                    Logs.TempLog.Info("MANYAWAITS {0} \r\n------------------------------", node);
+                    Logs.TempLog.Info("MANYAWAITS\r\n{0}\r\n------------------------------", node);
 
                 if (node.Body.ToString().Contains("ConfigureAwait"))
                 {
                     Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                    Logs.TempLog.Info("CONFIGUREAWAIT {0}  \r\n------------------------------", node.ToString());
+                    Logs.TempLog.Info("CONFIGUREAWAIT\r\n{0}\r\n------------------------------", node.ToString());
                 }
 
                 var blockings = BlockingMethodCalls.Where(a => node.Body.ToString().Contains(a));
                 if (blockings.Count() > 0)
                 {
-                    Logs.TempLog.Info("BLOCKING {0} \r\n {1} \r\n------------------------------", blockings.First(), node);
+                    Logs.TempLog.Info("BLOCKING\r\n{0}\r\n{1}\r\n------------------------------", blockings.First(), node);
                     Result.asyncAwaitResults.NumAsyncMethodsHavingBlockingCalls++;
                 }
  
@@ -100,7 +97,8 @@ namespace Analysis
                     type |= Enums.SyncDetected.TAPReplacable;
                 }
             }
-
+            ExpressionStatementSyntax a;
+           
             return type;
         }
 
@@ -127,7 +125,7 @@ namespace Analysis
 
                             if (synctype != Utilities.Enums.SyncDetected.None)
                             {
-                                Logs.TempLog.Info("{0} {1} {2} {3}\r\n{4} {5} \r\n\r\n{6}\r\n --------------------------", synctype, n, topAncestor, Document.FilePath, methodCallSymbol, methodCall, node);
+                                Logs.TempLog.Info("{0} {1} {2} {3}\r\n{4} {5}\r\n\r\n{6}\r\n--------------------------", synctype, n, topAncestor, Document.FilePath, methodCallSymbol, methodCall, node);
                                 Logs.TempLog2.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
                             }
 
