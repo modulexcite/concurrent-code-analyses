@@ -10,12 +10,12 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatTheSimpleCaseWithParenthesizedLambdaCallbackIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
+            StatementFinder statementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<InvocationExpressionSyntax>()
                                 .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, statementFinder);
         }
 
         [Test]

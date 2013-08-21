@@ -20,7 +20,18 @@ namespace Refactoring_BatchTool
         {
             Logger.Info("Hello, world!");
 
-            DoWork();
+            try
+            {
+                DoWork();
+            }
+            catch (NotImplementedException e)
+            {
+                Logger.Error("Not implemented: {0}", e.Message, e);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Caught exception: {0}", e.Message, e);
+            }
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
@@ -66,10 +77,24 @@ namespace Refactoring_BatchTool
                 Logger.Info("Found APM Begin method: {0}", beginXxxSyntax);
                 Logger.Info("  At: {0}:{1}", beginXxxSyntax.SyntaxTree.FilePath, beginXxxSyntax.Span.Start);
 
-                if (beginXxxSyntax.Parent is ExpressionStatementSyntax)
+                // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
+                if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax
+                    || beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
                 {
-                    var annotatedSyntax = AnnotatedSyntax(beginXxxSyntax, syntax);
-                    var refactoredTree = workspace.ExecuteRefactoring(annotatedSyntax);
+                    var annotatedInvocation = beginXxxSyntax.WithAdditionalAnnotations(new RefactorableAPMInstance());
+                    var annotatedSyntax = syntax.ReplaceNode(beginXxxSyntax, annotatedInvocation);
+
+                    SyntaxTree refactoredTree;
+                    try
+                    {
+                        refactoredTree = workspace.ExecuteRefactoring(annotatedSyntax);
+                    }
+                    catch (RefactoringException e)
+                    {
+                        Logger.Error("Refactoring failed: {0}", e.Message, e);
+
+                        throw new Exception("Refactoring failed: " + e.Message, e);
+                    }
 
                     Logger.Trace("Recursively checking for more APM Begin method invocations ...");
                     workspace.CheckTree(refactoredTree);
@@ -80,19 +105,6 @@ namespace Refactoring_BatchTool
                     Logger.Warn("  Parent kind actually is: {0}", beginXxxSyntax.Parent.Kind);
                 }
             }
-        }
-
-        private static SyntaxNode AnnotatedSyntax(InvocationExpressionSyntax beginXxxSyntax, SyntaxNode syntax)
-        {
-            var annotatedInvocation = (beginXxxSyntax.Parent as ExpressionStatementSyntax)
-                                                     .WithAdditionalAnnotations(new RefactorableAPMInstance());
-
-            var annotatedSyntax = syntax.ReplaceNode(
-                beginXxxSyntax.Parent,
-                annotatedInvocation
-            );
-
-            return annotatedSyntax;
         }
 
         private static SyntaxTree ExecuteRefactoring(this Workspace workspace, SyntaxNode annotatedSyntax)

@@ -10,12 +10,12 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatTheSimpleCaseWithMethodRefCallbackIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
+            StatementFinder statementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
                                 .OfType<InvocationExpressionSyntax>()
                                 .First(invocation => invocation.ToString().Contains("Begin"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
         }
 
         [Test]

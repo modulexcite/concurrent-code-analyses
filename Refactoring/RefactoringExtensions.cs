@@ -60,6 +60,9 @@ namespace Refactoring
                 case SyntaxKind.SimpleLambdaExpression:
                     return RefactorInstanceWithSimpleLambdaCallback(syntax, model, invocation, (SimpleLambdaExpressionSyntax)callbackExpression, workspace);
 
+                case SyntaxKind.ObjectCreationExpression:
+                    throw new NotImplementedException("ObjectCreationExpression is not yet implemented: " + callbackArgument);
+
                 default:
                     throw new NotImplementedException(
                         "Unsupported actual argument syntax node kind: " + callbackExpression.Kind
@@ -482,7 +485,7 @@ namespace Refactoring
         /// TODO: This method does not consider e.g. lambda expressions.
         ///
         /// <param name="node">The syntax node</param>
-        /// <returns>The MethodDeclarationSyntax node of the method that contains the given syntax node.</returns>
+        /// <returns>The MethodDeclarationSyntax node of the method that contains the given syntax node, or null if it is not contained in a method.</returns>
         public static MethodDeclarationSyntax ContainingMethod(this SyntaxNode node)
         {
             if (node == null) throw new ArgumentNullException("node");
@@ -502,8 +505,17 @@ namespace Refactoring
             return null;
         }
 
-        // TODO: This method does not consider e.g. lambda expressions.
-        private static StatementSyntax ContainingStatement(this SyntaxNode node)
+        /// <summary>
+        /// Returns the StatementSyntax containing this node.
+        /// </summary>
+        /// This node is supposedly contained in a StatementSyntax node.
+        /// That StatementSyntax (or subclass) instance is returned.
+        ///
+        /// TODO: This method does not consider e.g. lambda expressions.
+        ///
+        /// <param name="node">The SyntaxNode of which the parent must be looked up.</param>
+        /// <returns>The containing StatementSyntax node, or null if it is not contained in a statement.</returns>
+        public static StatementSyntax ContainingStatement(this SyntaxNode node)
         {
             if (node == null) throw new ArgumentNullException("node");
 
@@ -777,7 +789,7 @@ namespace Refactoring
         }
     }
 
-    internal class RefactoringException : Exception
+    public class RefactoringException : Exception
     {
         public RefactoringException(string message, SymbolMissingException innerException)
             : base(message, innerException)

@@ -34,7 +34,7 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            var result = request.BeginGetResponse(result => {
+            var result = (IAsyncResult) request.BeginGetResponse(result => {
                 var response = request.EndGetResponse(result);
 
                 DoSomethingWithResponse(response);
