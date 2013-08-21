@@ -15,10 +15,21 @@ namespace Refactoring_Tests
                                 .OfType<InvocationExpressionSyntax>()
                                 .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithUsedAsyncState, RefactoredCodeWithUsedAsyncState, statementFinder);
         }
 
-        private const string OriginalCode = @"using System;
+        [Test]
+        public void TestThatPassedAsyncStateIsIgnoredWhenUnused()
+        {
+            StatementFinder statementFinder =
+                syntax => syntax.GetRoot().DescendantNodes()
+                                .OfType<InvocationExpressionSyntax>()
+                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
+
+            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithUnusedAsyncState, RefactoredCodeWithIgnoredAsyncState, statementFinder);
+        }
+
+        private const string OriginalCodeWithUsedAsyncState = @"using System;
 using System.Net;
 
 namespace TextInput
@@ -38,7 +49,7 @@ namespace TextInput
             var request = (WebRequest)result.AsyncState;
             var response = request.EndGetResponse(result);
 
-            DoSomethingWithResponse(request, response);
+            DoSomethingWithRequestAndResponse(request, response);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
@@ -46,7 +57,7 @@ namespace TextInput
     }
 }";
 
-        private const string RefactoredCode = @"using System;
+        private const string RefactoredCodeWithUsedAsyncState = @"using System;
 using System.Net;
 
 namespace TextInput
@@ -71,6 +82,48 @@ namespace TextInput
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
         private static void DoSomethingWithRequestAndResponse(WebRequest request, WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithUnusedAsyncState = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            request.BeginGetResponse(Callback, request);
+        }
+
+        private void Callback(IAsyncResult result)
+        {
+            var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
+        }
+    }
+}";
+
+        private const string RefactoredCodeWithIgnoredAsyncState = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public async void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            var task = request.GetResponseAsync();
+            Callback(task).GetAwaiter().GetResult();
+        }
+
+        private async Task Callback(Task<WebResponse> task)
+        {
+            var response = task.GetAwaiter().GetResult();
+        }
     }
 }";
     }
