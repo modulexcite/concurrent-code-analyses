@@ -8,12 +8,12 @@ namespace Refactoring_Tests
     public class UnusedIAsyncResultCapturedAtBeginXxxTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
-        public void TestThatUnusuedIAsyncResultCapturedAtBeginXxxIsIgnored()
+        public void TestThatUnusedIAsyncResultCapturedAtBeginXxxIsIgnored()
         {
             StatementFinder statementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(invocation => invocation.ToString().Contains("Begin"));
+                                .OfType<InvocationExpressionSyntax>()
+                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
 
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
         }

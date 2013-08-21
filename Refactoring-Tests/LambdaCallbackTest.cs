@@ -12,8 +12,8 @@ namespace Refactoring_Tests
         {
             StatementFinder actualStatementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(invocation => invocation.ToString().Contains("Begin"));
+                                .OfType<InvocationExpressionSyntax>()
+                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
 
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCode, actualStatementFinder);
         }
@@ -23,8 +23,8 @@ namespace Refactoring_Tests
         {
             StatementFinder actualStatementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(invocation => invocation.ToString().Contains("Begin"));
+                                .OfType<InvocationExpressionSyntax>()
+                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
 
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCode, actualStatementFinder);
         }

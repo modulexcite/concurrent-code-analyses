@@ -77,6 +77,7 @@ namespace Refactoring_BatchTool
                 else
                 {
                     Logger.Warn("APM Begin invocation as non-ExpressionStatementSyntax is not yet supported");
+                    Logger.Warn("  Parent kind actually is: {0}", beginXxxSyntax.Parent.Kind);
                 }
             }
         }

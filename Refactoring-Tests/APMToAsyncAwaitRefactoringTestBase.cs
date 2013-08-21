@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using NUnit.Framework;
@@ -19,11 +18,11 @@ namespace Refactoring_Tests
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Find the invocation expression statement of the APM BeginXxx method call that must be refactored in the given compilation unit.
+        /// Find the invocation expression statement representing an APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
         /// <param name="syntaxTree">The SyntaxTree in which the invocation expression must be found.</param>
         /// <returns>The invocation expression statement.</returns>
-        public delegate ExpressionStatementSyntax StatementFinder(SyntaxTree syntaxTree);
+        public delegate InvocationExpressionSyntax StatementFinder(SyntaxTree syntaxTree);
 
         /// <summary>
         /// Assert that given original code containing both the BeginXxx method
@@ -46,8 +45,10 @@ namespace Refactoring_Tests
             // Replace invocation of interest with annotated version.
             var originalApmInvocation = statementFinder(originalSyntaxTree);
             var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
-            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNodes(new[] { originalApmInvocation }, (node, x) => annotatedApmInvocation);
-            originalSyntaxTree = SyntaxTree.Create(annotatedSyntax);
+            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNode(originalApmInvocation, annotatedApmInvocation);
+            var annotatedTree = SyntaxTree.Create(annotatedSyntax);
+
+            Logger.Trace("Invocation tagged for refactoring: {0}", annotatedApmInvocation);
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
@@ -55,7 +56,7 @@ namespace Refactoring_Tests
 
             var workspace = new CustomWorkspace();
 
-            var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree, workspace);
+            var actualRefactoredSyntax = PerformRefactoring(annotatedTree, workspace);
 
             Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format(workspace));
 

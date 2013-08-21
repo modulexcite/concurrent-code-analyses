@@ -12,8 +12,8 @@ namespace Refactoring_Tests
         {
             StatementFinder statementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First();
+                                .OfType<InvocationExpressionSyntax>()
+                                .First(node => node.ToString().Contains("request.BeginGetResponse"));
 
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
         }
