@@ -1,7 +1,9 @@
 ﻿using System;
 using NLog;
-using Roslyn.Compilers.CSharp;
 using Utilities;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Refactoring_BatchTool
 {

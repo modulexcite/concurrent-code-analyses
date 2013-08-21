@@ -19,16 +19,19 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="syntaxTree">The SyntaxTree on which to operate/in which the Begin and End method calls are represented.</param>
+        /// <param name="workspace">The workspace to which the code in the syntax tree currently belongs, for formatting purposes.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this SyntaxTree syntaxTree)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this SyntaxTree syntaxTree, Workspace workspace)
         {
             if (syntaxTree == null) throw new ArgumentNullException("syntaxTree");
+            if (workspace == null) throw new ArgumentNullException("workspace");
 
-            Logger.Trace("### REFACTORING CODE:\n{0}\n### END OF CODE", syntaxTree.GetRoot().Format());
+            var syntax = (CompilationUnitSyntax)syntaxTree.GetRoot();
+
+            Logger.Trace("### REFACTORING CODE:\n{0}\n### END OF CODE", syntax.Format(workspace));
 
             var compilation = CompilationUtils.CreateCompilation(syntaxTree);
             var model = compilation.GetSemanticModel(syntaxTree);
-            var syntax = syntaxTree.GetRoot();
 
             var apmStatement = syntax.DescendantNodes()
                                      .OfType<ExpressionStatementSyntax>()
@@ -42,13 +45,13 @@ namespace Refactoring
             switch (callbackExpression.Kind)
             {
                 case SyntaxKind.IdentifierName:
-                    return RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model);
+                    return RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model, workspace);
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    return RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model);
+                    return RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, apmStatement, model, workspace);
 
                 case SyntaxKind.SimpleLambdaExpression:
-                    return RefactorInstanceWithSimpleLambdaCallback(syntax, model, apmStatement, (SimpleLambdaExpressionSyntax)callbackExpression);
+                    return RefactorInstanceWithSimpleLambdaCallback(syntax, model, apmStatement, (SimpleLambdaExpressionSyntax)callbackExpression, workspace);
 
                 default:
                     throw new NotImplementedException(
@@ -58,7 +61,7 @@ namespace Refactoring
             }
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithSimpleLambdaCallback(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda)
+        private static CompilationUnitSyntax RefactorInstanceWithSimpleLambdaCallback(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (model == null) throw new ArgumentNullException("model");
@@ -67,13 +70,13 @@ namespace Refactoring
 
             if (lambda.Body.Kind == SyntaxKind.Block)
             {
-                return RefactorSimpleLambdaInstance(syntax, apmStatement, model);
+                return RefactorSimpleLambdaInstance(syntax, apmStatement, model, workspace);
             }
 
             switch (lambda.Body.Kind)
             {
                 case SyntaxKind.InvocationExpression:
-                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, model, apmStatement, lambda);
+                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, model, apmStatement, lambda, workspace);
 
                 default:
                     throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
@@ -81,22 +84,22 @@ namespace Refactoring
             }
         }
 
-        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda)
+        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
         {
             var invocation = (InvocationExpressionSyntax)lambda.Body;
 
             var rewrittenSyntax = syntax.ReplaceNode(
                 lambda.Body,
                 NewBlock(
-                    Syntax.ExpressionStatement(invocation)
+                    SyntaxFactory.ExpressionStatement(invocation)
                 )
             );
 
             return SyntaxTree.Create(rewrittenSyntax)
-                             .RefactorAPMToAsyncAwait();
+                             .RefactorAPMToAsyncAwait(workspace);
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (apmStatement == null) throw new ArgumentNullException("apmStatement");
@@ -108,13 +111,13 @@ namespace Refactoring
 
             var callbackArgument = FindAsyncCallbackInvocationArgument(model, invocationExpression);
 
-            var lambda = Syntax.SimpleLambdaExpression(
+            var lambda = SyntaxFactory.SimpleLambdaExpression(
                              NewUntypedParameter(lambdaParamName),
                              NewBlock(
                                 NewInvocationStatement(
                                     callbackArgument.Expression,
                                     NewSingletonArgumentList(
-                                        Syntax.IdentifierName(lambdaParamName)
+                                        SyntaxFactory.IdentifierName(lambdaParamName)
                                     )
                                 )
                             )
@@ -123,10 +126,10 @@ namespace Refactoring
             var lambdafiedSyntax = syntax.ReplaceNode(callbackArgument.Expression, lambda);
 
             return SyntaxTree.Create(lambdafiedSyntax)
-                             .RefactorAPMToAsyncAwait();
+                             .RefactorAPMToAsyncAwait(workspace);
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax statement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, ExpressionStatementSyntax statement, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (statement == null) throw new ArgumentNullException("statement");
@@ -136,7 +139,7 @@ namespace Refactoring
             var callbackArgument = FindAsyncCallbackInvocationArgument(model, invocationExpression);
             var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)callbackArgument.Expression;
 
-            var simpleLambda = Syntax.SimpleLambdaExpression(
+            var simpleLambda = SyntaxFactory.SimpleLambdaExpression(
                 parenthesizedLambda.ParameterList.Parameters.First(),
                 parenthesizedLambda.Body
             );
@@ -145,10 +148,10 @@ namespace Refactoring
                 .Create(
                     syntax.ReplaceNode((SyntaxNode)parenthesizedLambda, simpleLambda)
                 )
-                .RefactorAPMToAsyncAwait();
+                .RefactorAPMToAsyncAwait(workspace);
         }
 
-        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model)
+        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, ExpressionStatementSyntax apmStatement, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (apmStatement == null) throw new ArgumentNullException("apmStatement");
@@ -224,7 +227,7 @@ namespace Refactoring
                 replacements.Add(new SyntaxNodeExtensions.ReplacementPair(oldEndXxxContainingMethod, newEndXxxContainingMethod));
 
                 return syntax.ReplaceAll(replacements)
-                             .Format();
+                             .Format(workspace);
             }
             else
             {
@@ -236,7 +239,7 @@ namespace Refactoring
                                          .AddModifiers(NewAsyncKeyword());
 
                 return syntax.ReplaceNode(apmMethod, newMethod)
-                             .Format();
+                             .Format(workspace);
             }
         }
 
@@ -259,8 +262,8 @@ namespace Refactoring
             var awaitStatement = NewAwaitExpression(
                 callbackInvocation.ReplaceNode(
                     asyncResultRefArg,
-                    Syntax.Argument(
-                        Syntax.IdentifierName(
+                    SyntaxFactory.Argument(
+                        SyntaxFactory.IdentifierName(
                             taskName
                         )
                     )
@@ -373,7 +376,7 @@ namespace Refactoring
             foreach (var candidate in candidates)
             {
                 var methodSymbol = model.LookupMethodSymbol(candidate);
-                var methodSyntax = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxNodes.First();
+                var methodSyntax = (MethodDeclarationSyntax)methodSymbol.FindMethodDeclarationNode();
                 var potentialPath = TryFindCallGraphPathToEndXxx(methodSyntax.Body, methodNameBase, model);
 
                 if (!potentialPath.Any()) continue;
@@ -559,7 +562,7 @@ namespace Refactoring
             if (methodName == null) throw new ArgumentNullException("methodName");
 
             var code = String.Format("{0}.{1}()", objectName, methodName);
-            var expression = Syntax.ParseExpression(code);
+            var expression = SyntaxFactory.ParseExpression(code);
 
             return NewVariableDeclarationStatement(variableName, expression);
         }
@@ -605,12 +608,8 @@ namespace Refactoring
         {
             if (name == null) throw new ArgumentNullException("name");
 
-            return Syntax.Parameter(
-                null,
-                Syntax.TokenList(),
-                null,
-                Syntax.Identifier(name),
-                null
+            return SyntaxFactory.Parameter(
+                SyntaxFactory.Identifier(name)
             );
         }
 
@@ -619,7 +618,7 @@ namespace Refactoring
             if (originalMethod == null) throw new ArgumentNullException("originalMethod");
 
             return originalMethod.ReturnsVoid()
-                ? Syntax.ParseTypeName("Task")
+                ? SyntaxFactory.ParseTypeName("Task")
                 : NewGenericTask(originalMethod.ReturnType);
         }
 
@@ -634,15 +633,15 @@ namespace Refactoring
 
             return NewParameter(
                 NewGenericTask(parameterType),
-                Syntax.Identifier(taskName)
+                SyntaxFactory.Identifier(taskName)
             );
         }
 
         private static ParameterSyntax NewParameter(TypeSyntax type, SyntaxToken name)
         {
-            return Syntax.Parameter(
-                null,
-                Syntax.TokenList(),
+            return SyntaxFactory.Parameter(
+                SyntaxFactory.List<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(),
                 type,
                 name,
                 null
@@ -654,7 +653,7 @@ namespace Refactoring
             if (parameterType == null) throw new ArgumentNullException("parameterType");
 
             return NewGenericTask(
-                Syntax.ParseTypeName(parameterType)
+                SyntaxFactory.ParseTypeName(parameterType)
             );
         }
 
@@ -662,7 +661,7 @@ namespace Refactoring
         {
             if (parameter == null) throw new ArgumentNullException("parameter");
 
-            var identifier = Syntax.Identifier("Task");
+            var identifier = SyntaxFactory.Identifier("Task");
 
             return NewGenericName(identifier, parameter);
         }
@@ -686,8 +685,8 @@ namespace Refactoring
         {
             if (statements == null) throw new ArgumentNullException("statements");
 
-            return Syntax.Block(
-                Syntax.List(
+            return SyntaxFactory.Block(
+                SyntaxFactory.List(
                     statements
                 )
             );
@@ -697,9 +696,9 @@ namespace Refactoring
         {
             if (expression == null) throw new ArgumentNullException("expression");
 
-            return Syntax.ArgumentList(
-                Syntax.SeparatedList(
-                    Syntax.Argument(
+            return SyntaxFactory.ArgumentList(
+                SyntaxFactory.SeparatedList(
+                    SyntaxFactory.Argument(
                         expression
                     )
                 )
@@ -711,8 +710,8 @@ namespace Refactoring
             if (expression == null) throw new ArgumentNullException("expression");
             if (argumentList == null) throw new ArgumentNullException("argumentList");
 
-            return Syntax.ExpressionStatement(
-                Syntax.InvocationExpression(
+            return SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
                     expression,
                     argumentList
                 )

@@ -2,8 +2,9 @@
 using System.Linq;
 using NLog;
 using Refactoring;
-using Roslyn.Compilers.CSharp;
-using Roslyn.Services;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace Refactoring_BatchTool
 {
@@ -17,7 +18,7 @@ namespace Refactoring_BatchTool
         {
             Logger.Info("Hello, world!");
 
-            var solution = TryLoadSolution(SolutionFile);
+            var solution = TryLoadSolutionAsync(SolutionFile).Result;
 
             if (solution == null)
             {
@@ -33,7 +34,7 @@ namespace Refactoring_BatchTool
             var trees = solution.Projects
                                 .SelectMany(project => project.Documents)
                                 .Where(document => document.FilePath.EndsWith(".cs"))
-                                .Select(document => document.GetSyntaxTree())
+                                .Select(document => document.GetSyntaxTreeAsync().Result)
                                 .OfType<SyntaxTree>();
 
             foreach (var tree in trees)
@@ -56,11 +57,12 @@ namespace Refactoring_BatchTool
             Console.ReadKey();
         }
 
-        private static ISolution TryLoadSolution(string solutionPath)
+        private static async Task<Solution> TryLoadSolutionAsync(string solutionPath)
         {
             try
             {
-                return Solution.Load(solutionPath);
+                MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+                return await workspace.OpenSolutionAsync(solutionPath);
             }
             catch (Exception ex)
             {

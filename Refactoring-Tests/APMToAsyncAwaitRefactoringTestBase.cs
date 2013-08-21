@@ -1,10 +1,12 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using NUnit.Framework;
 using Refactoring;
 using System;
+using Utilities;
 
 namespace Refactoring_Tests
 {
@@ -43,17 +45,19 @@ namespace Refactoring_Tests
 
             // Replace invocation of interest with annotated version.
             var originalApmInvocation = statementFinder(originalSyntaxTree);
-            var annotatedApmInvocation = originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
-            var annotatedSyntax = originalSyntaxTree.GetRoot().ReplaceNode(originalApmInvocation, annotatedApmInvocation);
+            var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
+            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNodes(new[] { originalApmInvocation }, (node, x) => annotatedApmInvocation);
             originalSyntaxTree = SyntaxTree.Create(annotatedSyntax);
 
             // Parse given refactored code
             var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
 
-            var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree);
+            var workspace = new CustomWorkspace();
 
-            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format());
+            var actualRefactoredSyntax = PerformRefactoring(originalSyntaxTree, workspace);
+
+            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format(workspace));
 
             // Test against refactored code
             // TODO: The first assertion seems to regard \r\n as different from \n.
@@ -61,13 +65,13 @@ namespace Refactoring_Tests
             Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax)
+        private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax, Workspace workspace)
         {
             Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
-            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait();
+            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(workspace);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;
