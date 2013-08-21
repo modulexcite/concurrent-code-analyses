@@ -30,12 +30,21 @@ namespace Refactoring
 
             Logger.Trace("### REFACTORING CODE:\n{0}\n### END OF CODE", syntax.Format(workspace));
 
+            ExpressionStatementSyntax apmStatement;
+            try
+            {
+                apmStatement = syntax.DescendantNodes()
+                    .OfType<ExpressionStatementSyntax>()
+                    .First(node => node.HasAnnotations<RefactorableAPMInstance>());
+            }
+            catch (InvalidOperationException)
+            {
+                throw new ArgumentException(
+                    "Syntax tree has no ExpressionStatementSyntax node annotated with RefactorableAPMInstance");
+            }
+
             var compilation = CompilationUtils.CreateCompilation(syntaxTree);
             var model = compilation.GetSemanticModel(syntaxTree);
-
-            var apmStatement = syntax.DescendantNodes()
-                                     .OfType<ExpressionStatementSyntax>()
-                                     .First(node => node.HasAnnotations<RefactorableAPMInstance>());
 
             var invocation = (InvocationExpressionSyntax)apmStatement.Expression;
 
@@ -76,7 +85,7 @@ namespace Refactoring
             switch (lambda.Body.Kind)
             {
                 case SyntaxKind.InvocationExpression:
-                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, model, apmStatement, lambda, workspace);
+                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, lambda, workspace);
 
                 default:
                     throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
@@ -84,7 +93,7 @@ namespace Refactoring
             }
         }
 
-        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SemanticModel model, ExpressionStatementSyntax apmStatement, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
+        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
         {
             var invocation = (InvocationExpressionSyntax)lambda.Body;
 
@@ -194,7 +203,18 @@ namespace Refactoring
                 invocationPathToEndXxx.Remove(endXxxCall);
                 invocationPathToEndXxx.Remove(initialCall);
 
-                var endXxxMethod = model.LookupMethodSymbol(endXxxCall);
+                MethodSymbol endXxxMethod;
+                try
+                {
+                    endXxxMethod = model.LookupMethodSymbol(endXxxCall);
+                }
+                catch (SymbolMissingException e)
+                {
+                    Logger.Error("No symbol found for APM Begin invocation: {0}", endXxxCall, e);
+
+                    throw new RefactoringException("No symbol found for invocation: " + endXxxCall, e);
+                }
+
                 var endXxxMethodReturnType = endXxxMethod.ReturnType;
                 var taskType = endXxxMethodReturnType.Name;
 
@@ -375,8 +395,18 @@ namespace Refactoring
 
             foreach (var candidate in candidates)
             {
-                var methodSymbol = model.LookupMethodSymbol(candidate);
-                var methodSyntax = (MethodDeclarationSyntax)methodSymbol.FindMethodDeclarationNode();
+                MethodSymbol methodSymbol;
+                try
+                {
+                    methodSymbol = model.LookupMethodSymbol(candidate);
+                }
+                catch (SymbolMissingException)
+                {
+                    Logger.Trace("Symbol missing for candidate: {0} - ignoring ...", candidate);
+                    continue;
+                }
+
+                var methodSyntax = methodSymbol.FindMethodDeclarationNode();
                 var potentialPath = TryFindCallGraphPathToEndXxx(methodSyntax.Body, methodNameBase, model);
 
                 if (!potentialPath.Any()) continue;
@@ -481,7 +511,17 @@ namespace Refactoring
             if (invocation == null) throw new ArgumentNullException("invocation");
             if (parameterTypeName == null) throw new ArgumentNullException("parameterTypeName");
 
-            var symbol = model.LookupMethodSymbol(invocation);
+            MethodSymbol symbol;
+            try
+            {
+                symbol = model.LookupMethodSymbol(invocation);
+            }
+            catch (SymbolMissingException e)
+            {
+                Logger.Trace("No symbol found for invocation: {0}", invocation, e);
+                throw new ArgumentException("No symbol found for invocation: " + invocation, e);
+            }
+
             var parameterIndex = FindMethodParameterIndex(symbol, parameterTypeName);
             var callbackArgument = invocation.ArgumentList.Arguments.ElementAt(parameterIndex);
 
@@ -716,6 +756,14 @@ namespace Refactoring
                     argumentList
                 )
             );
+        }
+    }
+
+    internal class RefactoringException : Exception
+    {
+        public RefactoringException(string message, SymbolMissingException innerException)
+            : base(message, innerException)
+        {
         }
     }
 }
