@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using NLog;
 using Utilities;
 using Microsoft.CodeAnalysis.CSharp;
@@ -33,25 +34,29 @@ namespace Refactoring_BatchTool
                 return;
             }
 
-            var symbol = _model.LookupMethodSymbol(node);
-
-            if (symbol != null)
+            MethodSymbol symbol;
+            try
             {
-                if (symbol.IsAPMBeginMethod())
-                {
-                    Logger.Info("Found APM Begin method invocation: {0}", node);
-                    Logger.Info("  At {0}:{1}", node.SyntaxTree.FilePath, node.Span.Start);
-                    BeginXxxSyntax = node;
-                }
-                else
-                {
-                    Logger.Trace("Non-APM-Begin method invocation: {0}", node);
-                    base.VisitInvocationExpression(node);
-                }
+                symbol = _model.LookupMethodSymbol(node);
+            }
+            catch (SymbolMissingException)
+            {
+                Logger.Debug("Failed to look up symbol for node, ignoring it: {0}", node);
+
+                base.VisitInvocationExpression(node);
+
+                return;
+            }
+
+            if (symbol.IsAPMBeginMethod())
+            {
+                Logger.Info("Found APM Begin method invocation: {0}", node);
+                Logger.Info("  At {0}:{1}", node.SyntaxTree.FilePath, node.Span.Start);
+                BeginXxxSyntax = node;
             }
             else
             {
-                Logger.Debug("Failed to look up symbol for node, ignoring it: {0}", node);
+                Logger.Trace("Non-APM-Begin method invocation: {0}", node);
                 base.VisitInvocationExpression(node);
             }
         }
