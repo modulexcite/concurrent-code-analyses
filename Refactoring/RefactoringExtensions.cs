@@ -40,7 +40,7 @@ namespace Refactoring
             catch (InvalidOperationException)
             {
                 throw new ArgumentException(
-                    "Syntax tree has no ExpressionStatementSyntax node annotated with RefactorableAPMInstance");
+                    "Syntax tree has no InvocationExpressionSyntax node annotated with RefactorableAPMInstance");
             }
 
             var compilation = CompilationUtils.CreateCompilation(syntaxTree);
@@ -49,19 +49,23 @@ namespace Refactoring
             var callbackArgument = FindAsyncCallbackInvocationArgument(model, invocation);
             var callbackExpression = callbackArgument.Expression;
 
+            CompilationUnitSyntax rewrittenSyntax;
             switch (callbackExpression.Kind)
             {
-                case SyntaxKind.IdentifierName:
-                    return RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
-
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
-
                 case SyntaxKind.SimpleLambdaExpression:
                     return RefactorInstanceWithSimpleLambdaCallback(syntax, model, invocation, (SimpleLambdaExpressionSyntax)callbackExpression, workspace);
 
+                case SyntaxKind.IdentifierName:
+                    rewrittenSyntax = RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
+                    break;
+
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    rewrittenSyntax = RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
+                    break;
+
                 case SyntaxKind.ObjectCreationExpression:
-                    return RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
+                    rewrittenSyntax = RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
+                    break;
 
                 default:
                     throw new NotImplementedException(
@@ -69,6 +73,9 @@ namespace Refactoring
                         + ": callback argument: " + callbackArgument
                     );
             }
+
+            return SyntaxTree.Create(rewrittenSyntax)
+                             .RefactorAPMToAsyncAwait(workspace);
         }
 
         private static CompilationUnitSyntax RefactorInstanceWithSimpleLambdaCallback(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
@@ -131,10 +138,7 @@ namespace Refactoring
                             )
                         );
 
-            var lambdafiedSyntax = syntax.ReplaceNode(callbackArgument.Expression, lambda);
-
-            return SyntaxTree.Create(lambdafiedSyntax)
-                             .RefactorAPMToAsyncAwait(workspace);
+            return syntax.ReplaceNode(callbackArgument.Expression, lambda);
         }
 
         private static CompilationUnitSyntax RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
@@ -150,11 +154,10 @@ namespace Refactoring
                 parenthesizedLambda.Body
             );
 
-            return SyntaxTree
-                .Create(
-                    syntax.ReplaceNode((SyntaxNode)parenthesizedLambda, simpleLambda)
-                )
-                .RefactorAPMToAsyncAwait(workspace);
+            return syntax.ReplaceNode(
+                (SyntaxNode)parenthesizedLambda,
+                simpleLambda
+            );
         }
 
         private static CompilationUnitSyntax RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
@@ -177,11 +180,10 @@ namespace Refactoring
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.IdentifierName:
-                    return SyntaxTree
-                        .Create(
-                            syntax.ReplaceNode((SyntaxNode)objectCreation, expression)
-                        )
-                        .RefactorAPMToAsyncAwait(workspace);
+                    return syntax.ReplaceNode(
+                        (SyntaxNode)objectCreation,
+                        expression
+                    );
 
                 default:
                     Logger.Error("Unsupported expression type as argument of AsyncCallback constructor: {0}: {1}", expression.Kind, objectCreation);
