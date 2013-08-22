@@ -53,18 +53,33 @@ namespace Refactoring
             switch (callbackExpression.Kind)
             {
                 case SyntaxKind.SimpleLambdaExpression:
-                    return RefactorInstanceWithSimpleLambdaCallback(syntax, model, invocation, (SimpleLambdaExpressionSyntax)callbackExpression, workspace);
+                    var lambda = (SimpleLambdaExpressionSyntax)callbackExpression;
+
+                    switch (lambda.Body.Kind)
+                    {
+                        case SyntaxKind.Block:
+                            return RefactorSimpleLambdaInstance(syntax, invocation, model, workspace);
+
+                        case SyntaxKind.InvocationExpression:
+                            rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda, workspace);
+                            break;
+
+                        default:
+                            throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
+                                                              lambda);
+                    }
+                    break;
 
                 case SyntaxKind.IdentifierName:
-                    rewrittenSyntax = RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
+                    rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, invocation, model, workspace);
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    rewrittenSyntax = RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(syntax, invocation, model, workspace);
+                    rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, invocation, model, workspace);
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    rewrittenSyntax = RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
+                    rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
                     break;
 
                 default:
@@ -78,30 +93,7 @@ namespace Refactoring
                              .RefactorAPMToAsyncAwait(workspace);
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithSimpleLambdaCallback(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
-        {
-            if (syntax == null) throw new ArgumentNullException("syntax");
-            if (model == null) throw new ArgumentNullException("model");
-            if (invocation == null) throw new ArgumentNullException("invocation");
-            if (lambda == null) throw new ArgumentNullException("lambda");
-
-            if (lambda.Body.Kind == SyntaxKind.Block)
-            {
-                return RefactorSimpleLambdaInstance(syntax, invocation, model, workspace);
-            }
-
-            switch (lambda.Body.Kind)
-            {
-                case SyntaxKind.InvocationExpression:
-                    return RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(syntax, lambda, workspace);
-
-                default:
-                    throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
-                                                      lambda);
-            }
-        }
-
-        private static CompilationUnitSyntax RefactoringSimpleLambdaInstanceAfterRewritingInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
+        private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
         {
             var invocation = (InvocationExpressionSyntax)lambda.Body;
 
@@ -112,11 +104,10 @@ namespace Refactoring
                 )
             );
 
-            return SyntaxTree.Create(rewrittenSyntax)
-                             .RefactorAPMToAsyncAwait(workspace);
+            return rewrittenSyntax;
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithMethodReferenceCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -141,7 +132,7 @@ namespace Refactoring
             return syntax.ReplaceNode(callbackArgument.Expression, lambda);
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithParameterizedLambdaCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RewriteParenthesizedLambdaToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -160,7 +151,7 @@ namespace Refactoring
             );
         }
 
-        private static CompilationUnitSyntax RefactorInstanceWithObjectCreationCallbackAfterRewritingToSimpleLambda(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
+        private static CompilationUnitSyntax RewriteObjectCreationToSimpleLambda(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (objectCreation == null) throw new ArgumentNullException("objectCreation");
