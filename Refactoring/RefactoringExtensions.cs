@@ -61,25 +61,24 @@ namespace Refactoring
                             return RefactorSimpleLambdaInstance(syntax, invocation, model, workspace);
 
                         case SyntaxKind.InvocationExpression:
-                            rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda, workspace);
+                            rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda);
                             break;
 
                         default:
-                            throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " +
-                                                              lambda);
+                            throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " + lambda);
                     }
                     break;
 
                 case SyntaxKind.IdentifierName:
-                    rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, invocation, model, workspace);
+                    rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, invocation, model);
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, invocation, model, workspace);
+                    rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, invocation, model);
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, model, invocation, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
+                    rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
                     break;
 
                 default:
@@ -93,7 +92,7 @@ namespace Refactoring
                              .RefactorAPMToAsyncAwait(workspace);
         }
 
-        private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, Workspace workspace)
+        private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda)
         {
             var invocation = (InvocationExpressionSyntax)lambda.Body;
 
@@ -107,7 +106,7 @@ namespace Refactoring
             return rewrittenSyntax;
         }
 
-        private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -132,7 +131,7 @@ namespace Refactoring
             return syntax.ReplaceNode(callbackArgument.Expression, lambda);
         }
 
-        private static CompilationUnitSyntax RewriteParenthesizedLambdaToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RewriteParenthesizedLambdaToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -151,7 +150,7 @@ namespace Refactoring
             );
         }
 
-        private static CompilationUnitSyntax RewriteObjectCreationToSimpleLambda(CompilationUnitSyntax syntax, SemanticModel model, InvocationExpressionSyntax invocation, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
+        private static CompilationUnitSyntax RewriteObjectCreationToSimpleLambda(CompilationUnitSyntax syntax, ObjectCreationExpressionSyntax objectCreation, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (objectCreation == null) throw new ArgumentNullException("objectCreation");
@@ -183,130 +182,135 @@ namespace Refactoring
             }
         }
 
-        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, Workspace workspace)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
-            if (invocation == null) throw new ArgumentNullException("invocation");
+            if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
             if (model == null) throw new ArgumentNullException("model");
 
-            var apmMethod = invocation.ContainingMethod();
-
-            var memberAccessExpression = (MemberAccessExpressionSyntax)invocation.Expression;
-
-            var objectName = memberAccessExpression.Expression.ToString();
-            var methodNameBase = GetAsyncMethodNameBase(invocation);
-            var methodName = methodNameBase + "Async";
-
             const string taskName = "task";
-            var tapStatement = NewVariableDeclarationStatement(taskName, objectName, methodName);
 
-            var callbackArgument = FindAsyncCallbackInvocationArgument(model, invocation);
+            var callbackArgument = FindAsyncCallbackInvocationArgument(model, beginXxxCall);
             var lambda = (SimpleLambdaExpressionSyntax)callbackArgument.Expression;
 
             if (lambda.Body.Kind != SyntaxKind.Block)
-                throw new NotImplementedException("Unsupported lambda body syntax node kind: " + lambda.Body.Kind + ": lambda: " + lambda);
+                throw new NotImplementedException("Lambda body must be rewritten as BlockSyntax - it is now: " + lambda.Body.Kind + ": lambda: " + lambda);
 
             var lambdaBlock = (BlockSyntax)lambda.Body;
 
+            // TODO: Look up the symbol to check that it actually exists.
+            var methodNameBase = GetAsyncMethodNameBase(beginXxxCall);
+
             var endStatement = TryFindEndXxxCallSyntaxNode(lambdaBlock, methodNameBase);
 
-            if (endStatement == null)
+            if (endStatement != null)
             {
-                // Every method invocation might lead to the target EndXxx. Try to find it recursively.
-                // Once found, rewrite the methods in the invocation path, one by one.
-                // Finally, rewrite the originating method, and the method with the EndXxx statement.
-
-                var invocationPathToEndXxx = TryFindCallGraphPathToEndXxx(lambdaBlock, methodNameBase, model);
-
-                // These two get special treatment.
-                var endXxxCall = invocationPathToEndXxx.First();
-                var initialCall = invocationPathToEndXxx.Last();
-
-                invocationPathToEndXxx.Remove(endXxxCall);
-                invocationPathToEndXxx.Remove(initialCall);
-
-                MethodSymbol endXxxMethod;
-                try
-                {
-                    endXxxMethod = model.LookupMethodSymbol(endXxxCall);
-                }
-                catch (SymbolMissingException e)
-                {
-                    Logger.Error("No symbol found for APM Begin invocation: {0}", endXxxCall, e);
-
-                    throw new RefactoringException("No symbol found for invocation: " + endXxxCall, e);
-                }
-
-                var endXxxMethodReturnType = endXxxMethod.ReturnType;
-                var taskType = endXxxMethodReturnType.Name;
-
-                var replacements = new List<SyntaxNodeExtensions.ReplacementPair>(invocationPathToEndXxx.Count);
-
-                var replacementPairs = from invocationOnPath in invocationPathToEndXxx
-                                       let containingMethod = invocationOnPath.ContainingMethod()
-                                       let asyncMethod = RewriteCallGraphPathComponent(
-                                                             invocationOnPath,
-                                                             containingMethod,
-                                                             taskType
-                                                         )
-                                       select new SyntaxNodeExtensions.ReplacementPair(
-                                           containingMethod,
-                                           asyncMethod
-                                       );
-                replacements.AddRange(replacementPairs);
-
-                var rewrittenLambdaBlock = RewriteOriginatingMethodLambdaBlock(lambda, initialCall, taskName);
-
-                var statement = invocation.ContainingStatement();
-
-                var newMethod = apmMethod.ReplaceNode(statement, tapStatement)
-                                         .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray())
-                                         .AddModifiers(NewAsyncKeyword());
-
-                replacements.Add(new SyntaxNodeExtensions.ReplacementPair(apmMethod, newMethod));
-
-                var oldEndXxxContainingMethod = endXxxCall.ContainingMethod();
-                var newEndXxxContainingMethod = RewriteEndXxxContainingMethod(oldEndXxxContainingMethod, endXxxCall, taskType);
-
-                replacements.Add(new SyntaxNodeExtensions.ReplacementPair(oldEndXxxContainingMethod, newEndXxxContainingMethod));
-
-                return syntax.ReplaceAll(replacements)
-                             .Format(workspace);
+                return RewriteNotNestedInstance(syntax, beginXxxCall, lambdaBlock, endStatement, methodNameBase, workspace);
             }
-            else
+
+            // Every method invocation might lead to the target EndXxx. Try to find it recursively.
+            // Once found, rewrite the methods in the invocation path, one by one.
+            // Finally, rewrite the originating method, and the method with the EndXxx statement.
+
+            var invocationPathToEndXxx = TryFindCallGraphPathToEndXxx(lambdaBlock, methodNameBase, model);
+
+            // These two get special treatment.
+            var initialCall = invocationPathToEndXxx.RemoveLast();
+            var endXxxCall = invocationPathToEndXxx.RemoveFirst();
+
+            MethodSymbol endXxxMethod;
+            try
             {
-                var awaitStatement = NewAwaitExpression(taskName);
-                lambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
-
-                var statement = invocation.ContainingStatement();
-
-                var newMethod = apmMethod.ReplaceNode(statement, tapStatement)
-                                         .AddBodyStatements(lambdaBlock.Statements.ToArray())
-                                         .AddModifiers(NewAsyncKeyword());
-
-                return syntax.ReplaceNode(apmMethod, newMethod)
-                             .Format(workspace);
+                endXxxMethod = model.LookupMethodSymbol(endXxxCall);
             }
+            catch (SymbolMissingException e)
+            {
+                Logger.Error("No symbol found for APM End invocation: {0}", endXxxCall, e);
+
+                throw new RefactoringException("No symbol found for APM End invocation: " + endXxxCall, e);
+            }
+
+            var taskTypeParameter = endXxxMethod.ReturnType.Name;
+
+            var replacements = new List<SyntaxNodeExtensions.ReplacementPair>(invocationPathToEndXxx.Count + 2);
+
+            replacements.AddRange(
+                invocationPathToEndXxx.Select(
+                    invocation => new SyntaxNodeExtensions.ReplacementPair(
+                        invocation.ContainingMethod(),
+                        RewriteCallGraphPathComponent(invocation, taskTypeParameter)
+                    )
+                )
+            );
+
+            replacements.Add(
+                new SyntaxNodeExtensions.ReplacementPair(
+                    beginXxxCall.ContainingMethod(),
+                    RewriteOriginatingMethod(
+                        beginXxxCall,
+                        RewriteOriginatingMethodLambdaBlock(lambda, initialCall, taskName),
+                        methodNameBase
+                    )
+                )
+            );
+
+            replacements.Add(
+                new SyntaxNodeExtensions.ReplacementPair(
+                    endXxxCall.ContainingMethod(),
+                    RewriteEndXxxContainingMethod(
+                        endXxxCall,
+                        taskTypeParameter
+                    )
+                )
+            );
+
+            return syntax.ReplaceAll(replacements)
+                         .Format(workspace);
+        }
+
+        private static CompilationUnitSyntax RewriteNotNestedInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, BlockSyntax lambdaBlock, InvocationExpressionSyntax endStatement, string methodNameBase, Workspace workspace)
+        {
+            var awaitStatement = NewAwaitExpression("task");
+            var rewrittenLambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
+
+            var newCallingMethod = RewriteOriginatingMethod(beginXxxCall, rewrittenLambdaBlock, methodNameBase);
+            var originalCallingMethod = beginXxxCall.ContainingMethod();
+
+            return syntax.ReplaceNode(originalCallingMethod, newCallingMethod)
+                         .Format(workspace);
+        }
+
+        private static MethodDeclarationSyntax RewriteOriginatingMethod(InvocationExpressionSyntax beginXxxCall, BlockSyntax rewrittenLambdaBlock, string methodNameBase)
+        {
+            // TODO: beginXxxCall.Expression does not have to be a MemberAccessExpression.
+            var tapStatement = NewVariableDeclarationStatement("task", ((MemberAccessExpressionSyntax)beginXxxCall.Expression).Expression.ToString(), methodNameBase + "Async");
+            var endXxxStatement = beginXxxCall.ContainingStatement();
+
+            var originalCallingMethod = beginXxxCall.ContainingMethod();
+
+            return originalCallingMethod.ReplaceNode(endXxxStatement, tapStatement)
+                            .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray())
+                            .AddModifiers(NewAsyncKeyword());
         }
 
         /// <summary>
         /// Rewrite the originating method's lambda expression block so that its statements can be 'concatenated' to the originating method.
         /// </summary>
         /// <param name="lambda">The SimpleLambdaExpressionSyntax which must be rewritten.</param>
-        /// <param name="callbackInvocation">The InvocationExpressionSyntax that represents the invocation of the callback in the lambda expression.</param>
+        /// <param name="callOnPathToEndXxxCall">The InvocationExpressionSyntax that represents the invocation of the callback in the lambda expression.</param>
         /// <param name="taskName">The name of the Task object that must be provided to the callback.</param>
         /// <returns>A rewritten BlockSyntax whose statements can be added to the originating method.</returns>
-        private static BlockSyntax RewriteOriginatingMethodLambdaBlock(SimpleLambdaExpressionSyntax lambda, InvocationExpressionSyntax callbackInvocation, string taskName)
+        private static BlockSyntax RewriteOriginatingMethodLambdaBlock(SimpleLambdaExpressionSyntax lambda, InvocationExpressionSyntax callOnPathToEndXxxCall, string taskName)
         {
             if (lambda == null) throw new ArgumentNullException("lambda");
-            if (callbackInvocation == null) throw new ArgumentNullException("callbackInvocation");
+            if (callOnPathToEndXxxCall == null) throw new ArgumentNullException("callOnPathToEndXxxCall");
             if (taskName == null) throw new ArgumentNullException("taskName");
 
-            var asyncResultRefArg = callbackInvocation.ArgumentList.Arguments
+            var asyncResultRefArg = callOnPathToEndXxxCall.ArgumentList.Arguments
                 .First(arg => ((IdentifierNameSyntax)arg.Expression).Identifier.ValueText.Equals(lambda.Parameter.Identifier.ValueText));
 
             var awaitStatement = NewAwaitExpression(
-                callbackInvocation.ReplaceNode(
+                callOnPathToEndXxxCall.ReplaceNode(
                     asyncResultRefArg,
                     SyntaxFactory.Argument(
                         SyntaxFactory.IdentifierName(
@@ -317,15 +321,16 @@ namespace Refactoring
             );
 
             return ((BlockSyntax)lambda.Body).ReplaceNode(
-                callbackInvocation,
+                callOnPathToEndXxxCall,
                 awaitStatement
             );
         }
 
-        private static MethodDeclarationSyntax RewriteEndXxxContainingMethod(MethodDeclarationSyntax originalMethod, InvocationExpressionSyntax endXxxCall, string taskType)
+        private static MethodDeclarationSyntax RewriteEndXxxContainingMethod(InvocationExpressionSyntax endXxxCall, string taskType)
         {
             const string taskName = "task";
 
+            var originalMethod = endXxxCall.ContainingMethod();
             var returnType = NewTaskifiedReturnType(originalMethod);
 
             var replacements = new List<SyntaxNodeExtensions.ReplacementPair>();
@@ -360,13 +365,15 @@ namespace Refactoring
                 .WithReturnType(returnType);
         }
 
-        private static MethodDeclarationSyntax RewriteCallGraphPathComponent(InvocationExpressionSyntax invocation, MethodDeclarationSyntax method, String taskType)
+        private static MethodDeclarationSyntax RewriteCallGraphPathComponent(InvocationExpressionSyntax invocation, String taskType)
         {
             if (invocation == null) throw new ArgumentNullException("invocation");
-            if (method == null) throw new ArgumentNullException("method");
+
+            const string taskName = "task";
+
+            var method = invocation.ContainingMethod();
 
             var asyncResultParam = FindIAsyncResultParameter(method.ParameterList);
-            const string taskName = "task";
 
             var returnType = NewGenericTask(method.ReturnType);
 
@@ -812,6 +819,28 @@ namespace Refactoring
                     argumentList
                 )
             );
+        }
+
+        private static T RemoveFirst<T>(this IList<T> list)
+        {
+            if (list == null) throw new ArgumentNullException("list");
+
+            var element = list.ElementAt(0);
+
+            list.RemoveAt(0);
+
+            return element;
+        }
+
+        private static T RemoveLast<T>(this IList<T> list)
+        {
+            if (list == null) throw new ArgumentNullException("list");
+
+            var element = list.Last();
+
+            list.RemoveAt(list.Count - 1);
+
+            return element;
         }
     }
 
