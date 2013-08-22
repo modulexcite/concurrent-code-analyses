@@ -69,7 +69,6 @@ namespace TextInput
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
 
-            DoSomethingWhileGetResponseIsRunning();
             Callback(task, request).GetAwaiter().GetResult();
         }
 
@@ -80,7 +79,6 @@ namespace TextInput
             DoSomethingWithRequestAndResponse(request, response);
         }
 
-        private static void DoSomethingWhileGetResponseIsRunning() { }
         private static void DoSomethingWithRequestAndResponse(WebRequest request, WebResponse response) { }
     }
 }";
