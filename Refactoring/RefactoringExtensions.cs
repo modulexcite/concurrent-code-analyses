@@ -58,7 +58,7 @@ namespace Refactoring
                     switch (lambda.Body.Kind)
                     {
                         case SyntaxKind.Block:
-                            return RefactorSimpleLambdaInstance(syntax, invocation, model, workspace);
+                            return RefactorSimpleLambdaInstance(syntax, invocation, model, workspace, callbackArgument);
 
                         case SyntaxKind.InvocationExpression:
                             rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda);
@@ -182,7 +182,7 @@ namespace Refactoring
             }
         }
 
-        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, Workspace workspace)
+        private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, Workspace workspace, ArgumentSyntax callbackArgument)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
@@ -190,7 +190,6 @@ namespace Refactoring
 
             const string taskName = "task";
 
-            var callbackArgument = FindAsyncCallbackInvocationArgument(model, beginXxxCall);
             var lambda = (SimpleLambdaExpressionSyntax)callbackArgument.Expression;
 
             if (lambda.Body.Kind != SyntaxKind.Block)
@@ -234,6 +233,7 @@ namespace Refactoring
 
             var replacements = new List<SyntaxNodeExtensions.ReplacementPair>(invocationPathToEndXxx.Count + 2);
 
+            // Replace all intermediate methods on the call graph path.
             replacements.AddRange(
                 invocationPathToEndXxx.Select(
                     invocation => new SyntaxNodeExtensions.ReplacementPair(
@@ -243,6 +243,7 @@ namespace Refactoring
                 )
             );
 
+            // Replace method that contains the BeginXxx call.
             replacements.Add(
                 new SyntaxNodeExtensions.ReplacementPair(
                     beginXxxCall.ContainingMethod(),
@@ -254,6 +255,7 @@ namespace Refactoring
                 )
             );
 
+            // Replace method that contains the EndXxx call.
             replacements.Add(
                 new SyntaxNodeExtensions.ReplacementPair(
                     endXxxCall.ContainingMethod(),
