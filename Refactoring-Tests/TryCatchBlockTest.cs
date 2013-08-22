@@ -7,7 +7,7 @@ namespace Refactoring_Tests
     [TestFixture]
     public class TryCatchBlockTest : APMToAsyncAwaitRefactoringTestBase
     {
-        [TestCase]
+        [Test]
         public void TestThatEndXxxInTryBlockIsRefactoredCorrectly()
         {
             StatementFinder statementFinder =
