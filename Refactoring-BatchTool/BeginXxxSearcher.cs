@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using NLog;
 using Utilities;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,9 +26,9 @@ namespace Refactoring_BatchTool
         public InvocationExpressionSyntax BeginXxxSyntax { get; private set; }
         public MethodSymbol BeginXxxSymbol { get; private set; }
 
-        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        public override void VisitInvocationExpression(InvocationExpressionSyntax invocation)
         {
-            if (node == null) throw new ArgumentNullException("node");
+            if (invocation == null) throw new ArgumentNullException("invocation");
 
             if (BeginXxxSyntax != null)
             {
@@ -37,28 +38,31 @@ namespace Refactoring_BatchTool
             MethodSymbol symbol;
             try
             {
-                symbol = _model.LookupMethodSymbol(node);
+                symbol = _model.LookupMethodSymbol(invocation);
             }
             catch (SymbolMissingException)
             {
-                Logger.Debug("Failed to look up symbol for node, ignoring it: {0}", node);
-
-                base.VisitInvocationExpression(node);
+                Logger.Trace("Could not find symbol for node: {0}", invocation);
+                base.VisitInvocationExpression(invocation);
 
                 return;
             }
 
             if (symbol.IsAPMBeginMethod())
             {
-                Logger.Info("Found APM Begin method invocation: {0}", node);
-                Logger.Info("  At {0}:{1}", node.SyntaxTree.FilePath, node.Span.Start);
-                BeginXxxSyntax = node;
+                Logger.Info("Found APM Begin method invocation: {0}", invocation);
+                Logger.Info("  At {0}:{1}",
+                    invocation.SyntaxTree.FilePath,
+                    invocation.SyntaxTree.GetLineSpan(invocation.FullSpan, true).StartLinePosition
+                );
+
+                BeginXxxSyntax = invocation;
                 BeginXxxSymbol = symbol;
             }
             else
             {
-                Logger.Trace("Non-APM-Begin method invocation: {0}", node);
-                base.VisitInvocationExpression(node);
+                Logger.Trace("Non-APM-Begin method invocation: {0}", invocation);
+                base.VisitInvocationExpression(invocation);
             }
         }
     }

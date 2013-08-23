@@ -56,11 +56,11 @@ namespace Refactoring_BatchTool
 
             foreach (var tree in trees)
             {
-                workspace.CheckTree(tree);
+                CheckTree(workspace, tree);
             }
         }
 
-        private static void CheckTree(this MSBuildWorkspace workspace, SyntaxTree tree)
+        private static void CheckTree(MSBuildWorkspace workspace, SyntaxTree tree)
         {
             var compilation = CompilationUtils.CreateCompilation(tree);
             var model = compilation.GetSemanticModel(tree);
@@ -72,38 +72,37 @@ namespace Refactoring_BatchTool
 
             var beginXxxSyntax = searcher.BeginXxxSyntax;
 
-            if (beginXxxSyntax != null)
+            if (beginXxxSyntax == null) return;
+
+            Logger.Info("Found APM Begin method: {0}", beginXxxSyntax);
+            Logger.Info("  At: {0}:{1}", beginXxxSyntax.SyntaxTree.FilePath, beginXxxSyntax.Span.Start);
+
+            // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
+            if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax
+                || beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
             {
-                Logger.Info("Found APM Begin method: {0}", beginXxxSyntax);
-                Logger.Info("  At: {0}:{1}", beginXxxSyntax.SyntaxTree.FilePath, beginXxxSyntax.Span.Start);
+                var annotatedInvocation = beginXxxSyntax.WithAdditionalAnnotations(new RefactorableAPMInstance());
+                var annotatedSyntax = syntax.ReplaceNode(beginXxxSyntax, annotatedInvocation);
 
-                // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
-                if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax
-                    || beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
+                SyntaxTree refactoredTree;
+                try
                 {
-                    var annotatedInvocation = beginXxxSyntax.WithAdditionalAnnotations(new RefactorableAPMInstance());
-                    var annotatedSyntax = syntax.ReplaceNode(beginXxxSyntax, annotatedInvocation);
-
-                    SyntaxTree refactoredTree;
-                    try
-                    {
-                        refactoredTree = workspace.ExecuteRefactoring(annotatedSyntax);
-                    }
-                    catch (RefactoringException e)
-                    {
-                        Logger.Error("Refactoring failed: {0}", e.Message, e);
-
-                        throw new Exception("Refactoring failed: " + e.Message, e);
-                    }
-
-                    Logger.Trace("Recursively checking for more APM Begin method invocations ...");
-                    workspace.CheckTree(refactoredTree);
+                    refactoredTree = workspace.ExecuteRefactoring(annotatedSyntax);
                 }
-                else
+                catch (RefactoringException e)
                 {
-                    Logger.Warn("APM Begin invocation as non-ExpressionStatementSyntax is not yet supported");
-                    Logger.Warn("  Parent kind actually is: {0}", beginXxxSyntax.Parent.Kind);
+                    Logger.Error("Refactoring failed: {0}", e.Message, e);
+
+                    throw new Exception("Refactoring failed: " + e.Message, e);
                 }
+
+                Logger.Trace("Recursively checking for more APM Begin method invocations ...");
+                CheckTree(workspace, refactoredTree);
+            }
+            else
+            {
+                Logger.Warn("APM Begin invocation containing statement is not yet supported: {0}: statement: {1}",
+                    beginXxxSyntax.ContainingStatement().Kind, beginXxxSyntax.ContainingStatement());
             }
         }
 
@@ -114,8 +113,8 @@ namespace Refactoring_BatchTool
             var startTime = DateTime.UtcNow;
 
             var refactoredTree = annotatedSyntax.CreateSyntaxTree()
-                .RefactorAPMToAsyncAwait(workspace)
-                .CreateSyntaxTree();
+                                                .RefactorAPMToAsyncAwait(workspace)
+                                                .CreateSyntaxTree();
 
             var endTime = DateTime.UtcNow;
             var refactoringTime = endTime.Subtract(startTime).Milliseconds;
@@ -126,9 +125,11 @@ namespace Refactoring_BatchTool
             return refactoredTree;
         }
 
-        private static SyntaxTree CreateSyntaxTree(this SyntaxNode annotatedSyntax)
+        private static SyntaxTree CreateSyntaxTree(this SyntaxNode syntax)
         {
-            return SyntaxTree.Create(annotatedSyntax);
+            if (syntax == null) throw new ArgumentNullException("syntax");
+
+            return SyntaxTree.Create(syntax);
         }
 
         private static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
