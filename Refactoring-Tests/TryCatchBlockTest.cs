@@ -68,10 +68,10 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            Callback(task).GetAwaiter().GetResult();
+            Callback(task, request).GetAwaiter().GetResult();
         }
 
-        private async Task Callback(Task<WebResponse> task)
+        private async Task Callback(Task<WebResponse> task, WebRequest request)
         {
 
             try

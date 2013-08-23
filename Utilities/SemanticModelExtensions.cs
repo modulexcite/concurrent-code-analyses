@@ -40,6 +40,26 @@ namespace Utilities
                     throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
             }
         }
+
+        public static MethodSymbol LookupMethodSymbol(this SemanticModel model, IdentifierNameSyntax identifier)
+        {
+            if (model == null) throw new ArgumentNullException("model");
+            if (identifier == null) throw new ArgumentNullException("identifier");
+
+            var expression = identifier;
+
+            Logger.Trace("Looking up symbol for: {0}", expression);
+
+            var symbol = model.GetSymbolInfo(expression).Symbol;
+
+            var methodSymbol = symbol as MethodSymbol;
+            if (methodSymbol != null)
+            {
+                return methodSymbol;
+            }
+
+            throw new MethodSymbolMissingException(expression);
+        }
     }
 
     public class SymbolMissingException : Exception
@@ -54,6 +74,11 @@ namespace Utilities
     {
         public MethodSymbolMissingException(InvocationExpressionSyntax invocation)
             : base("No method symbol found for invocation: " + invocation)
+        {
+        }
+
+        public MethodSymbolMissingException(IdentifierNameSyntax identifier)
+            : base("No method symbol found for identifier: " + identifier)
         {
         }
     }

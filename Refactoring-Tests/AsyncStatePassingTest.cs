@@ -18,8 +18,8 @@ namespace Refactoring_Tests
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithUsedAsyncState, RefactoredCodeWithUsedAsyncState, statementFinder);
         }
 
-        [Test]
-        public void TestThatPassedAsyncStateIsIgnoredWhenUnused()
+        // [Test] TODO: Enable this test if AsyncState is removed when it is unused.
+        public void TestThatPassedAsyncStateIsRemovedWhenUnused()
         {
             StatementFinder statementFinder =
                 syntax => syntax.GetRoot().DescendantNodes()
@@ -40,8 +40,6 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             request.BeginGetResponse(Callback, request);
-
-            DoSomethingWhileGetResponseIsRunning();
         }
 
         private void Callback(IAsyncResult result)
@@ -52,7 +50,6 @@ namespace TextInput
             DoSomethingWithRequestAndResponse(request, response);
         }
 
-        private static void DoSomethingWhileGetResponseIsRunning() { }
         private static void DoSomethingWithRequestAndResponse(WebRequest request, WebResponse response) { }
     }
 }";
@@ -68,7 +65,6 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-
             Callback(task, request).GetAwaiter().GetResult();
         }
 

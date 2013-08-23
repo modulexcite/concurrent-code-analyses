@@ -21,7 +21,6 @@ namespace Refactoring_Tests
         // TODO [Test]
         public void TestThatUsedIAsyncResultCapturedAtBeginXxxFailsPrecondition()
         {
-            // TODO
         }
 
         private const string OriginalCode = @"using System;
