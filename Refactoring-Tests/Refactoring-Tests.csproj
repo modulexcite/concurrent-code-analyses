@@ -84,6 +84,7 @@
     <Compile Include="AsyncStatePassingTest.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
     <Compile Include="DelegateFieldRefCallbackTest.cs" />
+    <Compile Include="IntegrationTest.cs" />
     <Compile Include="LambdaCallbackTest.cs" />
     <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

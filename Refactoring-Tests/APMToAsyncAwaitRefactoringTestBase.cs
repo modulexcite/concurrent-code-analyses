@@ -72,7 +72,7 @@ namespace Refactoring_Tests
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
-            var actualRefactoredSyntax = originalSyntax.RefactorAPMToAsyncAwait(workspace);
+            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(originalSyntax, workspace);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;

@@ -14,7 +14,10 @@ namespace Refactoring_BatchTool
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
+        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
 
         static void Main()
         {
@@ -39,7 +42,7 @@ namespace Refactoring_BatchTool
 
         private static void DoWork()
         {
-            var workspace = MSBuildWorkspace.Create();
+            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
             var solution = workspace.TryLoadSolutionAsync(SolutionFile).Result;
 
             if (solution == null)
@@ -48,20 +51,22 @@ namespace Refactoring_BatchTool
                 return;
             }
 
-            var trees = solution.Projects
-                .SelectMany(project => project.Documents)
-                .Where(document => document.FilePath.EndsWith(".cs"))
-                .Select(document => document.GetSyntaxTreeAsync().Result)
-                .OfType<SyntaxTree>();
+            var documents = solution.Projects
+                                    .SelectMany(project => project.Documents)
+                                    .Where(document => document.FilePath.EndsWith(".cs"));
 
-            foreach (var tree in trees)
+            foreach (var document in documents)
             {
-                CheckTree(workspace, tree);
+                CheckDocument(document, workspace, solution);
             }
         }
 
-        private static void CheckTree(MSBuildWorkspace workspace, SyntaxTree tree)
+        private static void CheckDocument(Document document, Workspace workspace, Solution solution)
         {
+            if (document == null) throw new ArgumentNullException("document");
+            if (workspace == null) throw new ArgumentNullException("workspace");
+
+            var tree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
             var compilation = CompilationUtils.CreateCompilation(tree);
             var model = compilation.GetSemanticModel(tree);
 
@@ -87,7 +92,7 @@ namespace Refactoring_BatchTool
                 SyntaxTree refactoredTree;
                 try
                 {
-                    refactoredTree = workspace.ExecuteRefactoring(annotatedSyntax);
+                    refactoredTree = ExecuteRefactoring(workspace, annotatedSyntax);
                 }
                 catch (RefactoringException e)
                 {
@@ -97,7 +102,13 @@ namespace Refactoring_BatchTool
                 }
 
                 Logger.Trace("Recursively checking for more APM Begin method invocations ...");
-                CheckTree(workspace, refactoredTree);
+                var refactoredSolution = solution.WithDocumentSyntaxRoot(document.Id, refactoredTree.GetRoot());
+                if (!workspace.TryApplyChanges(refactoredSolution))
+                {
+                    throw new Exception("Workspace was changed during refactoring");
+                }
+
+                CheckDocument(solution.GetDocument(document.Id), workspace, refactoredSolution);
             }
             else
             {
@@ -106,14 +117,15 @@ namespace Refactoring_BatchTool
             }
         }
 
-        private static SyntaxTree ExecuteRefactoring(this Workspace workspace, SyntaxNode annotatedSyntax)
+        private static SyntaxTree ExecuteRefactoring(Workspace workspace, SyntaxNode annotatedSyntax)
         {
-            Logger.Info("Refactoring annotated syntax tree ...");
+            Logger.Info("Refactoring annotated syntax tree:");
+            Logger.Info("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", annotatedSyntax);
 
             var startTime = DateTime.UtcNow;
 
-            var refactoredTree = annotatedSyntax.CreateSyntaxTree()
-                                                .RefactorAPMToAsyncAwait(workspace)
+            var annotatedSyntaxTree = annotatedSyntax.CreateSyntaxTree();
+            var refactoredTree = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedSyntaxTree, workspace)
                                                 .CreateSyntaxTree();
 
             var endTime = DateTime.UtcNow;

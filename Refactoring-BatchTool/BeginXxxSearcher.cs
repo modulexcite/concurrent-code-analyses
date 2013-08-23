@@ -53,7 +53,7 @@ namespace Refactoring_BatchTool
                 Logger.Info("Found APM Begin method invocation: {0}", invocation);
                 Logger.Info("  At {0}:{1}",
                     invocation.SyntaxTree.FilePath,
-                    invocation.SyntaxTree.GetLineSpan(invocation.FullSpan, true).StartLinePosition
+                    invocation.SyntaxTree.GetLineSpan(invocation.FullSpan, true).StartLinePosition.Line
                 );
 
                 BeginXxxSyntax = invocation;

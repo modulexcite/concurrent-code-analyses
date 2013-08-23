@@ -21,7 +21,7 @@ namespace Refactoring
         /// <param name="syntaxTree">The SyntaxTree on which to operate/in which the Begin and End method calls are represented.</param>
         /// <param name="workspace">The workspace to which the code in the syntax tree currently belongs, for formatting purposes.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(this SyntaxTree syntaxTree, Workspace workspace)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(SyntaxTree syntaxTree, Workspace workspace)
         {
             if (syntaxTree == null) throw new ArgumentNullException("syntaxTree");
             if (workspace == null) throw new ArgumentNullException("workspace");
@@ -94,8 +94,9 @@ namespace Refactoring
                     );
             }
 
-            return SyntaxTree.Create(rewrittenSyntax)
-                             .RefactorAPMToAsyncAwait(workspace);
+            var rewrittenSyntaxTree = SyntaxTree.Create(rewrittenSyntax);
+
+            return RefactorAPMToAsyncAwait(rewrittenSyntaxTree, workspace);
         }
 
         private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, SemanticModel model, InvocationExpressionSyntax beginXxxCall)
