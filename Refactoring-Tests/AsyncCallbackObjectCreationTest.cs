@@ -66,7 +66,7 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            var response = task.GetAwaiter().GetResult();
+            var response = await task.ConfigureAwait(false);
 
             DoSomethingWithResponse(response);
         }
@@ -104,7 +104,6 @@ namespace TextInput
     }
 }";
 
-        // TODO: Replace GetAwaiter().GetResult() with await task.ConfigureAwait(false) once available
         private const string RefactoredCodeWithMethodReference = @"using System;
 using System.Net;
 
@@ -118,12 +117,12 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            Callback(task).GetAwaiter().GetResult();
+            await Callback(task).ConfigureAwait(false);
         }
 
         private async Task Callback(Task<WebResponse> task)
         {
-            var response = task.GetAwaiter().GetResult();
+            var response = await task.ConfigureAwait(false);
 
             DoSomethingWithResponse(response);
         }

@@ -142,13 +142,6 @@ namespace Refactoring_BatchTool
             return annotatedDocument.WithSyntaxRoot(refactoredSyntax);
         }
 
-        private static SyntaxTree CreateSyntaxTree(this SyntaxNode syntax)
-        {
-            if (syntax == null) throw new ArgumentNullException("syntax");
-
-            return SyntaxTree.Create(syntax);
-        }
-
         private static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
         {
             Logger.Trace("Trying to load solution file: {0}", solutionPath);

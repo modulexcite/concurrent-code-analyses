@@ -810,8 +810,7 @@ namespace Refactoring
         {
             if (expression == null) throw new ArgumentNullException("expression");
 
-            // TODO: Use 'await' once available in the next CTP.
-            var code = String.Format(@"{0}.GetAwaiter().GetResult()", expression);
+            var code = String.Format(@"await {0}.ConfigureAwait(false)", expression);
 
             return SyntaxFactory.ParseExpression(code);
         }
@@ -820,8 +819,7 @@ namespace Refactoring
         {
             if (taskName == null) throw new ArgumentNullException("taskName");
 
-            // TODO: Use 'await' once available in the next CTP.
-            var code = String.Format(@"{0}.GetAwaiter().GetResult()", taskName);
+            var code = String.Format(@"await {0}.ConfigureAwait(false)", taskName);
 
             return SyntaxFactory.ParseExpression(code);
         }

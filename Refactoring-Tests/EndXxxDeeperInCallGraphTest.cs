@@ -65,18 +65,18 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            var response = Nested0(task, request).GetAwaiter().GetResult();
+            var response = await Nested0(task, request).ConfigureAwait(false);
             DoSomethingWithResponse(response);
         }
 
         private static async Task<WebResponse> Nested0(Task<WebResponse> task, WebRequest request)
         {
-            return Nested1(task, request).GetAwaiter().GetResult();
+            return await Nested1(task, request).ConfigureAwait(false);
         }
 
         private static async Task<WebResponse> Nested1(Task<WebResponse> task, WebRequest request)
         {
-            return task.GetAwaiter().GetResult();
+            return await task.ConfigureAwait(false);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }

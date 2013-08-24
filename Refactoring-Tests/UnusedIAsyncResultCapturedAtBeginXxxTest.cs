@@ -60,7 +60,7 @@ namespace TextInput
             var task = request.GetResponseAsync();
 
             DoSomethingWhileGetResponseIsRunning();
-            var response = task.GetAwaiter().GetResult();
+            var response = await task.ConfigureAwait(false);
 
             DoSomethingWithResponse(response);
         }

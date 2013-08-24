@@ -65,12 +65,12 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-            Callback(task, request).GetAwaiter().GetResult();
+            await Callback(task, request).ConfigureAwait(false);
         }
 
         private async Task Callback(Task<WebResponse> task, WebRequest request)
         {
-            var response = task.GetAwaiter().GetResult();
+            var response = await task.ConfigureAwait(false);
 
             DoSomethingWithRequestAndResponse(request, response);
         }
@@ -111,12 +111,12 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-            Callback(task).GetAwaiter().GetResult();
+            await Callback(task).ConfigureAwait(false);
         }
 
         private async Task Callback(Task<WebResponse> task)
         {
-            var response = task.GetAwaiter().GetResult();
+            var response = await task.ConfigureAwait(false);
         }
     }
 }";
