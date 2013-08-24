@@ -17,6 +17,11 @@ namespace Refactoring_Tests
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        // ReSharper disable InconsistentNaming
+        private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
+        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
+        // ReSharper restore InconsistentNaming
+
         /// <summary>
         /// Find the invocation expression statement representing an APM BeginXxx method call that must be refactored in the given compilation unit.
         /// </summary>
@@ -39,40 +44,42 @@ namespace Refactoring_Tests
         {
             Logger.Debug("\n=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
 
-            // Parse given original code
-            var originalSyntaxTree = SyntaxTree.ParseText(originalCode);
+            var workspace = new CustomWorkspace();
+            var projectId = workspace.AddProject("ProjectUnderTest", LanguageNames.CSharp);
+            var documentId = workspace.AddDocument(projectId, "SourceUnderTest.cs", originalCode);
+
+            var originalSolution = workspace.CurrentSolution
+                .AddMetadataReference(projectId, mscorlib)
+                .AddMetadataReference(projectId, system);
+            var originalDocument = originalSolution.GetDocument(documentId);
+            var originalSyntaxTree = (SyntaxTree)originalDocument.GetSyntaxTreeAsync().Result;
 
             // Replace invocation of interest with annotated version.
             var originalApmInvocation = statementFinder(originalSyntaxTree);
             var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
             var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNode(originalApmInvocation, annotatedApmInvocation);
-            var annotatedTree = SyntaxTree.Create(annotatedSyntax);
+            var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntax);
 
             Logger.Trace("Invocation tagged for refactoring: {0}", annotatedApmInvocation);
 
-            // Parse given refactored code
-            var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
-            var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
-
-            var workspace = new CustomWorkspace();
-
-            var actualRefactoredSyntax = PerformRefactoring(annotatedTree, workspace);
+            var actualRefactoredSyntax = PerformRefactoring(annotatedDocument, workspace);
 
             Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format(workspace));
 
             // Test against refactored code
-            // TODO: The first assertion seems to regard \r\n as different from \n.
-            //Assert.That(actualRefactoredSyntax, Is.EqualTo(refactoredSyntax));
+            var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
+            var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
+
             Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(SyntaxTree originalSyntax, Workspace workspace)
+        private static CompilationUnitSyntax PerformRefactoring(Document originalDocument, Workspace workspace)
         {
             Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
             // Perform actual refactoring
-            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(originalSyntax, workspace);
+            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(originalDocument, workspace);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;

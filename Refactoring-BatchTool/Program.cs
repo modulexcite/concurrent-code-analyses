@@ -89,10 +89,12 @@ namespace Refactoring_BatchTool
                 var annotatedInvocation = beginXxxSyntax.WithAdditionalAnnotations(new RefactorableAPMInstance());
                 var annotatedSyntax = syntax.ReplaceNode(beginXxxSyntax, annotatedInvocation);
 
-                SyntaxTree refactoredTree;
+                var annotatedDocument = document.WithSyntaxRoot(annotatedSyntax);
+
+                Document refactoredDocument;
                 try
                 {
-                    refactoredTree = ExecuteRefactoring(workspace, annotatedSyntax);
+                    refactoredDocument = ExecuteRefactoring(workspace, annotatedDocument);
                 }
                 catch (RefactoringException e)
                 {
@@ -102,13 +104,13 @@ namespace Refactoring_BatchTool
                 }
 
                 Logger.Trace("Recursively checking for more APM Begin method invocations ...");
-                var refactoredSolution = solution.WithDocumentSyntaxRoot(document.Id, refactoredTree.GetRoot());
+                var refactoredSolution = solution.WithDocumentSyntaxRoot(document.Id, refactoredDocument.GetSyntaxRootAsync().Result);
                 if (!workspace.TryApplyChanges(refactoredSolution))
                 {
                     throw new Exception("Workspace was changed during refactoring");
                 }
 
-                CheckDocument(solution.GetDocument(document.Id), workspace, refactoredSolution);
+                CheckDocument(refactoredSolution.GetDocument(document.Id), workspace, refactoredSolution);
             }
             else
             {
@@ -117,24 +119,27 @@ namespace Refactoring_BatchTool
             }
         }
 
-        private static SyntaxTree ExecuteRefactoring(Workspace workspace, SyntaxNode annotatedSyntax)
+        private static Document ExecuteRefactoring(Workspace workspace, Document annotatedDocument)
         {
-            Logger.Info("Refactoring annotated syntax tree:");
+            if (workspace == null) throw new ArgumentNullException("workspace");
+            if (annotatedDocument == null) throw new ArgumentNullException("annotatedDocument");
+
+            var annotatedSyntax = ((SyntaxTree)annotatedDocument.GetSyntaxTreeAsync().Result).GetRoot();
+
+            Logger.Info("Refactoring annotated document:");
             Logger.Info("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", annotatedSyntax);
 
             var startTime = DateTime.UtcNow;
 
-            var annotatedSyntaxTree = annotatedSyntax.CreateSyntaxTree();
-            var refactoredTree = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedSyntaxTree, workspace)
-                                                .CreateSyntaxTree();
+            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedDocument, workspace);
 
             var endTime = DateTime.UtcNow;
             var refactoringTime = endTime.Subtract(startTime).Milliseconds;
 
             Logger.Info("Refactoring completed in {0} ms.", refactoringTime);
-            Logger.Info("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredTree.GetRoot().Format(workspace));
+            Logger.Info("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(workspace));
 
-            return refactoredTree;
+            return annotatedDocument.WithSyntaxRoot(refactoredSyntax);
         }
 
         private static SyntaxTree CreateSyntaxTree(this SyntaxNode syntax)

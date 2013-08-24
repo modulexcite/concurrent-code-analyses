@@ -39,7 +39,7 @@ namespace Refactoring_Tests
             var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntax);
             var annotatedSemanticModel = annotatedDocument.GetSemanticModelAsync().Result;
 
-            var rewrittenSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedSyntaxTree, workspace);
+            var rewrittenSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedDocument, workspace);
             //var rewrittenDocument = originalDocument.WithSyntaxRoot(rewrittenSyntax);
 
             var rewrittenSolution = originalSolution.WithDocumentSyntaxRoot(documentId, rewrittenSyntax);

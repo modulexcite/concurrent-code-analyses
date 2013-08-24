@@ -18,14 +18,15 @@ namespace Refactoring
         /// <summary>
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
-        /// <param name="syntaxTree">The SyntaxTree on which to operate/in which the Begin and End method calls are represented.</param>
+        /// <param name="document">The C# Document on which to operate/in which the Begin and End method calls are represented.</param>
         /// <param name="workspace">The workspace to which the code in the syntax tree currently belongs, for formatting purposes.</param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(SyntaxTree syntaxTree, Workspace workspace)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(Document document, Workspace workspace)
         {
-            if (syntaxTree == null) throw new ArgumentNullException("syntaxTree");
+            if (document == null) throw new ArgumentNullException("document");
             if (workspace == null) throw new ArgumentNullException("workspace");
 
+            var syntaxTree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
             var syntax = (CompilationUnitSyntax)syntaxTree.GetRoot();
 
             Logger.Trace("\n### REFACTORING CODE ###\n{0}\n### END OF CODE ###", syntax.Format(workspace));
@@ -43,8 +44,7 @@ namespace Refactoring
                     "Syntax tree has no InvocationExpressionSyntax node annotated with RefactorableAPMInstance");
             }
 
-            var compilation = CompilationUtils.CreateCompilation(syntaxTree);
-            var model = compilation.GetSemanticModel(syntaxTree);
+            var model = (SemanticModel)document.GetSemanticModelAsync().Result;
 
             var callbackArgument = FindAsyncCallbackInvocationArgument(model, beginXxxCall);
             var callbackExpression = callbackArgument.Expression;
@@ -94,9 +94,9 @@ namespace Refactoring
                     );
             }
 
-            var rewrittenSyntaxTree = SyntaxTree.Create(rewrittenSyntax);
+            var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
 
-            return RefactorAPMToAsyncAwait(rewrittenSyntaxTree, workspace);
+            return RefactorAPMToAsyncAwait(rewrittenDocument, workspace);
         }
 
         private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, SemanticModel model, InvocationExpressionSyntax beginXxxCall)
