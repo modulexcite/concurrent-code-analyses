@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using Refactoring;
@@ -15,9 +16,9 @@ namespace Refactoring_BatchTool
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
-        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
+        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
 
         static void Main()
         {
@@ -33,7 +34,7 @@ namespace Refactoring_BatchTool
             }
             catch (Exception e)
             {
-                Logger.Error("Caught exception: {0}", e.Message, e);
+                Logger.Error("Caught exception: {0}: {1}", e.Message, e);
             }
 
             Console.WriteLine(@"Press any key to quit ...");
@@ -42,7 +43,7 @@ namespace Refactoring_BatchTool
 
         private static void DoWork()
         {
-            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
+            var workspace = MSBuildWorkspace.Create();
             var solution = workspace.TryLoadSolutionAsync(SolutionFile).Result;
 
             if (solution == null)
@@ -57,69 +58,72 @@ namespace Refactoring_BatchTool
 
             foreach (var document in documents)
             {
-                CheckDocument(document, workspace, solution);
+                solution = CheckDocument(document, workspace, solution);
             }
+
+            //if (!workspace.TryApplyChanges(solution))
+            //{
+            //    Logger.Error("Failed to apply changes in solution to workspace");
+            //}
         }
 
-        private static void CheckDocument(Document document, Workspace workspace, Solution solution)
+        private static Solution CheckDocument(Document document, Workspace workspace, Solution solution)
         {
             if (document == null) throw new ArgumentNullException("document");
             if (workspace == null) throw new ArgumentNullException("workspace");
+            if (solution == null) throw new ArgumentNullException("solution");
 
-            var tree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
-            var compilation = CompilationUtils.CreateCompilation(tree);
-            var model = compilation.GetSemanticModel(tree);
+            Logger.Debug("Checking document: {0}", document.FilePath);
 
-            var syntax = tree.GetRoot();
+            var annotater = new APMBeginInvocationAnnotater();
+            var annotatedDocument = annotater.Annotate(document);
 
-            var searcher = new BeginXxxSearcher(model);
-            searcher.Visit(syntax);
-
-            var beginXxxSyntax = searcher.BeginXxxSyntax;
-
-            if (beginXxxSyntax == null) return;
-
-            Logger.Info("Found APM Begin method: {0}", beginXxxSyntax);
-            Logger.Info("  At: {0}:{1}", beginXxxSyntax.SyntaxTree.FilePath, beginXxxSyntax.Span.Start);
-
-            // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
-            if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax
-                || beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
+            if (annotater.NumAnnotations == 0)
             {
-                var annotatedInvocation = beginXxxSyntax.WithAdditionalAnnotations(new RefactorableAPMInstance());
-                var annotatedSyntax = syntax.ReplaceNode(beginXxxSyntax, annotatedInvocation);
-
-                var annotatedDocument = document.WithSyntaxRoot(annotatedSyntax);
-
-                Document refactoredDocument;
-                try
-                {
-                    refactoredDocument = ExecuteRefactoring(workspace, annotatedDocument);
-                }
-                catch (RefactoringException e)
-                {
-                    Logger.Error("Refactoring failed: {0}", e.Message, e);
-
-                    throw new Exception("Refactoring failed: " + e.Message, e);
-                }
-
-                Logger.Trace("Recursively checking for more APM Begin method invocations ...");
-                var refactoredSolution = solution.WithDocumentSyntaxRoot(document.Id, refactoredDocument.GetSyntaxRootAsync().Result);
-                if (!workspace.TryApplyChanges(refactoredSolution))
-                {
-                    throw new Exception("Workspace was changed during refactoring");
-                }
-
-                CheckDocument(refactoredSolution.GetDocument(document.Id), workspace, refactoredSolution);
+                Logger.Trace("Document does not contain APM instances.");
+                return solution;
             }
-            else
+
+            Logger.Trace("Found {0} APM instances. Refactoring one-by-one ...", annotater.NumAnnotations);
+
+            var refactoredSolution = solution;
+            var refactoredDocument = annotatedDocument;
+            for (var index = 0; index < annotater.NumAnnotations; index++)
             {
-                Logger.Warn("APM Begin invocation containing statement is not yet supported: {0}: statement: {1}",
-                    beginXxxSyntax.ContainingStatement().Kind, beginXxxSyntax.ContainingStatement());
+                var beginXxxSyntax = annotatedDocument.GetAnnotatedInvocation(index);
+
+                // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
+                if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax ||
+                    beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
+                {
+
+                    try
+                    {
+                        refactoredDocument = ExecuteRefactoring(workspace, refactoredDocument, index);
+                    }
+                    catch (RefactoringException e)
+                    {
+                        Logger.Error("Refactoring failed: {0}", e.Message, e);
+
+                        throw new Exception("Refactoring failed: " + e.Message, e);
+                    }
+
+                    refactoredSolution = refactoredSolution.WithDocumentSyntaxRoot(
+                        refactoredDocument.Id,
+                        refactoredDocument.GetSyntaxRootAsync().Result
+                    );
+                }
+                else
+                {
+                    Logger.Warn("APM Begin invocation containing statement is not yet supported: {0}: statement: {1}",
+                        beginXxxSyntax.ContainingStatement().Kind, beginXxxSyntax.ContainingStatement());
+                }
             }
+
+            return refactoredSolution;
         }
 
-        private static Document ExecuteRefactoring(Workspace workspace, Document annotatedDocument)
+        private static Document ExecuteRefactoring(Workspace workspace, Document annotatedDocument, int index)
         {
             if (workspace == null) throw new ArgumentNullException("workspace");
             if (annotatedDocument == null) throw new ArgumentNullException("annotatedDocument");
@@ -131,7 +135,7 @@ namespace Refactoring_BatchTool
 
             var startTime = DateTime.UtcNow;
 
-            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedDocument, workspace);
+            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedDocument, workspace, index);
 
             var endTime = DateTime.UtcNow;
             var refactoringTime = endTime.Subtract(startTime).Milliseconds;

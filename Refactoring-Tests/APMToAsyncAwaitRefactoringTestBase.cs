@@ -55,18 +55,25 @@ namespace Refactoring_Tests
 
             var originalDocument = CreateOriginalDocument(originalCode, workspace);
 
-            CompilationUnitSyntax refactoredSyntax = null;
-            foreach (var statementFinder in invocationExpressionFinders)
-            {
-                refactoredSyntax = PerformRefactoring(statementFinder, originalDocument, workspace);
-                originalDocument = originalDocument.WithSyntaxRoot(refactoredSyntax);
-            }
+            var annotatedDocument = AnnotateDocument(originalDocument, invocationExpressionFinders);
+
+            var refactoredSyntax = RefactorDocument(annotatedDocument, invocationExpressionFinders.Length, workspace);
 
             var expectedSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var expectedSyntax = expectedSyntaxTree.GetCompilationUnitRoot();
 
             Assert.IsNotNull(refactoredSyntax);
             Assert.That(refactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(expectedSyntax.ToString().Replace("\r\n", "\n")));
+        }
+
+        private static Document AnnotateDocument(Document document, params InvocationExpressionFinder[] invocationExpressionFinders)
+        {
+            for (var index = 0; index < invocationExpressionFinders.Length; index++)
+            {
+                document = AnnotateInvocation(document, invocationExpressionFinders.ElementAt(index), index);
+            }
+
+            return document;
         }
 
         private static Document CreateOriginalDocument(string originalCode, CustomWorkspace workspace)
@@ -81,37 +88,55 @@ namespace Refactoring_Tests
             return originalSolution.GetDocument(documentId);
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(InvocationExpressionFinder invocationExpressionFinder, Document originalDocument, Workspace workspace)
+        private static CompilationUnitSyntax RefactorDocument(Document document, int numInstances, Workspace workspace)
         {
-            var annotatedDocument = AnnotateInvocation(invocationExpressionFinder, originalDocument);
+            CompilationUnitSyntax refactoredSyntax = null;
 
-            var refactoredSyntax = PerformTimedRefactoring(annotatedDocument, workspace);
+            for (var index = 0; index < numInstances; index++)
+            {
+                refactoredSyntax = PerformRefactoring(document, workspace, index);
+                document = document.WithSyntaxRoot(refactoredSyntax);
+            }
+
+            return refactoredSyntax;
+        }
+
+        private static CompilationUnitSyntax PerformRefactoring(Document document, Workspace workspace, int index)
+        {
+            var refactoredSyntax = PerformTimedRefactoring(document, workspace, index);
 
             Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", refactoredSyntax.Format(workspace));
 
             return refactoredSyntax;
         }
 
-        private static Document AnnotateInvocation(InvocationExpressionFinder invocationExpressionFinder, Document originalDocument)
+        private static Document AnnotateInvocation(Document document, InvocationExpressionFinder invocationExpressionFinder, int index)
         {
-            var originalSyntaxTree = (SyntaxTree)originalDocument.GetSyntaxTreeAsync().Result;
-
+            var originalSyntaxTree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
             var originalApmInvocation = invocationExpressionFinder(originalSyntaxTree);
-            var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
-            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNode(originalApmInvocation, annotatedApmInvocation);
+
+            var annotatedApmInvocation = originalApmInvocation
+                .WithAdditionalAnnotations(
+                    new RefactorableAPMInstance(index)
+                );
+
+            var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot())
+                .ReplaceNode(
+                    originalApmInvocation,
+                    annotatedApmInvocation
+                );
 
             Logger.Trace("Invocation tagged for refactoring: {0}", annotatedApmInvocation);
 
-            return originalDocument.WithSyntaxRoot(annotatedSyntax);
+            return document.WithSyntaxRoot(annotatedSyntax);
         }
 
-        private static CompilationUnitSyntax PerformTimedRefactoring(Document originalDocument, Workspace workspace)
+        private static CompilationUnitSyntax PerformTimedRefactoring(Document document, Workspace workspace, int index)
         {
             Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
-            // Perform actual refactoring
-            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(originalDocument, workspace);
+            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(document, workspace, index);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;

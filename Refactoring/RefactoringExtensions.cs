@@ -20,8 +20,9 @@ namespace Refactoring
         /// </summary>
         /// <param name="document">The C# Document on which to operate/in which the Begin and End method calls are represented.</param>
         /// <param name="workspace">The workspace to which the code in the syntax tree currently belongs, for formatting purposes.</param>
+        /// <param name="index">The index number </param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(Document document, Workspace workspace)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(Document document, Workspace workspace, int index)
         {
             if (document == null) throw new ArgumentNullException("document");
             if (workspace == null) throw new ArgumentNullException("workspace");
@@ -34,9 +35,7 @@ namespace Refactoring
             InvocationExpressionSyntax beginXxxCall;
             try
             {
-                beginXxxCall = syntax.DescendantNodes()
-                                     .OfType<InvocationExpressionSyntax>()
-                                     .First(node => node.HasAnnotations<RefactorableAPMInstance>());
+                beginXxxCall = document.GetAnnotatedInvocation(index);
             }
             catch (InvalidOperationException)
             {
@@ -96,7 +95,7 @@ namespace Refactoring
 
             var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
 
-            return RefactorAPMToAsyncAwait(rewrittenDocument, workspace);
+            return RefactorAPMToAsyncAwait(rewrittenDocument, workspace, index);
         }
 
         private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, SemanticModel model, InvocationExpressionSyntax beginXxxCall)
@@ -986,6 +985,18 @@ namespace Refactoring
             list.RemoveAt(list.Count - 1);
 
             return element;
+        }
+
+        public static InvocationExpressionSyntax GetAnnotatedInvocation(this Document document, int index)
+        {
+            return document.GetSyntaxRootAsync().Result
+                .DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+                .First(
+                    node => node
+                        .GetAnnotations<RefactorableAPMInstance>()
+                        .Any(annotation => annotation.Index == index)
+                );
         }
     }
 
