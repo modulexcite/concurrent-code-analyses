@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Refactoring_Tests
 {
@@ -10,23 +8,21 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatAsyncCallbackObjectCreationWithLambdaExpressionIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithLambdaExpression, RefactoredCodeWithLambdaExpression, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithLambdaExpression,
+                RefactoredCodeWithLambdaExpression,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         [Test]
         public void TestThatAsyncCallbackObjectCreationWithMethodReferenceIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithMethodReference, RefactoredCodeWithMethodReference, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithMethodReference,
+                RefactoredCodeWithMethodReference,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCodeWithLambdaExpression = @"using System;

@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
@@ -19,7 +20,7 @@ namespace Refactoring_Tests
 
         // ReSharper disable InconsistentNaming
         private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
-        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("system");
+        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("System");
         // ReSharper restore InconsistentNaming
 
         /// <summary>
@@ -27,7 +28,7 @@ namespace Refactoring_Tests
         /// </summary>
         /// <param name="syntaxTree">The SyntaxTree in which the invocation expression must be found.</param>
         /// <returns>The invocation expression statement.</returns>
-        public delegate InvocationExpressionSyntax StatementFinder(SyntaxTree syntaxTree);
+        public delegate InvocationExpressionSyntax InvocationExpressionFinder(SyntaxTree syntaxTree);
 
         /// <summary>
         /// Assert that given original code containing both the BeginXxx method
@@ -38,42 +39,73 @@ namespace Refactoring_Tests
         /// </summary>
         /// <param name="originalCode">The original code to refactor.</param>
         /// <param name="refactoredCode">The refactored code to check against.</param>
-        /// <param name="statementFinder">The delegate that returns the APM BeginXxx
-        /// invocation expression statement that must be refactored.</param>
-        protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, StatementFinder statementFinder)
+        /// <param name="invocationExpressionFinders">One or more delegates that returns the APM BeginXxx
+        /// invocation expression statement(s) that must be refactored.</param>
+        protected static void AssertThatOriginalCodeIsRefactoredCorrectly(string originalCode, string refactoredCode, params InvocationExpressionFinder[] invocationExpressionFinders)
         {
+            if (originalCode == null) throw new ArgumentNullException("originalCode");
+            if (refactoredCode == null) throw new ArgumentNullException("refactoredCode");
+            if (invocationExpressionFinders == null) throw new ArgumentNullException("invocationExpressionFinders");
+
+            if (invocationExpressionFinders.Length == 0) throw new ArgumentException("Must provide at least one StatementFinder");
+
             Logger.Debug("\n=== CODE TO BE REFACTORED ===\n{0}\n=== END OF CODE ===", originalCode);
 
             var workspace = new CustomWorkspace();
+
+            var originalDocument = CreateOriginalDocument(originalCode, workspace);
+
+            CompilationUnitSyntax refactoredSyntax = null;
+            foreach (var statementFinder in invocationExpressionFinders)
+            {
+                refactoredSyntax = PerformRefactoring(statementFinder, originalDocument, workspace);
+                originalDocument = originalDocument.WithSyntaxRoot(refactoredSyntax);
+            }
+
+            var expectedSyntaxTree = SyntaxTree.ParseText(refactoredCode);
+            var expectedSyntax = expectedSyntaxTree.GetCompilationUnitRoot();
+
+            Assert.IsNotNull(refactoredSyntax);
+            Assert.That(refactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(expectedSyntax.ToString().Replace("\r\n", "\n")));
+        }
+
+        private static Document CreateOriginalDocument(string originalCode, CustomWorkspace workspace)
+        {
             var projectId = workspace.AddProject("ProjectUnderTest", LanguageNames.CSharp);
             var documentId = workspace.AddDocument(projectId, "SourceUnderTest.cs", originalCode);
 
             var originalSolution = workspace.CurrentSolution
                 .AddMetadataReference(projectId, mscorlib)
                 .AddMetadataReference(projectId, system);
-            var originalDocument = originalSolution.GetDocument(documentId);
+
+            return originalSolution.GetDocument(documentId);
+        }
+
+        private static CompilationUnitSyntax PerformRefactoring(InvocationExpressionFinder invocationExpressionFinder, Document originalDocument, Workspace workspace)
+        {
+            var annotatedDocument = AnnotateInvocation(invocationExpressionFinder, originalDocument);
+
+            var refactoredSyntax = PerformTimedRefactoring(annotatedDocument, workspace);
+
+            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", refactoredSyntax.Format(workspace));
+
+            return refactoredSyntax;
+        }
+
+        private static Document AnnotateInvocation(InvocationExpressionFinder invocationExpressionFinder, Document originalDocument)
+        {
             var originalSyntaxTree = (SyntaxTree)originalDocument.GetSyntaxTreeAsync().Result;
 
-            // Replace invocation of interest with annotated version.
-            var originalApmInvocation = statementFinder(originalSyntaxTree);
+            var originalApmInvocation = invocationExpressionFinder(originalSyntaxTree);
             var annotatedApmInvocation = (SyntaxNode)originalApmInvocation.WithAdditionalAnnotations(new RefactorableAPMInstance());
             var annotatedSyntax = ((CompilationUnitSyntax)originalSyntaxTree.GetRoot()).ReplaceNode(originalApmInvocation, annotatedApmInvocation);
-            var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntax);
 
             Logger.Trace("Invocation tagged for refactoring: {0}", annotatedApmInvocation);
 
-            var actualRefactoredSyntax = PerformRefactoring(annotatedDocument, workspace);
-
-            Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", actualRefactoredSyntax.Format(workspace));
-
-            // Test against refactored code
-            var refactoredSyntaxTree = SyntaxTree.ParseText(refactoredCode);
-            var refactoredSyntax = refactoredSyntaxTree.GetCompilationUnitRoot();
-
-            Assert.That(actualRefactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(refactoredSyntax.ToString().Replace("\r\n", "\n")));
+            return originalDocument.WithSyntaxRoot(annotatedSyntax);
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(Document originalDocument, Workspace workspace)
+        private static CompilationUnitSyntax PerformTimedRefactoring(Document originalDocument, Workspace workspace)
         {
             Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
@@ -86,6 +118,14 @@ namespace Refactoring_Tests
             Logger.Trace("Finished refactoring operation in {0} ms", time);
 
             return actualRefactoredSyntax;
+        }
+
+        protected internal static InvocationExpressionFinder FirstBeginInvocationFinder(string nodeText)
+        {
+            return tree => tree.GetRoot()
+                .DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+                .First(node => node.ToString().Contains(nodeText));
         }
     }
 }

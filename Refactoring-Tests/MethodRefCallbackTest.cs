@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
-using System.Linq;
+﻿using NUnit.Framework;
 
 namespace Refactoring_Tests
 {
@@ -10,34 +8,31 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatTheSimpleCaseWithMethodRefCallbackIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCode,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         [Test]
         public void TestThatSimpleLambdaWithoutBlockIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithSimpleLambdaWithoutBlock,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         [Test]
         public void TestThatParenthesizedLambdaWithoutBlockIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambdaWithoutBlock, RefactoredCode, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithParenthesizedLambdaWithoutBlock,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCode = @"using System;

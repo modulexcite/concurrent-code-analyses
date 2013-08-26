@@ -1,7 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
-using System.Linq;
 
 namespace Refactoring_Tests
 {
@@ -11,14 +9,14 @@ namespace Refactoring_Tests
         // [Test] TODO Delegates are only sometimes refactorable
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(node => node.ToString().Contains("request.BeginGetResponse"));
-
             try
             {
-                AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+                AssertThatOriginalCodeIsRefactoredCorrectly(
+                    OriginalCode,
+                    RefactoredCode,
+                    FirstBeginInvocationFinder("request.BeginGetResponse")
+                );
+
                 Assert.Fail("Should have failed.");
             }
             catch (InvalidCastException)

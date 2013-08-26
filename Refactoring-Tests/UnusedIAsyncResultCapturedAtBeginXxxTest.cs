@@ -10,12 +10,11 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatUnusedIAsyncResultCapturedAtBeginXxxIsIgnored()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCode,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         // TODO [Test]

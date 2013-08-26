@@ -10,23 +10,21 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatPassedAsyncStateIsIntroducedAsParameterForCallbacks()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithUsedAsyncState, RefactoredCodeWithUsedAsyncState, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithUsedAsyncState,
+                RefactoredCodeWithUsedAsyncState,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         // [Test] TODO: Enable this test if AsyncState is removed when it is unused.
         public void TestThatPassedAsyncStateIsRemovedWhenUnused()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(invocation => invocation.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithUnusedAsyncState, RefactoredCodeWithIgnoredAsyncState, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithUnusedAsyncState,
+                RefactoredCodeWithIgnoredAsyncState,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCodeWithUsedAsyncState = @"using System;

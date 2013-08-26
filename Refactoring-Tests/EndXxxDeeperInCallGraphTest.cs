@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
-using System.Linq;
+﻿using NUnit.Framework;
 
 namespace Refactoring_Tests
 {
@@ -10,12 +8,11 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatNestedEndGetResponseIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<InvocationExpressionSyntax>()
-                                .First(node => node.ToString().Contains("request.BeginGetResponse"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCode,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCode = @"using System;
