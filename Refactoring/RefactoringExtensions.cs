@@ -414,9 +414,17 @@ namespace Refactoring
 
             var originalCallingMethod = beginXxxCall.ContainingMethod();
 
-            return originalCallingMethod.ReplaceNode(endXxxStatement, tapStatement)
-                            .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray())
-                            .AddModifiers(NewAsyncKeyword());
+            var rewrittenMethod = originalCallingMethod
+                .ReplaceNode(
+                    endXxxStatement,
+                    tapStatement
+                )
+                .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray());
+
+            if (!rewrittenMethod.HasAsyncModifier())
+                rewrittenMethod = rewrittenMethod.AddModifiers(NewAsyncKeyword());
+
+            return rewrittenMethod;
         }
 
         /// <summary>
