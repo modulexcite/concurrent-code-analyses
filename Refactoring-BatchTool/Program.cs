@@ -16,12 +16,13 @@ namespace Refactoring_BatchTool
 
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
-        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
+        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
 
-        private static int _numCandidates = 0;
-        private static int _numRefactoringExceptions = 0;
-        private static int _numNotImplementedExceptions = 0;
+        private static int _numCandidates;
+        private static int _numRefactoringExceptions;
+        private static int _numNotImplementedExceptions;
+        private static int _numOtherExceptions;
 
         static void Main()
         {
@@ -31,24 +32,23 @@ namespace Refactoring_BatchTool
             {
                 DoWork(SolutionFile);
             }
-            catch (NotImplementedException e)
-            {
-                Logger.Error("Not implemented: {0}: {1}", e.Message, e);
-            }
             catch (Exception e)
             {
-                Logger.Error("Caught exception: {0}: {1}", e.Message, e);
+                Logger.Error("%%% CRITICAL ERROR %%%");
+                Logger.Error("%%% Caught unexpected exception during work on solution file: {0}", SolutionFile);
+                Logger.Error("%%% Caught exception: {0}:\n{1}", e.Message, e);
             }
 
-            var numFailedRefactorings = _numRefactoringExceptions + _numNotImplementedExceptions;
+            var numFailedRefactorings = _numRefactoringExceptions + _numNotImplementedExceptions + _numOtherExceptions;
             var numSuccesfulRefactorings = _numCandidates - numFailedRefactorings;
 
             Logger.Info("!!! REFACTORING RESULTS !!!");
-            Logger.Info(" * Total number of candidates for refactoring: {0}", _numCandidates);
-            Logger.Info(" * Number of succesful refactorings          : {0}", numSuccesfulRefactorings);
-            Logger.Info(" * Number of failed refactorings             : {0}", numFailedRefactorings);
-            Logger.Info("    - RefactoringExceptions   : {0}", _numRefactoringExceptions);
-            Logger.Info("    - NotImplementedExceptions: {0}", _numNotImplementedExceptions);
+            Logger.Info("!!! * Total number of candidates for refactoring: {0}", _numCandidates);
+            Logger.Info("!!! * Number of succesful refactorings          : {0}", numSuccesfulRefactorings);
+            Logger.Info("!!! * Number of failed refactorings             : {0}", numFailedRefactorings);
+            Logger.Info("!!!    - RefactoringExceptions   : {0}", _numRefactoringExceptions);
+            Logger.Info("!!!    - NotImplementedExceptions: {0}", _numNotImplementedExceptions);
+            Logger.Info("!!!    - Other exceptions        : {0}", _numOtherExceptions);
             Logger.Info("!!! END OF RESULTS !!!");
 
             Console.WriteLine(@"Press any key to quit ...");
@@ -102,6 +102,7 @@ namespace Refactoring_BatchTool
 
             var numErrors = solution.CompilationErrorCount();
 
+            // TODO: Set refactoredSolution to the annotated solution instead of the original solution.
             var refactoredSolution = solution;
             var refactoredDocument = annotatedDocument;
             for (var index = 0; index < annotater.NumAnnotations; index++)
@@ -142,6 +143,13 @@ namespace Refactoring_BatchTool
                         refactoredSolution = oldSolution;
 
                         _numNotImplementedExceptions++;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error("Unhandled exception while refactoring: index={0}: {1}\n{2}", index, e.Message, e);
+                        refactoredSolution = oldSolution;
+
+                        _numOtherExceptions++;
                     }
                 }
                 else
