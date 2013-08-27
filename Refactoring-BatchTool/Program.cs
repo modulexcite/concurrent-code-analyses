@@ -67,6 +67,7 @@ namespace Refactoring_BatchTool
             }
 
             var documents = solution.Projects
+                .Where(project => project.IsWindowsPhoneProject() > 0)
                 .SelectMany(project => project.Documents)
                 .Where(document => document.FilePath.EndsWith(".cs"));
 
