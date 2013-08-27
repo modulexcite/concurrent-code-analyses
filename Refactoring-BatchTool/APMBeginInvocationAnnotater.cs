@@ -51,7 +51,7 @@ namespace Refactoring_BatchTool
                 Logger.Trace("Symbol missing for invocation: {0} @ {1}:{2}: {3}",
                     node,
                     node.SyntaxTree.FilePath,
-                    node.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line,
+                    node.GetStartLineNumber(),
                     e.Message
                 );
 
@@ -63,7 +63,7 @@ namespace Refactoring_BatchTool
                 Logger.Info("Found APM Begin method invocation, annotating it: {0} @ {1}:{2}",
                     node,
                     node.SyntaxTree.FilePath,
-                    node.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line
+                    node.GetStartLineNumber()
                 );
 
                 var annotatedInvocation = node.WithAdditionalAnnotations(

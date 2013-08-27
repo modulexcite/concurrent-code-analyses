@@ -19,6 +19,10 @@ namespace Refactoring_BatchTool
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
         private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
 
+        private static int _numCandidates = 0;
+        private static int _numRefactoringExceptions = 0;
+        private static int _numNotImplementedExceptions = 0;
+
         static void Main()
         {
             Logger.Info("Hello, world!");
@@ -35,6 +39,17 @@ namespace Refactoring_BatchTool
             {
                 Logger.Error("Caught exception: {0}: {1}", e.Message, e);
             }
+
+            var numFailedRefactorings = _numRefactoringExceptions + _numNotImplementedExceptions;
+            var numSuccesfulRefactorings = _numCandidates - numFailedRefactorings;
+
+            Logger.Info("!!! REFACTORING RESULTS !!!");
+            Logger.Info(" * Total number of candidates for refactoring: {0}", _numCandidates);
+            Logger.Info(" * Number of succesful refactorings          : {0}", numSuccesfulRefactorings);
+            Logger.Info(" * Number of failed refactorings             : {0}", numFailedRefactorings);
+            Logger.Info("    - RefactoringExceptions   : {0}", _numRefactoringExceptions);
+            Logger.Info("    - NotImplementedExceptions: {0}", _numNotImplementedExceptions);
+            Logger.Info("!!! END OF RESULTS !!!");
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
@@ -70,7 +85,7 @@ namespace Refactoring_BatchTool
             if (workspace == null) throw new ArgumentNullException("workspace");
             if (solution == null) throw new ArgumentNullException("solution");
 
-            Logger.Debug("Checking document: {0}", document.FilePath);
+            Logger.Trace("Checking document: {0}", document.FilePath);
 
             var annotater = new APMBeginInvocationAnnotater();
             var annotatedDocument = annotater.Annotate(document);
@@ -82,6 +97,7 @@ namespace Refactoring_BatchTool
             }
 
             Logger.Trace("Found {0} APM instances. Refactoring one-by-one ...", annotater.NumAnnotations);
+            _numCandidates += annotater.NumAnnotations;
 
             var numErrors = solution.CompilationErrorCount();
 
@@ -116,11 +132,15 @@ namespace Refactoring_BatchTool
                     {
                         Logger.Error("Refactoring failed: index={0}: {1}: {2}", index, e.Message, e);
                         refactoredSolution = oldSolution;
+
+                        _numRefactoringExceptions++;
                     }
                     catch (NotImplementedException e)
                     {
                         Logger.Error("Not implemented: index={0}: {0}: {1}", index, e.Message, e);
                         refactoredSolution = oldSolution;
+
+                        _numNotImplementedExceptions++;
                     }
                 }
                 else

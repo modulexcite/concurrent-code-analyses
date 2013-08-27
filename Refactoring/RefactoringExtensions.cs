@@ -33,7 +33,7 @@ namespace Refactoring
             var syntaxTree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
             var syntax = (CompilationUnitSyntax)syntaxTree.GetRoot();
 
-            Logger.Debug("\n### REFACTORING CODE ###\n{0}\n### END OF CODE ###", syntax.Format(workspace));
+            Logger.Trace("\n### REFACTORING CODE ###\n{0}\n### END OF CODE ###", syntax.Format(workspace));
 
             InvocationExpressionSyntax beginXxxCall;
             try
@@ -104,9 +104,14 @@ namespace Refactoring
                 const string message = "Rewritten solution contains more compilation errors than the original solution - not continuing";
 
                 Logger.Warn(message);
+                Logger.Warn("  APM Begin method call located at: {0}:{1}",
+                    beginXxxCall.SyntaxTree.FilePath,
+                    beginXxxCall.GetStartLineNumber()
+                );
+                Logger.Warn("\n### ORIGINAL CODE ###\n{0}### END OF CODE ###", syntax.Format(workspace));
                 Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
 
-                throw new RefactoringException(message);
+                throw new RefactoringException(message, beginXxxCall);
             }
 
             return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
@@ -1012,6 +1017,15 @@ namespace Refactoring
                         .Any(annotation => annotation.Index == index)
                 );
         }
+
+        public static int GetStartLineNumber(this SyntaxNode node)
+        {
+            if (node == null) throw new ArgumentNullException("node");
+
+            if (node.SyntaxTree == null) throw new ArgumentException("node.SyntaxTree is null");
+
+            return node.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line;
+        }
     }
 
     public class RefactoringException : Exception
@@ -1023,6 +1037,11 @@ namespace Refactoring
 
         public RefactoringException(string message, SymbolMissingException innerException)
             : base(message, innerException)
+        {
+        }
+
+        public RefactoringException(string message, SyntaxNode node)
+            : base(message + ": " + node.SyntaxTree.FilePath + ":" + node.GetStartLineNumber())
         {
         }
     }
