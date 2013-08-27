@@ -20,7 +20,8 @@ namespace Refactoring_Tests
 
         // ReSharper disable InconsistentNaming
         private static readonly MetadataReference mscorlib = MetadataReference.CreateAssemblyReference("mscorlib");
-        private static readonly MetadataReference system = MetadataReference.CreateAssemblyReference("System");
+        private static readonly MetadataReference System = MetadataReference.CreateAssemblyReference("System");
+        private static readonly MetadataReference SystemCore = MetadataReference.CreateAssemblyReference("System.Core");
         // ReSharper restore InconsistentNaming
 
         /// <summary>
@@ -53,11 +54,14 @@ namespace Refactoring_Tests
 
             var workspace = new CustomWorkspace();
 
-            var originalDocument = CreateOriginalDocument(originalCode, workspace);
+            DocumentId documentId;
+            var originalSolution = CreateOriginalDocument(originalCode, workspace, out documentId);
+            var originalDocument = originalSolution.GetDocument(documentId);
 
             var annotatedDocument = AnnotateDocument(originalDocument, invocationExpressionFinders);
+            var annotatedSolution = originalSolution.WithDocumentSyntaxRoot(documentId, originalDocument.GetSyntaxRootAsync().Result);
 
-            var refactoredSyntax = RefactorDocument(annotatedDocument, invocationExpressionFinders.Length, workspace);
+            var refactoredSyntax = RefactorDocument(annotatedDocument, annotatedSolution, invocationExpressionFinders.Length, workspace);
 
             var expectedSyntaxTree = SyntaxTree.ParseText(refactoredCode);
             var expectedSyntax = expectedSyntaxTree.GetCompilationUnitRoot();
@@ -76,34 +80,35 @@ namespace Refactoring_Tests
             return document;
         }
 
-        private static Document CreateOriginalDocument(string originalCode, CustomWorkspace workspace)
+        public static Solution CreateOriginalDocument(string originalCode, CustomWorkspace workspace, out DocumentId documentId)
         {
             var projectId = workspace.AddProject("ProjectUnderTest", LanguageNames.CSharp);
-            var documentId = workspace.AddDocument(projectId, "SourceUnderTest.cs", originalCode);
+            documentId = workspace.AddDocument(projectId, "SourceUnderTest.cs", originalCode);
 
-            var originalSolution = workspace.CurrentSolution
+            var solution = workspace.CurrentSolution
                 .AddMetadataReference(projectId, mscorlib)
-                .AddMetadataReference(projectId, system);
+                .AddMetadataReference(projectId, System)
+                .AddMetadataReference(projectId, SystemCore);
 
-            return originalSolution.GetDocument(documentId);
+            return solution;
         }
 
-        private static CompilationUnitSyntax RefactorDocument(Document document, int numInstances, Workspace workspace)
+        private static CompilationUnitSyntax RefactorDocument(Document document, Solution solution, int numInstances, Workspace workspace)
         {
             CompilationUnitSyntax refactoredSyntax = null;
 
             for (var index = 0; index < numInstances; index++)
             {
-                refactoredSyntax = PerformRefactoring(document, workspace, index);
+                refactoredSyntax = PerformRefactoring(document, solution, workspace, index);
                 document = document.WithSyntaxRoot(refactoredSyntax);
             }
 
             return refactoredSyntax;
         }
 
-        private static CompilationUnitSyntax PerformRefactoring(Document document, Workspace workspace, int index)
+        private static CompilationUnitSyntax PerformRefactoring(Document document, Solution solution, Workspace workspace, int index)
         {
-            var refactoredSyntax = PerformTimedRefactoring(document, workspace, index);
+            var refactoredSyntax = PerformTimedRefactoring(document, solution, workspace, index);
 
             Logger.Debug("=== REFACTORED CODE ===\n{0}\n=== END OF CODE ===", refactoredSyntax.Format(workspace));
 
@@ -131,12 +136,12 @@ namespace Refactoring_Tests
             return document.WithSyntaxRoot(annotatedSyntax);
         }
 
-        private static CompilationUnitSyntax PerformTimedRefactoring(Document document, Workspace workspace, int index)
+        private static CompilationUnitSyntax PerformTimedRefactoring(Document document, Solution solution, Workspace workspace, int index)
         {
             Logger.Trace("Starting refactoring operation ...");
             var start = DateTime.UtcNow;
 
-            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(document, workspace, index);
+            var actualRefactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(document, solution, workspace, index);
 
             var end = DateTime.UtcNow;
             var time = end.Subtract(start).Milliseconds;

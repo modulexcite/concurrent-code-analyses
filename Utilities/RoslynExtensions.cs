@@ -1,3 +1,4 @@
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,7 +26,7 @@ namespace Utilities
             var linesWithNoText = 0;
             foreach (var l in text.Lines)
             {
-                if (string.IsNullOrEmpty(l.ToString().Trim()))
+                if (String.IsNullOrEmpty(l.ToString().Trim()))
                 {
                     ++linesWithNoText;
                 }
@@ -232,6 +233,14 @@ namespace Utilities
             //    if (node is MethodDeclarationSyntax)
             //        return (MethodDeclarationSyntax)node;
             //}
+        }
+
+        public static int CompilationErrorCount(this Solution solution)
+        {
+            return solution.Projects
+                .Select(project => project.GetCompilationAsync().Result)
+                .SelectMany(compilation => compilation.GetDiagnostics())
+                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         }
     }
 }

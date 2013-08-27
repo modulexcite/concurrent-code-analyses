@@ -48,7 +48,7 @@ namespace Refactoring_BatchTool
             }
             catch (SymbolMissingException e)
             {
-                Logger.Debug("Symbol missing for invocation: {0} @ {1}:{2}: {3}",
+                Logger.Trace("Symbol missing for invocation: {0} @ {1}:{2}: {3}",
                     node,
                     node.SyntaxTree.FilePath,
                     node.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line,

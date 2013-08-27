@@ -19,18 +19,21 @@ namespace Refactoring
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
         /// <param name="document">The C# Document on which to operate/in which the Begin and End method calls are represented.</param>
+        /// <param name="solution">The solution that contains the C# document.</param>
         /// <param name="workspace">The workspace to which the code in the syntax tree currently belongs, for formatting purposes.</param>
         /// <param name="index">The index number </param>
         /// <returns>The CompilationUnitSyntax node that is the result of the transformation.</returns>
-        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(Document document, Workspace workspace, int index)
+        public static CompilationUnitSyntax RefactorAPMToAsyncAwait(Document document, Solution solution, Workspace workspace, int index)
         {
             if (document == null) throw new ArgumentNullException("document");
             if (workspace == null) throw new ArgumentNullException("workspace");
 
+            var numErrorsInSolutionBeforeRewriting = solution.CompilationErrorCount();
+
             var syntaxTree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
             var syntax = (CompilationUnitSyntax)syntaxTree.GetRoot();
 
-            Logger.Trace("\n### REFACTORING CODE ###\n{0}\n### END OF CODE ###", syntax.Format(workspace));
+            Logger.Debug("\n### REFACTORING CODE ###\n{0}\n### END OF CODE ###", syntax.Format(workspace));
 
             InvocationExpressionSyntax beginXxxCall;
             try
@@ -94,8 +97,19 @@ namespace Refactoring
             }
 
             var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
+            var rewrittenSolution = solution.WithDocumentSyntaxRoot(document.Id, rewrittenSyntax);
 
-            return RefactorAPMToAsyncAwait(rewrittenDocument, workspace, index);
+            if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
+            {
+                const string message = "Rewritten solution contains more compilation errors than the original solution - not continuing";
+
+                Logger.Warn(message);
+                Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
+
+                throw new RefactoringException(message);
+            }
+
+            return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
         }
 
         private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, SemanticModel model, InvocationExpressionSyntax beginXxxCall)
@@ -1002,6 +1016,11 @@ namespace Refactoring
 
     public class RefactoringException : Exception
     {
+        public RefactoringException(string message)
+            : base(message)
+        {
+        }
+
         public RefactoringException(string message, SymbolMissingException innerException)
             : base(message, innerException)
         {

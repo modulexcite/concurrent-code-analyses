@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using Refactoring;
@@ -16,9 +15,9 @@ namespace Refactoring_BatchTool
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Weather\Weather.sln";
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\topaz-fuel-card-windows-phone\Topaz Fuel Card.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\Mono.Data.Sqlite\Mono.Data.Sqlite.sln";
-        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
+        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
 
         static void Main()
         {
@@ -26,11 +25,11 @@ namespace Refactoring_BatchTool
 
             try
             {
-                DoWork();
+                DoWork(SolutionFile);
             }
             catch (NotImplementedException e)
             {
-                Logger.Error("Not implemented: {0}", e.Message, e);
+                Logger.Error("Not implemented: {0}: {1}", e.Message, e);
             }
             catch (Exception e)
             {
@@ -41,30 +40,28 @@ namespace Refactoring_BatchTool
             Console.ReadKey();
         }
 
-        private static void DoWork()
+        private static void DoWork(String solutionPath)
         {
             var workspace = MSBuildWorkspace.Create();
-            var solution = workspace.TryLoadSolutionAsync(SolutionFile).Result;
+            var solution = workspace.TryLoadSolutionAsync(solutionPath).Result;
 
             if (solution == null)
             {
-                Logger.Error("Failed to load solution file: {0}", SolutionFile);
+                Logger.Error("Failed to load solution file: {0}", solutionPath);
                 return;
             }
 
             var documents = solution.Projects
-                                    .SelectMany(project => project.Documents)
-                                    .Where(document => document.FilePath.EndsWith(".cs"));
+                .SelectMany(project => project.Documents)
+                .Where(document => document.FilePath.EndsWith(".cs"));
 
-            foreach (var document in documents)
+            solution = documents.Aggregate(solution,
+                (sln, doc) => CheckDocument(doc, workspace, sln));
+
+            if (!workspace.TryApplyChanges(solution))
             {
-                solution = CheckDocument(document, workspace, solution);
+                Logger.Error("Failed to apply changes in solution to workspace");
             }
-
-            //if (!workspace.TryApplyChanges(solution))
-            //{
-            //    Logger.Error("Failed to apply changes in solution to workspace");
-            //}
         }
 
         private static Solution CheckDocument(Document document, Workspace workspace, Solution solution)
@@ -86,6 +83,8 @@ namespace Refactoring_BatchTool
 
             Logger.Trace("Found {0} APM instances. Refactoring one-by-one ...", annotater.NumAnnotations);
 
+            var numErrors = solution.CompilationErrorCount();
+
             var refactoredSolution = solution;
             var refactoredDocument = annotatedDocument;
             for (var index = 0; index < annotater.NumAnnotations; index++)
@@ -96,46 +95,60 @@ namespace Refactoring_BatchTool
                 if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax ||
                     beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
                 {
-
+                    var oldSolution = refactoredSolution;
                     try
                     {
-                        refactoredDocument = ExecuteRefactoring(workspace, refactoredDocument, index);
+                        refactoredDocument = ExecuteRefactoring(workspace, refactoredDocument, refactoredSolution, index);
+
+                        refactoredSolution = refactoredSolution
+                            .WithDocumentSyntaxRoot(
+                                refactoredDocument.Id,
+                                refactoredDocument.GetSyntaxRootAsync().Result
+                            );
+
+                        if (refactoredSolution.CompilationErrorCount() > numErrors)
+                        {
+                            Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
+                            refactoredSolution = oldSolution;
+                        }
                     }
                     catch (RefactoringException e)
                     {
-                        Logger.Error("Refactoring failed: {0}", e.Message, e);
-
-                        throw new Exception("Refactoring failed: " + e.Message, e);
+                        Logger.Error("Refactoring failed: index={0}: {1}: {2}", index, e.Message, e);
+                        refactoredSolution = oldSolution;
                     }
-
-                    refactoredSolution = refactoredSolution.WithDocumentSyntaxRoot(
-                        refactoredDocument.Id,
-                        refactoredDocument.GetSyntaxRootAsync().Result
-                    );
+                    catch (NotImplementedException e)
+                    {
+                        Logger.Error("Not implemented: index={0}: {0}: {1}", index, e.Message, e);
+                        refactoredSolution = oldSolution;
+                    }
                 }
                 else
                 {
-                    Logger.Warn("APM Begin invocation containing statement is not yet supported: {0}: statement: {1}",
-                        beginXxxSyntax.ContainingStatement().Kind, beginXxxSyntax.ContainingStatement());
+                    Logger.Warn("APM Begin invocation containing statement is not yet supported: index={0}: {1}: statement: {2}",
+                        index,
+                        beginXxxSyntax.ContainingStatement().Kind,
+                        beginXxxSyntax.ContainingStatement()
+                    );
                 }
             }
 
             return refactoredSolution;
         }
 
-        private static Document ExecuteRefactoring(Workspace workspace, Document annotatedDocument, int index)
+        private static Document ExecuteRefactoring(Workspace workspace, Document document, Solution solution, int index)
         {
             if (workspace == null) throw new ArgumentNullException("workspace");
-            if (annotatedDocument == null) throw new ArgumentNullException("annotatedDocument");
+            if (document == null) throw new ArgumentNullException("document");
 
-            var annotatedSyntax = ((SyntaxTree)annotatedDocument.GetSyntaxTreeAsync().Result).GetRoot();
+            var syntax = ((SyntaxTree)document.GetSyntaxTreeAsync().Result).GetRoot();
 
-            Logger.Info("Refactoring annotated document:");
-            Logger.Info("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", annotatedSyntax);
+            Logger.Info("Refactoring annotated document: index={0}", index);
+            Logger.Info("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", syntax);
 
             var startTime = DateTime.UtcNow;
 
-            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(annotatedDocument, workspace, index);
+            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(document, solution, workspace, index);
 
             var endTime = DateTime.UtcNow;
             var refactoringTime = endTime.Subtract(startTime).Milliseconds;
@@ -143,7 +156,7 @@ namespace Refactoring_BatchTool
             Logger.Info("Refactoring completed in {0} ms.", refactoringTime);
             Logger.Info("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(workspace));
 
-            return annotatedDocument.WithSyntaxRoot(refactoredSyntax);
+            return document.WithSyntaxRoot(refactoredSyntax);
         }
 
         private static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
