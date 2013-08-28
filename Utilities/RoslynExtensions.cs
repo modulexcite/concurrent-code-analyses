@@ -1,10 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using System.Xml;
+using NLog;
 
 namespace Utilities
 {
@@ -13,6 +15,8 @@ namespace Utilities
     /// </summary>
     public static class RoslynExtensions
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public static bool IsCSProject(this Project project)
         {
             return project.Language.Equals("C#");
@@ -206,7 +210,7 @@ namespace Utilities
             if (methodCallSymbol == null)
                 return null;
 
-            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a=> a.GetSyntax());
+            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a => a.GetSyntax());
 
             if (nodes == null || nodes.Count() == 0)
                 return null;
@@ -241,6 +245,25 @@ namespace Utilities
                 .Select(project => project.GetCompilationAsync().Result)
                 .SelectMany(compilation => compilation.GetDiagnostics())
                 .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
+        public static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
+        {
+            if (workspace == null) throw new ArgumentNullException("workspace");
+            if (solutionPath == null) throw new ArgumentNullException("solutionPath");
+
+            Logger.Trace("Trying to load solution file: {0}", solutionPath);
+
+            try
+            {
+                return await workspace.OpenSolutionAsync(solutionPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+
+                return null;
+            }
         }
     }
 }
