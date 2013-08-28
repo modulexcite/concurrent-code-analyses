@@ -20,25 +20,15 @@ namespace Utilities
 
             Logger.Trace("Looking up symbol for: {0}", expression);
 
-            switch (expression.Kind)
+            var symbol = model.GetSymbolInfo(expression).Symbol;
+
+            var methodSymbol = symbol as MethodSymbol;
+            if (methodSymbol != null)
             {
-                case SyntaxKind.PointerMemberAccessExpression:
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.IdentifierName:
-
-                    var symbol = model.GetSymbolInfo(expression).Symbol;
-
-                    var methodSymbol = symbol as MethodSymbol;
-                    if (methodSymbol != null)
-                    {
-                        return methodSymbol;
-                    }
-
-                    throw new MethodSymbolMissingException(invocation);
-
-                default:
-                    throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
+                return methodSymbol;
             }
+
+            throw new MethodSymbolMissingException(invocation);
         }
 
         public static MethodSymbol LookupMethodSymbol(this SemanticModel model, IdentifierNameSyntax identifier)
