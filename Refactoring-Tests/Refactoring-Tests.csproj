@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
     <Compile Include="AsyncCallbackObjectCreationTest.cs" />
+    <Compile Include="AsyncMethodNeverGetsReturnTypeTaskVoidTest.cs" />
     <Compile Include="AsyncStatePassingTest.cs" />
     <Compile Include="NestedAPMInstances.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
