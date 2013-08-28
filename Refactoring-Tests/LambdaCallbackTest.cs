@@ -25,6 +25,16 @@ namespace Refactoring_Tests
             );
         }
 
+        [Test]
+        public void TestThatLambdaCallbackWithSetButUnreferencedAsyncStateWhichIsAlsoCapturedDirectlyIsRefactoredCorrectly()
+        {
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithSimpleLambdaWithCapturedAsyncState,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
+        }
+
         private const string OriginalCodeWithParenthesizedLambda = @"using System;
 using System.Net;
 
@@ -64,6 +74,30 @@ namespace TextInput
 
                 DoSomethingWithResponse(response);
             }, null);
+
+            DoSomethingWhileGetResponseIsRunning();
+        }
+
+        private static void DoSomethingWhileGetResponseIsRunning() { }
+        private static void DoSomethingWithResponse(WebResponse response) { }
+    }
+}";
+
+        private const string OriginalCodeWithSimpleLambdaWithCapturedAsyncState = @"using System;
+using System.Net;
+
+namespace TextInput
+{
+    class SimpleAPMCase
+    {
+        public void FireAndForget()
+        {
+            var request = WebRequest.Create(""http://www.microsoft.com/"");
+            request.BeginGetResponse(result => {
+                var response = request.EndGetResponse(result);
+
+                DoSomethingWithResponse(response);
+            }, request);
 
             DoSomethingWhileGetResponseIsRunning();
         }
