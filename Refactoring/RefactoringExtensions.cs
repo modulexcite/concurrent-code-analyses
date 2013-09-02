@@ -1006,6 +1006,14 @@ namespace Refactoring
             return element;
         }
 
+        public static int GetNumRefactoringCandidatesInDocument(this Document document)
+        {
+            return document.GetSyntaxRootAsync().Result
+                .DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+                .Count(node => node.HasAnnotations<RefactorableAPMInstance>());
+        }
+
         public static InvocationExpressionSyntax GetAnnotatedInvocation(this Document document, int index)
         {
             return document.GetSyntaxRootAsync().Result
