@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
-using Refactoring;
 using Microsoft.CodeAnalysis;
 using Utilities;
 
@@ -82,7 +79,7 @@ namespace Refactoring_BatchTool
             Logger.Info("!!!    - Other exceptions        : {0}", refactoring.NumOtherExceptions);
             Logger.Info("!!! END OF RESULTS !!!");
 
-            File.AppendAllText(RefactoredAppsFile, solutionFile);
+            File.AppendAllText(RefactoredAppsFile, solutionFile + Environment.NewLine);
         }
 
         private static SolutionRefactoring RunOverSolutionFile(String solutionPath)
