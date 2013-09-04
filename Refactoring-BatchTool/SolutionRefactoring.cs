@@ -99,21 +99,24 @@ namespace Refactoring_BatchTool
             {
                 var beginXxxSyntax = refactoredDocument.GetAnnotatedInvocation(index);
 
-                // TODO: In the LocalDeclarationStatementSyntax case, the declared variable must be checked for non-use.
-                if (beginXxxSyntax.ContainingStatement() is ExpressionStatementSyntax ||
-                    beginXxxSyntax.ContainingStatement() is LocalDeclarationStatementSyntax)
+                var containingStatement = beginXxxSyntax.ContainingStatement();
+                switch (containingStatement.Kind)
                 {
-                    refactoredSolution = SafelyRefactorSolution(refactoredSolution, refactoredDocument, index);
-                    refactoredDocument = refactoredSolution.GetDocument(document.Id);
-                }
-                else
-                {
-                    Logger.Warn(
-                        "APM Begin invocation containing statement is not yet supported: index={0}: {1}: statement: {2}",
-                        index,
-                        beginXxxSyntax.ContainingStatement().Kind,
-                        beginXxxSyntax.ContainingStatement()
-                    );
+                    case SyntaxKind.ExpressionStatement:
+                        refactoredSolution = SafelyRefactorSolution(refactoredSolution, refactoredDocument, index);
+                        refactoredDocument = refactoredSolution.GetDocument(document.Id);
+                        break;
+
+                    default:
+                        Logger.Warn(
+                            "APM Begin invocation containing statement is not yet supported: index={0}: {1}: statement: {2}",
+                            index,
+                            beginXxxSyntax.ContainingStatement().Kind,
+                            beginXxxSyntax.ContainingStatement()
+                        );
+
+                        NumNotImplementedExceptions++;
+                        break;
                 }
             }
 
@@ -166,7 +169,7 @@ namespace Refactoring_BatchTool
 
             var syntax = ((SyntaxTree)document.GetSyntaxTreeAsync().Result).GetRoot();
 
-            Logger.Debug("Refactoring annotated document: index={0}", index);
+            Logger.Info("Refactoring annotated document: index={0}", index);
             Logger.Debug("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", syntax);
 
             var startTime = DateTime.UtcNow;

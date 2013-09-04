@@ -60,11 +60,11 @@ namespace Refactoring
                     switch (lambda.Body.Kind)
                     {
                         case SyntaxKind.Block:
-                            Logger.Debug("Refactoring ...");
+                            Logger.Info("Refactoring ...");
                             return RefactorSimpleLambdaInstance(syntax, beginXxxCall, model, workspace, callbackArgument);
 
                         case SyntaxKind.InvocationExpression:
-                            Logger.Debug("Rewriting lambda to block form ...");
+                            Logger.Info("Rewriting lambda to block form ...");
                             rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda, model, beginXxxCall);
                             break;
 
@@ -75,17 +75,17 @@ namespace Refactoring
 
                 case SyntaxKind.IdentifierName:
                     var identifierName = (IdentifierNameSyntax)callbackExpression;
-                    Logger.Debug("Rewriting method reference to lambda ...");
+                    Logger.Info("Rewriting method reference to lambda ...");
                     rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, beginXxxCall, model, callbackArgument, identifierName);
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    Logger.Debug("Rewriting parenthesized lambda to simple lambda ...");
+                    Logger.Info("Rewriting parenthesized lambda to simple lambda ...");
                     rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, beginXxxCall, model);
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    Logger.Debug("Rewriting object creation expression to simple lambda ...");
+                    Logger.Info("Rewriting object creation expression to simple lambda ...");
                     rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
                     break;
 
