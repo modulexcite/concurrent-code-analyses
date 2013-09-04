@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
@@ -19,22 +21,44 @@ namespace Refactoring_BatchTool
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\WAZDash\WAZDash7.1.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\awful2\wp\Awful\Awful.WP7.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\awful2\wp\Awful\Awful.WP8.sln";
-        private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\8digits-WindowsPhone-SDK-Sample-App\EightDigitsTest.sln";
+        //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\8digits-WindowsPhone-SDK-Sample-App\EightDigitsTest.sln";
 
         private const string CandidatesDir = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\";
+        private const int BatchSize = 100;
+
+        private const string RefactoredAppsFile = @"C:\Users\david\Projects\UIUC\Logs\RefactoredApps.log";
+        private static readonly string[] RefactoredApps =
+            File.Exists(RefactoredAppsFile)
+                ? File.ReadAllLines(RefactoredAppsFile)
+                : new string[] { };
 
         static void Main()
         {
             Logger.Info("Hello, world!");
 
-            TryRunOverSolutionFile(SolutionFile);
+            var solutionFilePaths = Directory.GetDirectories(CandidatesDir)
+                .SelectMany(app => Directory.GetFiles(app, "*.sln", SearchOption.AllDirectories))
+                .Where(IsNotYetRefactored)
+                .Take(BatchSize);
+
+            foreach (var solutionFilePath in solutionFilePaths)
+            {
+                TryRunOverSolutionFile(solutionFilePath);
+            }
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
         }
 
+        private static bool IsNotYetRefactored(string subdir)
+        {
+            return !RefactoredApps.Any(s => subdir.Split('\\').Last().Equals(s));
+        }
+
         private static void TryRunOverSolutionFile(string solutionFile)
         {
+            Logger.Info("Running over solution file: {0}", solutionFile);
+
             SolutionRefactoring refactoring;
             try
             {
@@ -57,6 +81,8 @@ namespace Refactoring_BatchTool
             Logger.Info("!!!    - NotImplementedExceptions: {0}", refactoring.NumNotImplementedExceptions);
             Logger.Info("!!!    - Other exceptions        : {0}", refactoring.NumOtherExceptions);
             Logger.Info("!!! END OF RESULTS !!!");
+
+            File.AppendAllText(RefactoredAppsFile, solutionFile);
         }
 
         private static SolutionRefactoring RunOverSolutionFile(String solutionPath)
@@ -65,18 +91,23 @@ namespace Refactoring_BatchTool
 
             Logger.Trace("Loading solution file: {0}", solutionPath);
 
-            var workspace = MSBuildWorkspace.Create();
-            var solution = workspace.TryLoadSolutionAsync(solutionPath).Result;
-
-            if (solution == null)
+            SolutionRefactoring refactoring;
+            using (var workspace = MSBuildWorkspace.Create())
             {
-                Logger.Error("Failed to load solution file: {0}", solutionPath);
+                var solution = workspace.TryLoadSolutionAsync(solutionPath).Result;
 
-                throw new Exception("Failed to load solution file: " + solutionPath);
+                if (solution == null)
+                {
+                    Logger.Error("Failed to load solution file: {0}", solutionPath);
+
+                    throw new Exception("Failed to load solution file: " + solutionPath);
+                }
+
+                refactoring = new SolutionRefactoring(workspace);
+                refactoring.Run();
+
+                workspace.CloseSolution();
             }
-
-            var refactoring = new SolutionRefactoring(workspace);
-            refactoring.Run();
 
             return refactoring;
         }

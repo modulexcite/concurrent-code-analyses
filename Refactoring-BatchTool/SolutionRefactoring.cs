@@ -15,8 +15,8 @@ namespace Refactoring_BatchTool
 
         private readonly Workspace _workspace;
 
-        public Solution OriginalSolution { get; private set; }
-        public Solution RefactoredSolution { get; private set; }
+        private readonly Solution _originalSolution;
+        private Solution _refactoredSolution;
 
         public int NumCandidates { get; private set; }
         public int NumRefactoringExceptions { get; private set; }
@@ -39,22 +39,22 @@ namespace Refactoring_BatchTool
 
             _workspace = workspace;
 
-            OriginalSolution = _workspace.CurrentSolution;
+            _originalSolution = _workspace.CurrentSolution;
         }
 
         public void Run()
         {
-            var documents = OriginalSolution.Projects
+            var documents = _originalSolution.Projects
                 .Where(project => project.IsWindowsPhoneProject() > 0)
                 .SelectMany(project => project.Documents)
                 .Where(document => document.FilePath.EndsWith(".cs")) // Only cs files.
                 .Where(document => !document.FilePath.EndsWith("Test.cs")); // No tests.
 
-            RefactoredSolution = documents.Aggregate(OriginalSolution,
+            _refactoredSolution = documents.Aggregate(_originalSolution,
                 (sln, doc) => CheckDocument(doc, sln));
 
             Logger.Info("Applying changes to workspace ...");
-            if (!_workspace.TryApplyChanges(RefactoredSolution))
+            if (!_workspace.TryApplyChanges(_refactoredSolution))
             {
                 Logger.Error("Failed to apply changes in solution to workspace");
             }
