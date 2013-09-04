@@ -41,6 +41,9 @@ namespace Refactoring_BatchTool
 
             if (node == null) throw new ArgumentNullException("node");
 
+            if (!node.ToString().Contains("Begin"))
+                return node;
+
             MethodSymbol method;
             try
             {
