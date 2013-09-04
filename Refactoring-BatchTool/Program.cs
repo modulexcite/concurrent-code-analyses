@@ -35,21 +35,20 @@ namespace Refactoring_BatchTool
 
             var solutionFilePaths = Directory.GetDirectories(CandidatesDir)
                 .SelectMany(app => Directory.GetFiles(app, "*.sln", SearchOption.AllDirectories))
-                .Where(IsNotYetRefactored)
+                .Where(path => !RefactoredApps.Any(path.Equals))
                 .Take(BatchSize);
+
+            Logger.Info("Starting run over max {0} solution files...", BatchSize);
 
             foreach (var solutionFilePath in solutionFilePaths)
             {
                 TryRunOverSolutionFile(solutionFilePath);
             }
 
+            Logger.Info("Completed run.");
+
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
-        }
-
-        private static bool IsNotYetRefactored(string subdir)
-        {
-            return !RefactoredApps.Any(s => subdir.Split('\\').Last().Equals(s));
         }
 
         private static void TryRunOverSolutionFile(string solutionFile)
@@ -79,7 +78,15 @@ namespace Refactoring_BatchTool
             Logger.Info("!!!    - Other exceptions        : {0}", refactoring.NumOtherExceptions);
             Logger.Info("!!! END OF RESULTS !!!");
 
-            File.AppendAllText(RefactoredAppsFile, solutionFile + Environment.NewLine);
+            try
+            {
+                File.AppendAllText(RefactoredAppsFile, solutionFile + Environment.NewLine);
+            }
+            catch (Exception e)
+            {
+                Logger.Error("Failed to write solution file path to RefactoredAppsFile after completing refactoring run: {0}: {1}\n{2}",
+                    solutionFile, e.Message, e);
+            }
         }
 
         private static SolutionRefactoring RunOverSolutionFile(String solutionPath)
