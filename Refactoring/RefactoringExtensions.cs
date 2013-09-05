@@ -15,6 +15,8 @@ namespace Refactoring
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        const string DefaultTaskName = "task";
+
         /// <summary>
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
         /// </summary>
@@ -326,8 +328,6 @@ namespace Refactoring
             if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
             if (model == null) throw new ArgumentNullException("model");
 
-            const string taskName = "task";
-
             var lambda = (SimpleLambdaExpressionSyntax)callbackArgument.Expression;
 
             if (lambda.Body.Kind != SyntaxKind.Block)
@@ -338,6 +338,8 @@ namespace Refactoring
             var stateArgument = FindInvocationArgument(model, beginXxxCall, "object");
             if (stateArgument.Expression.Kind != SyntaxKind.NullLiteralExpression)
                 throw new NotImplementedException("APM Begin method invocation `state' argument must be null - it is now: " + stateArgument.Expression.Kind + ": " + stateArgument);
+
+            var originatingMethodSyntax = beginXxxCall.ContainingMethod();
 
             // TODO: Look up the symbol to check that it actually exists.
             var methodNameBase = GetAsyncMethodNameBase(beginXxxCall);
@@ -385,14 +387,16 @@ namespace Refactoring
                 )
             );
 
-            // Replace method that contains the BeginXxx call.
+            // Replace method that contains BeginXxx call.
+            var taskName = FreeTaskName(originatingMethodSyntax);
             replacements.Add(
                 new SyntaxReplacementPair(
-                    beginXxxCall.ContainingMethod(),
+                    originatingMethodSyntax,
                     RewriteOriginatingMethod(
                         beginXxxCall,
                         RewriteOriginatingMethodLambdaBlock(lambda, initialCall, taskName),
-                        methodNameBase
+                        methodNameBase,
+                        taskName
                     )
                 )
             );
@@ -414,20 +418,30 @@ namespace Refactoring
 
         private static CompilationUnitSyntax RewriteNotNestedInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, BlockSyntax lambdaBlock, InvocationExpressionSyntax endStatement, string methodNameBase, Workspace workspace)
         {
-            var awaitStatement = NewAwaitExpression("task");
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
+            if (lambdaBlock == null) throw new ArgumentNullException("lambdaBlock");
+            if (endStatement == null) throw new ArgumentNullException("endStatement");
+            if (methodNameBase == null) throw new ArgumentNullException("methodNameBase");
+            if (workspace == null) throw new ArgumentNullException("workspace");
+
+            var originalCallingMethod = beginXxxCall.ContainingMethod();
+
+            var taskName = FreeTaskName(originalCallingMethod);
+
+            var awaitStatement = NewAwaitExpression(taskName);
             var rewrittenLambdaBlock = lambdaBlock.ReplaceNode(endStatement, awaitStatement);
 
-            var newCallingMethod = RewriteOriginatingMethod(beginXxxCall, rewrittenLambdaBlock, methodNameBase);
-            var originalCallingMethod = beginXxxCall.ContainingMethod();
+            var newCallingMethod = RewriteOriginatingMethod(beginXxxCall, rewrittenLambdaBlock, methodNameBase, taskName);
 
             return syntax.ReplaceNode(originalCallingMethod, newCallingMethod)
                          .Format(workspace);
         }
 
-        private static MethodDeclarationSyntax RewriteOriginatingMethod(InvocationExpressionSyntax beginXxxCall, BlockSyntax rewrittenLambdaBlock, string methodNameBase)
+        private static MethodDeclarationSyntax RewriteOriginatingMethod(InvocationExpressionSyntax beginXxxCall, BlockSyntax rewrittenLambdaBlock, string methodNameBase, string taskName)
         {
             // TODO: beginXxxCall.Expression does not have to be a MemberAccessExpression.
-            var tapStatement = NewVariableDeclarationStatement("task", ((MemberAccessExpressionSyntax)beginXxxCall.Expression).Expression.ToString(), methodNameBase + "Async");
+            var tapStatement = NewVariableDeclarationStatement(taskName, ((MemberAccessExpressionSyntax)beginXxxCall.Expression).Expression.ToString(), methodNameBase + "Async");
             var endXxxStatement = beginXxxCall.ContainingStatement();
 
             var originalCallingMethod = beginXxxCall.ContainingMethod();
@@ -480,7 +494,7 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax RewriteEndXxxContainingMethod(InvocationExpressionSyntax endXxxCall, string taskType)
         {
-            const string taskName = "task";
+            const string taskName = DefaultTaskName;
 
             var originalMethod = endXxxCall.ContainingMethod();
             var returnType = NewTaskifiedReturnType(originalMethod);
@@ -521,7 +535,7 @@ namespace Refactoring
         {
             if (invocation == null) throw new ArgumentNullException("invocation");
 
-            const string taskName = "task";
+            const string taskName = DefaultTaskName;
 
             var method = invocation.ContainingMethod();
 
@@ -659,6 +673,25 @@ namespace Refactoring
             var apmMethodName = expression.Name.ToString();
             var methodNameBase = apmMethodName.Substring(5);
             return methodNameBase;
+        }
+
+        public static ClassDeclarationSyntax ContainingClass(this SyntaxNode node)
+        {
+            if (node == null) throw new ArgumentNullException("node");
+
+            var parent = node.Parent;
+
+            while (parent != null)
+            {
+                if (parent.Kind == SyntaxKind.ClassDeclaration)
+                {
+                    return (ClassDeclarationSyntax)parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1033,6 +1066,66 @@ namespace Refactoring
             if (node.SyntaxTree == null) throw new ArgumentException("node.SyntaxTree is null");
 
             return node.SyntaxTree.GetLineSpan(node.Span, false).StartLinePosition.Line;
+        }
+
+        private static string FreeTaskName(MethodDeclarationSyntax syntax)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+
+            var union = DeclaredIdentifiers(syntax).ToArray();
+
+            if (!union.Contains(DefaultTaskName))
+                return DefaultTaskName;
+
+            for (var i = 2; i < 10; i++)
+            {
+                var freeTaskName = DefaultTaskName + i;
+
+                if (!union.Contains(freeTaskName))
+                    return freeTaskName;
+            }
+
+            throw new RefactoringException("Tried i=2-10 - each task{i} is already in use");
+        }
+
+        private static IEnumerable<string> DeclaredIdentifiers(MethodDeclarationSyntax syntax)
+        {
+            var methodParameterNames = syntax.ParameterList.Parameters
+                .Select(p => p.Identifier.ValueText);
+
+            var methodLocalVars = syntax
+                .DescendantNodes()
+                .OfType<LocalDeclarationStatementSyntax>()
+                .SelectMany(d => d.Declaration.Variables)
+                .Select(v => v.Identifier.ValueText);
+
+            var classFieldIds = syntax.ContainingClass()
+                .DescendantNodes()
+                .OfType<FieldDeclarationSyntax>()
+                .SelectMany(f => f.Declaration.Variables)
+                .Select(v => v.Identifier.ValueText);
+
+            var classPropertyIds = syntax.ContainingClass()
+                .DescendantNodes()
+                .OfType<PropertyDeclarationSyntax>()
+                .Select(p => p.Identifier.ValueText);
+
+            var classMethodIds = syntax.ContainingClass()
+                .DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .Select(m => m.Identifier.ValueText);
+
+            var classDelegateIds = syntax.ContainingClass()
+                .DescendantNodes()
+                .OfType<DelegateDeclarationSyntax>()
+                .Select(d => d.Identifier.ValueText);
+
+            return methodParameterNames
+                .Concat(methodLocalVars)
+                .Concat(classFieldIds)
+                .Concat(classPropertyIds)
+                .Concat(classMethodIds)
+                .Concat(classDelegateIds);
         }
     }
 
