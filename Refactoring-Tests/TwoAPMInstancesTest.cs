@@ -8,7 +8,9 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatTwoAPMInstancesInSingleSourceFileAreRefactoredCorrectly()
         {
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode,
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCode,
+                RefactoredCode,
                 FirstBeginInvocationFinder("request.BeginGetResponse"),
                 FirstBeginInvocationFinder("stream.BeginWrite")
             );
@@ -63,7 +65,6 @@ namespace TextInput
         {
             var request = WebRequest.CreateHttp(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-
             DoSomethingWhileOperationIsRunning();
             var response = await task.ConfigureAwait(false);
             DoSomethingWithResponse(response);
@@ -72,7 +73,6 @@ namespace TextInput
         public async void Operation(Stream stream, byte[] data)
         {
             var task = stream.WriteAsync(data, 0, data.Length);
-
             DoSomethingWhileOperationIsRunning();
             await task.ConfigureAwait(false);
             DoSomethingAfterWrite();

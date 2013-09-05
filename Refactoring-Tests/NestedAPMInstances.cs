@@ -67,12 +67,10 @@ namespace Scratchpad
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetRequestStreamAsync();
-
             DoSomethingWhileGetResponseIsRunning();
             var stream = await task.ConfigureAwait(false);
             var task2 = stream.WriteAsync(_buffer, 0, _buffer.Length);
             await task2.ConfigureAwait(false);
-
             var task3 = request.GetResponseAsync();
             var response = await task3.ConfigureAwait(false);
 

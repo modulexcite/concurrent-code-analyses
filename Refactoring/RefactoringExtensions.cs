@@ -440,15 +440,19 @@ namespace Refactoring
 
         private static MethodDeclarationSyntax RewriteOriginatingMethod(InvocationExpressionSyntax beginXxxCall, BlockSyntax rewrittenLambdaBlock, string methodNameBase, string taskName)
         {
-            // TODO: beginXxxCall.Expression does not have to be a MemberAccessExpression.
-            var tapStatement = NewVariableDeclarationStatement(taskName, ((MemberAccessExpressionSyntax)beginXxxCall.Expression).Expression.ToString(), methodNameBase + "Async");
-            var endXxxStatement = beginXxxCall.ContainingStatement();
+            if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
+            if (rewrittenLambdaBlock == null) throw new ArgumentNullException("rewrittenLambdaBlock");
+            if (methodNameBase == null) throw new ArgumentNullException("methodNameBase");
+            if (taskName == null) throw new ArgumentNullException("taskName");
+
+            var tapStatement = NewTAPStatement(beginXxxCall, methodNameBase, taskName);
+            var beginXxxStatement = beginXxxCall.ContainingStatement();
 
             var originalCallingMethod = beginXxxCall.ContainingMethod();
 
             var rewrittenMethod = originalCallingMethod
                 .ReplaceNode(
-                    endXxxStatement,
+                    beginXxxStatement,
                     tapStatement
                 )
                 .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray());
@@ -457,6 +461,30 @@ namespace Refactoring
                 rewrittenMethod = rewrittenMethod.AddModifiers(NewAsyncKeyword());
 
             return rewrittenMethod;
+        }
+
+        private static StatementSyntax NewTAPStatement(InvocationExpressionSyntax beginXxxCall, string methodNameBase, string taskName)
+        {
+            // TODO: Introduce switch on beginXxxCall.Expression.Kind: beginXxxCall.Expression does not have to be a MemberAccessExpression.
+            var coreExpression = ((MemberAccessExpressionSyntax)beginXxxCall.Expression).Expression;
+
+            // NOTE: This naming method is only a heuristic, not a definition.
+            var tapMethodName = methodNameBase + "Async";
+
+            var expressions = beginXxxCall.ArgumentList.Arguments
+                .Take(beginXxxCall.ArgumentList.Arguments.Count - 2)
+                .Select(a => a.Expression);
+
+            var expression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    coreExpression,
+                    SyntaxFactory.IdentifierName(tapMethodName)
+                ),
+                NewArgumentList(expressions)
+            );
+
+            return NewVariableDeclarationStatement(taskName, expression);
         }
 
         /// <summary>
@@ -843,26 +871,23 @@ namespace Refactoring
                                 .First(param => param.Type.ToString().Equals("IAsyncResult"));
         }
 
-        private static StatementSyntax NewVariableDeclarationStatement(string variableName, string objectName, string methodName)
-        {
-            if (variableName == null) throw new ArgumentNullException("variableName");
-            if (objectName == null) throw new ArgumentNullException("objectName");
-            if (methodName == null) throw new ArgumentNullException("methodName");
-
-            var code = String.Format("{0}.{1}()", objectName, methodName);
-            var expression = SyntaxFactory.ParseExpression(code);
-
-            return NewVariableDeclarationStatement(variableName, expression);
-        }
-
         private static StatementSyntax NewVariableDeclarationStatement(string resultName, ExpressionSyntax expression)
         {
             if (resultName == null) throw new ArgumentNullException("resultName");
             if (expression == null) throw new ArgumentNullException("expression");
 
-            var awaitCode = String.Format("var {0} = {1};\n", resultName, expression);
-
-            return SyntaxFactory.ParseStatement(awaitCode);
+            return SyntaxFactory.LocalDeclarationStatement(
+                SyntaxFactory.VariableDeclaration(
+                    NewVarTypeSyntax(),
+                    SyntaxFactory.SeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                            SyntaxFactory.Identifier(resultName),
+                            null,
+                            SyntaxFactory.EqualsValueClause(expression)
+                        )
+                    )
+                )
+            );
         }
 
         private static ExpressionSyntax NewAwaitExpression(ExpressionSyntax expression)
@@ -888,6 +913,11 @@ namespace Refactoring
             return SyntaxFactory.Token(
                 SyntaxKind.AsyncKeyword
             );
+        }
+
+        private static TypeSyntax NewVarTypeSyntax()
+        {
+            return SyntaxFactory.IdentifierName("var");
         }
 
         private static ParameterSyntax NewUntypedParameter(string name)
@@ -992,6 +1022,13 @@ namespace Refactoring
         }
 
         private static ArgumentListSyntax NewArgumentList(params ExpressionSyntax[] expressions)
+        {
+            if (expressions == null) throw new ArgumentNullException("expressions");
+
+            return NewArgumentList((IEnumerable<ExpressionSyntax>)expressions);
+        }
+
+        private static ArgumentListSyntax NewArgumentList(IEnumerable<ExpressionSyntax> expressions)
         {
             if (expressions == null) throw new ArgumentNullException("expressions");
 

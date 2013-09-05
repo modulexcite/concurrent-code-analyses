@@ -60,7 +60,6 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-
             DoSomethingWhileGetResponseIsRunning();
             var response = await Nested0(task, request).ConfigureAwait(false);
             DoSomethingWithResponse(response);
