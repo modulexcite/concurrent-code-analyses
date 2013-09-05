@@ -9,8 +9,8 @@ namespace Refactoring_Tests
         public void TestThatTwoAPMInstancesInSingleSourceFileAreRefactoredCorrectly()
         {
             AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode,
-                FirstBeginInvocationFinder("request.BeginGetResponse("),
-                FirstBeginInvocationFinder("stream.BeginWrite(")
+                FirstBeginInvocationFinder("request.BeginGetResponse"),
+                FirstBeginInvocationFinder("stream.BeginWrite")
             );
         }
 
@@ -74,7 +74,6 @@ namespace TextInput
             var task = stream.WriteAsync(data, 0, data.Length);
 
             DoSomethingWhileOperationIsRunning();
-
             await task.ConfigureAwait(false);
             DoSomethingAfterWrite();
         }
