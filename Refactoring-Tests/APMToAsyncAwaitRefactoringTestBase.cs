@@ -155,7 +155,7 @@ namespace Refactoring_Tests
             return tree => tree.GetRoot()
                 .DescendantNodes()
                 .OfType<InvocationExpressionSyntax>()
-                .First(node => node.ToString().Contains(nodeText));
+                .First(node => node.Expression.ToString().Contains(nodeText));
         }
     }
 }
