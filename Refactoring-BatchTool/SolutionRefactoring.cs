@@ -23,14 +23,14 @@ namespace Refactoring_BatchTool
         public int NumNotImplementedExceptions { get; private set; }
         public int NumOtherExceptions { get; private set; }
 
-        public int NumFailedRefactorings
+        public int NumCompilationFailures
         {
             get { return NumRefactoringErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; }
         }
 
         public int NumSuccesfulRefactorings
         {
-            get { return NumCandidates - NumFailedRefactorings; }
+            get { return NumCandidates - NumCompilationFailures; }
         }
 
         public SolutionRefactoring(Workspace workspace)
@@ -56,7 +56,11 @@ namespace Refactoring_BatchTool
             Logger.Info("Applying changes to workspace ...");
             if (!_workspace.TryApplyChanges(_refactoredSolution))
             {
-                Logger.Error("Failed to apply changes in solution to workspace");
+                const string message = "Failed to apply changes in solution to workspace";
+
+                Logger.Error(message);
+
+                throw new Exception(message);
             }
         }
 
@@ -126,25 +130,32 @@ namespace Refactoring_BatchTool
 
         private Solution SafelyRefactorSolution(Solution solution, Document document, int index)
         {
-            var numErrors = solution.CompilationErrorCount();
+            var numInitialErrors = solution.CompilationErrorCount();
 
             var oldSolution = solution;
             try
             {
                 solution = ExecuteRefactoring(document, solution, index);
 
-                if (solution.CompilationErrorCount() > numErrors)
+                if (solution.CompilationErrorCount() > numInitialErrors)
                 {
                     Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
 
-                    Logger.Error("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
+                    solution = oldSolution;
+
+                    Logger.Warn("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
                         document.GetTextAsync().Result);
-                    Logger.Error("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
+                    Logger.Warn("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
                         solution.GetDocument(document.Id).GetTextAsync().Result);
 
-                    NumRefactoringErrors++;
+                    Logger.Error("=== SOLUTION ERRORS ===");
+                    foreach (var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+                    {
+                        Logger.Error("=== Solution error: {0}", diagnostic);
+                    }
+                    Logger.Error("=== END OF SOLUTION ERRORS ===");
 
-                    solution = oldSolution;
+                    NumRefactoringErrors++;
                 }
             }
             catch (RefactoringException e)

@@ -111,6 +111,13 @@ namespace Refactoring
                     beginXxxCall.SyntaxTree.FilePath,
                     beginXxxCall.GetStartLineNumber()
                 );
+
+                Logger.Warn("Solution errors:");
+                foreach (var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+                {
+                    Logger.Warn("  - {0}", diagnostic);
+                }
+
                 Logger.Warn("\n### ORIGINAL CODE ###\n{0}### END OF CODE ###", syntax.Format(workspace));
                 Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
 

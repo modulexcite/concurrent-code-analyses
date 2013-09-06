@@ -72,7 +72,8 @@ namespace Refactoring_BatchTool
             Logger.Info("!!! REFACTORING RESULTS !!!");
             Logger.Info("!!! * Total number of candidates for refactoring: {0}", refactoring.NumCandidates);
             Logger.Info("!!! * Number of succesful refactorings          : {0}", refactoring.NumSuccesfulRefactorings);
-            Logger.Info("!!! * Number of failed refactorings             : {0}", refactoring.NumFailedRefactorings);
+            Logger.Info("!!! * Number of failed refactorings             : {0}", refactoring.NumCompilationFailures);
+            Logger.Info("!!!    - Compilation failures    : {0}", refactoring.NumCompilationFailures);
             Logger.Info("!!!    - RefactoringExceptions   : {0}", refactoring.NumRefactoringExceptions);
             Logger.Info("!!!    - NotImplementedExceptions: {0}", refactoring.NumNotImplementedExceptions);
             Logger.Info("!!!    - Other exceptions        : {0}", refactoring.NumOtherExceptions);

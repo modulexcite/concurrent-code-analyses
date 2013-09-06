@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -241,10 +242,18 @@ namespace Utilities
 
         public static int CompilationErrorCount(this Solution solution)
         {
+            return solution
+                .GetDiagnostics()
+                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
+        public static IEnumerable<Diagnostic> GetDiagnostics(this Solution solution)
+        {
+            if (solution == null) throw new ArgumentNullException("solution");
+
             return solution.Projects
                 .Select(project => project.GetCompilationAsync().Result)
-                .SelectMany(compilation => compilation.GetDiagnostics())
-                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+                .SelectMany(compilation => compilation.GetDiagnostics());
         }
 
         public static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
