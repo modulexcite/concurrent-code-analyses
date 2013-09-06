@@ -15,7 +15,8 @@ namespace Refactoring
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        const string DefaultTaskName = "task";
+        private const string DefaultTaskName = "task";
+        private const string DefaultLambdaParamName = "result";
 
         /// <summary>
         /// Execute the APM-to-async/await refactoring for a given APM method invocation.
@@ -176,7 +177,7 @@ namespace Refactoring
             if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
             if (model == null) throw new ArgumentNullException("model");
 
-            const string lambdaParamName = "result";
+            var lambdaParamName = FindFreeIdentifier(beginXxxCall.ContainingMethod(), DefaultLambdaParamName);
 
             var stateArgument = FindInvocationArgument(model, beginXxxCall, "object");
             var stateExpression = stateArgument.Expression;
@@ -1109,20 +1110,27 @@ namespace Refactoring
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
 
+            return FindFreeIdentifier(syntax, DefaultTaskName);
+        }
+
+        private static string FindFreeIdentifier(MethodDeclarationSyntax syntax, string name)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+
             var union = DeclaredIdentifiers(syntax).ToArray();
 
-            if (!union.Contains(DefaultTaskName))
-                return DefaultTaskName;
+            if (!union.Contains(name))
+                return name;
 
             for (var i = 2; i < 10; i++)
             {
-                var freeTaskName = DefaultTaskName + i;
+                var freeName = name + i;
 
-                if (!union.Contains(freeTaskName))
-                    return freeTaskName;
+                if (!union.Contains(freeName))
+                    return freeName;
             }
 
-            throw new RefactoringException("Tried i=2-10 - each task{i} is already in use");
+            throw new RefactoringException("Tried name suffixed with 2-10 - all already in use: " + name);
         }
 
         private static IEnumerable<string> DeclaredIdentifiers(MethodDeclarationSyntax syntax)
