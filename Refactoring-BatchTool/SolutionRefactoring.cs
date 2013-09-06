@@ -2,7 +2,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using Refactoring;
 using Utilities;
@@ -19,13 +18,14 @@ namespace Refactoring_BatchTool
         private Solution _refactoredSolution;
 
         public int NumCandidates { get; private set; }
+        public int NumRefactoringErrors { get; private set; }
         public int NumRefactoringExceptions { get; private set; }
         public int NumNotImplementedExceptions { get; private set; }
         public int NumOtherExceptions { get; private set; }
 
         public int NumFailedRefactorings
         {
-            get { return NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; }
+            get { return NumRefactoringErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; }
         }
 
         public int NumSuccesfulRefactorings
@@ -103,6 +103,7 @@ namespace Refactoring_BatchTool
                 switch (containingStatement.Kind)
                 {
                     case SyntaxKind.ExpressionStatement:
+                    case SyntaxKind.LocalDeclarationStatement:
                         refactoredSolution = SafelyRefactorSolution(refactoredSolution, refactoredDocument, index);
                         refactoredDocument = refactoredSolution.GetDocument(document.Id);
                         break;
@@ -135,6 +136,14 @@ namespace Refactoring_BatchTool
                 if (solution.CompilationErrorCount() > numErrors)
                 {
                     Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
+
+                    Logger.Error("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
+                        document.GetTextAsync().Result);
+                    Logger.Error("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
+                        solution.GetDocument(document.Id).GetTextAsync().Result);
+
+                    NumRefactoringErrors++;
+
                     solution = oldSolution;
                 }
             }
