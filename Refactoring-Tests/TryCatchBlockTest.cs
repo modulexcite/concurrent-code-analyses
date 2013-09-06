@@ -54,6 +54,7 @@ namespace TextInput
 
         private const string RefactoredCode = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {

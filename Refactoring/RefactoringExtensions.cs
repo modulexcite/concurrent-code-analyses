@@ -413,8 +413,10 @@ namespace Refactoring
                 )
             );
 
-            return syntax.ReplaceAll(replacements)
-                         .Format(workspace);
+            return syntax
+                .ReplaceAll(replacements)
+                .WithUsingSystemThreadingTasks()
+                .Format(workspace);
         }
 
         private static CompilationUnitSyntax RewriteNotNestedInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, BlockSyntax lambdaBlock, InvocationExpressionSyntax endStatement, string methodNameBase, Workspace workspace)
@@ -435,8 +437,30 @@ namespace Refactoring
 
             var newCallingMethod = RewriteOriginatingMethod(beginXxxCall, rewrittenLambdaBlock, methodNameBase, taskName);
 
-            return syntax.ReplaceNode(originalCallingMethod, newCallingMethod)
-                         .Format(workspace);
+            return syntax
+                .ReplaceNode(originalCallingMethod, newCallingMethod)
+                .WithUsingSystemThreadingTasks()
+                .Format(workspace);
+        }
+
+        private static CompilationUnitSyntax WithUsingSystemThreadingTasks(this CompilationUnitSyntax syntax)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+
+            if (syntax.Usings.Any(u => u.ToString().Equals("using System.Threading.Tasks;")))
+                return syntax;
+
+            var systemThreadingTasks = SyntaxFactory.UsingDirective(
+                SyntaxFactory.QualifiedName(
+                    SyntaxFactory.QualifiedName(
+                        SyntaxFactory.IdentifierName("System"),
+                        SyntaxFactory.IdentifierName("Threading")
+                        ),
+                    SyntaxFactory.IdentifierName("Tasks")
+                    )
+                );
+
+            return syntax.AddUsings(systemThreadingTasks);
         }
 
         private static MethodDeclarationSyntax RewriteOriginatingMethod(InvocationExpressionSyntax beginXxxCall, BlockSyntax rewrittenLambdaBlock, string methodNameBase, string taskName)

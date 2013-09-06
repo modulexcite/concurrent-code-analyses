@@ -51,6 +51,7 @@ namespace TextInput
 
         private const string RefactoredCodeWithLambdaExpression = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {
@@ -101,6 +102,7 @@ namespace TextInput
 
         private const string RefactoredCodeWithMethodReference = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {

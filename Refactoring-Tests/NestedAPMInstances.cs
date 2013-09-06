@@ -56,6 +56,7 @@ namespace Scratchpad
 
         private const string RefactoredCode = @"using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Scratchpad
 {

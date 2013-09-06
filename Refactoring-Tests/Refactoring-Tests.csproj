@@ -93,6 +93,7 @@
     <Compile Include="TryCatchBlockTest.cs" />
     <Compile Include="TwoAPMInstancesTest.cs" />
     <Compile Include="UnusedIAsyncResultCapturedAtBeginXxxTest.cs" />
+    <Compile Include="UsingsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Refactoring\Refactoring.csproj">

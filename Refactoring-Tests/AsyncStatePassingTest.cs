@@ -52,6 +52,7 @@ namespace TextInput
 
         private const string RefactoredCodeWithUsedAsyncState = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {
@@ -98,6 +99,7 @@ namespace TextInput
 
         private const string RefactoredCodeWithIgnoredAsyncState = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {
