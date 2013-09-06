@@ -54,12 +54,8 @@ namespace Refactoring_Tests
 
             var workspace = new CustomWorkspace();
 
-            DocumentId documentId;
-            var originalSolution = CreateOriginalDocument(originalCode, workspace, out documentId);
-            var originalDocument = originalSolution.GetDocument(documentId);
-
-            var annotatedDocument = AnnotateDocument(originalDocument, invocationExpressionFinders);
-            var annotatedSolution = originalSolution.WithDocumentSyntaxRoot(documentId, originalDocument.GetSyntaxRootAsync().Result);
+            Document annotatedDocument;
+            var annotatedSolution = AnnotateSolution(originalCode, invocationExpressionFinders, workspace, out annotatedDocument);
 
             var refactoredSyntax = RefactorDocument(annotatedDocument, annotatedSolution, invocationExpressionFinders.Length, workspace);
 
@@ -68,6 +64,44 @@ namespace Refactoring_Tests
 
             Assert.IsNotNull(refactoredSyntax);
             Assert.That(refactoredSyntax.ToString().Replace("\r\n", "\n"), Is.EqualTo(expectedSyntax.ToString().Replace("\r\n", "\n")));
+        }
+
+        protected static void AssertThatRefactoringOriginalCodeThrowsPreconditionException(string code, params InvocationExpressionFinder[] invocationExpressionFinders)
+        {
+            if (code == null) throw new ArgumentNullException("code");
+            if (invocationExpressionFinders == null) throw new ArgumentNullException("invocationExpressionFinders");
+
+            if (invocationExpressionFinders.Length == 0) throw new ArgumentException("Must provide at least one StatementFinder");
+
+            Logger.Debug("\n=== CODE TO BE CHECKED FOR REFACTORING PRECONDITION ===\n{0}\n=== END OF CODE ===", code);
+
+            var workspace = new CustomWorkspace();
+
+            Document document;
+
+            var solution = AnnotateSolution(code, invocationExpressionFinders, workspace, out document);
+
+            try
+            {
+                RefactorDocument(document, solution, invocationExpressionFinders.Length, workspace);
+
+                Assert.Fail("No PreconditionException was thrown");
+            }
+            catch (PreconditionException e)
+            {
+                // OK.
+            }
+        }
+
+        private static Solution AnnotateSolution(string originalCode, InvocationExpressionFinder[] invocationExpressionFinders, CustomWorkspace workspace, out Document annotatedDocument)
+        {
+            DocumentId documentId;
+            var originalSolution = CreateOriginalDocument(originalCode, workspace, out documentId);
+            var originalDocument = originalSolution.GetDocument(documentId);
+
+            annotatedDocument = AnnotateDocument(originalDocument, invocationExpressionFinders);
+
+            return originalSolution.WithDocumentSyntaxRoot(documentId, originalDocument.GetSyntaxRootAsync().Result);
         }
 
         private static Document AnnotateDocument(Document document, params InvocationExpressionFinder[] invocationExpressionFinders)

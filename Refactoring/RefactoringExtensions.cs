@@ -1205,6 +1205,11 @@ namespace Refactoring
         }
     }
 
+    public class PreconditionException : Exception
+    {
+
+    }
+
     public class RefactoringException : Exception
     {
         public RefactoringException(string message)
