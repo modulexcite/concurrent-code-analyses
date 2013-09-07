@@ -18,10 +18,17 @@ namespace Refactoring_BatchTool
         private Solution _refactoredSolution;
 
         public int NumCandidates { get; private set; }
+
+        public int NumPreconditionFailures { get; private set; }
         public int NumRefactoringErrors { get; private set; }
         public int NumRefactoringExceptions { get; private set; }
         public int NumNotImplementedExceptions { get; private set; }
         public int NumOtherExceptions { get; private set; }
+
+        public int NumValidCandidates
+        {
+            get { return NumCandidates - NumPreconditionFailures; }
+        }
 
         public int NumCompilationFailures
         {
@@ -30,7 +37,7 @@ namespace Refactoring_BatchTool
 
         public int NumSuccesfulRefactorings
         {
-            get { return NumCandidates - NumCompilationFailures; }
+            get { return NumValidCandidates - NumCompilationFailures; }
         }
 
         public SolutionRefactoring(Workspace workspace)
@@ -112,6 +119,11 @@ namespace Refactoring_BatchTool
                         refactoredDocument = refactoredSolution.GetDocument(document.Id);
                         break;
 
+                    case SyntaxKind.ReturnStatement:
+                        Logger.Info("Precondition failed: APM Begin method invocation contained in return statement");
+                        NumPreconditionFailures++;
+                        break;
+
                     default:
                         Logger.Warn(
                             "APM Begin invocation containing statement is not yet supported: index={0}: {1}: statement: {2}",
@@ -147,7 +159,8 @@ namespace Refactoring_BatchTool
                         solution.GetDocument(document.Id).GetTextAsync().Result);
 
                     Logger.Error("=== SOLUTION ERRORS ===");
-                    foreach (var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+                    foreach (
+                        var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
                     {
                         Logger.Error("=== Solution error: {0}", diagnostic);
                     }
@@ -170,6 +183,13 @@ namespace Refactoring_BatchTool
                 solution = oldSolution;
 
                 NumNotImplementedExceptions++;
+            }
+            catch (PreconditionException e)
+            {
+                Logger.Error("Precondition failed: {0}: {1}", e.Message, e);
+                solution = oldSolution;
+
+                NumPreconditionFailures++;
             }
             catch (Exception e)
             {

@@ -91,6 +91,7 @@
     <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecursiveTest.cs" />
+    <Compile Include="ReturnStatementPreconditionTest.cs" />
     <Compile Include="SharedEndXxxTest.cs" />
     <Compile Include="TryCatchBlockTest.cs" />
     <Compile Include="TwoAPMInstancesTest.cs" />

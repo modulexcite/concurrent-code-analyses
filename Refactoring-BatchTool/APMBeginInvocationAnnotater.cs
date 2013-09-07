@@ -44,6 +44,12 @@ namespace Refactoring_BatchTool
             if (!node.ToString().Contains("Begin"))
                 return node;
 
+            Logger.Debug("Found potential Begin method: {0} at {1}:{2}",
+                node,
+                node.SyntaxTree.FilePath,
+                node.GetStartLineNumber()
+            );
+
             MethodSymbol method;
             try
             {
