@@ -73,16 +73,16 @@ namespace Refactoring_BatchTool
                     node
                 );
 
-                var annotatedInvocation = node.WithAdditionalAnnotations(
-                    new RefactorableAPMInstance(NumAnnotations)
-                );
+                var annotation = new RefactorableAPMInstance(NumAnnotations++);
 
-                NumAnnotations++;
-
-                return annotatedInvocation;
+                return base
+                    .VisitInvocationExpression(node)
+                    .WithAdditionalAnnotations(
+                        annotation
+                    );
             }
 
-            return node;
+            return base.VisitInvocationExpression(node);
         }
     }
 }
