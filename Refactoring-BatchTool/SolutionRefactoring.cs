@@ -141,8 +141,6 @@ namespace Refactoring_BatchTool
                 {
                     Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
 
-                    solution = oldSolution;
-
                     Logger.Warn("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
                         document.GetTextAsync().Result);
                     Logger.Warn("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
@@ -155,6 +153,7 @@ namespace Refactoring_BatchTool
                     }
                     Logger.Error("=== END OF SOLUTION ERRORS ===");
 
+                    solution = oldSolution;
                     NumRefactoringErrors++;
                 }
             }
