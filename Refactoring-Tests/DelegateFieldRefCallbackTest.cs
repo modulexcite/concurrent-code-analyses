@@ -1,25 +1,25 @@
 ﻿using NUnit.Framework;
 using System;
+using Refactoring;
 
 namespace Refactoring_Tests
 {
     [TestFixture]
     public class DelegateFieldRefCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
-        // [Test] TODO Delegates are only sometimes refactorable
+        [Test]
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
             try
             {
-                AssertThatOriginalCodeIsRefactoredCorrectly(
+                AssertThatRefactoringOriginalCodeThrowsPreconditionException(
                     OriginalCode,
-                    RefactoredCode,
                     FirstBeginInvocationFinder("request.BeginGetResponse")
                 );
 
                 Assert.Fail("Should have failed.");
             }
-            catch (InvalidCastException)
+            catch (PreconditionException)
             {
             }
         }
@@ -45,7 +45,5 @@ namespace TextInput
         private static void DoSomethingWithResponse(WebResponse response) { }
     }
 }";
-
-        private const string RefactoredCode = @"";
     }
 }
