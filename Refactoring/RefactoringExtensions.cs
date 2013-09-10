@@ -72,18 +72,25 @@ namespace Refactoring
                                     return RefactorSimpleLambdaInstance(syntax, beginXxxCall, model, workspace, callbackArgument);
 
                                 default:
-                                    var count = lambda.Body.DescendantNodes()
-                                        .OfType<IdentifierNameSyntax>()
-                                        .Count(name => name.ToString().Contains(lambda.Parameter.Identifier.ValueText));
+                                    var count = lambda.GetReferencesToParameterInBody().Count();
 
                                     if (count > 1)
                                     {
-                                        throw new PreconditionException("Lambda parameter '" + lambda.Parameter.Identifier + "' is used other than as EndXxx 'result' argument");
+                                        var message = String.Format("Lambda parameter '{0}' is used other than as EndXxx 'result' argument", lambda.Parameter.Identifier);
+
+                                        Logger.Error(message);
+
+                                        foreach (var reference in lambda.GetReferencesToParameterInBody())
+                                        {
+                                            Logger.Error("Reference: {0} @ {1}", reference.ContainingStatement(), reference.GetStartLineNumber());
+                                        }
+
+                                        throw new PreconditionException(message);
                                     }
 
                                     if (count < 1)
                                     {
-                                        throw new Exception("Don't know what is going on!");
+                                        throw new Exception("Lambda parameter '" + lambda.Parameter.Identifier + "' is never used!");
                                     }
 
                                     rewrittenSyntax = syntax
@@ -158,6 +165,13 @@ namespace Refactoring
             }
 
             return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetReferencesToParameterInBody(this SimpleLambdaExpressionSyntax lambda)
+        {
+            return lambda.Body.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(name => name.Identifier.ValueText.Equals(lambda.Parameter.Identifier.ValueText));
         }
 
         private static CompilationUnitSyntax RewriteInvocationExpressionToBlock(CompilationUnitSyntax syntax, SimpleLambdaExpressionSyntax lambda, SemanticModel model, InvocationExpressionSyntax beginXxxCall)
