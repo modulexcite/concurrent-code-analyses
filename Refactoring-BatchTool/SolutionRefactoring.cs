@@ -55,7 +55,7 @@ namespace Refactoring_BatchTool
                 .Where(project => project.IsWindowsPhoneProject() > 0)
                 .SelectMany(project => project.Documents)
                 .Where(document => document.FilePath.EndsWith(".cs")) // Only cs files.
-                .Where(document => !document.FilePath.EndsWith("Test.cs")); // No tests.
+                /*.Where(document => !document.FilePath.EndsWith("Test.cs"))*/; // No tests.
 
             _refactoredSolution = documents.Aggregate(_originalSolution,
                 (sln, doc) => CheckDocument(doc, sln));
