@@ -10,18 +10,10 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
-            try
-            {
-                AssertThatRefactoringOriginalCodeThrowsPreconditionException(
-                    OriginalCode,
-                    FirstBeginInvocationFinder("request.BeginGetResponse")
-                );
-
-                Assert.Fail("Should have failed.");
-            }
-            catch (PreconditionException)
-            {
-            }
+            AssertThatRefactoringOriginalCodeThrowsPreconditionException(
+                OriginalCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCode = @"using System;

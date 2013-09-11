@@ -363,7 +363,25 @@ namespace Refactoring
 
             var lambdaParamRef = SyntaxFactory.IdentifierName(lambdaParamName);
 
-            var originalCallbackMethodSymbol = model.LookupMethodSymbol(identifierName);
+            MethodSymbol originalCallbackMethodSymbol;
+            try
+            {
+                originalCallbackMethodSymbol = model.LookupMethodSymbol(identifierName);
+            }
+            catch (MethodSymbolMissingException)
+            {
+                var message = String
+                    .Format(
+                        "Failed to look up method symbol for callback identifier: {0} in:\n{1}",
+                        identifierName,
+                        beginXxxCall.ContainingMethod()
+                    );
+
+                Logger.Error(message);
+
+                throw new PreconditionException(message, beginXxxCall);
+            }
+
             var originalCallbackMethod = (MethodDeclarationSyntax)originalCallbackMethodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
 
             ArgumentListSyntax argumentList;
@@ -1429,6 +1447,11 @@ namespace Refactoring
     {
         public PreconditionException(string message)
             : base("Precondition failed: " + message)
+        {
+        }
+
+        public PreconditionException(string message, SyntaxNode node)
+            : base("Precondition failed: " + message + ": " + node.SyntaxTree.FilePath + ": " + node.GetStartLineNumber())
         {
         }
     }
