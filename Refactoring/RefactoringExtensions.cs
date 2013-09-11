@@ -377,7 +377,7 @@ namespace Refactoring
                         beginXxxCall.ContainingMethod()
                     );
 
-                Logger.Error(message);
+                Logger.Warn(message);
 
                 throw new PreconditionException(message, beginXxxCall);
             }

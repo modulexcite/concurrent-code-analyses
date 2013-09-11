@@ -68,6 +68,10 @@ namespace Utilities
         public static int IsWindowsPhoneProject(this Project project)
         {
             XmlDocument doc = new XmlDocument();
+
+            if (project.FilePath == null || !project.FilePath.Any())
+                return 0;
+
             doc.Load(project.FilePath);
 
             XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
