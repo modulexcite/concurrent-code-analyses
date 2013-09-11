@@ -31,6 +31,8 @@ namespace Refactoring
             if (document == null) throw new ArgumentNullException("document");
             if (workspace == null) throw new ArgumentNullException("workspace");
 
+            String message;
+
             var numErrorsInSolutionBeforeRewriting = solution.CompilationErrorCount();
 
             var syntaxTree = (SyntaxTree)document.GetSyntaxTreeAsync().Result;
@@ -69,35 +71,13 @@ namespace Refactoring
                             {
                                 case SyntaxKind.NullLiteralExpression:
                                     Logger.Info("Refactoring ...");
+
                                     return RefactorSimpleLambdaInstance(syntax, beginXxxCall, model, workspace, callbackArgument);
 
                                 default:
-                                    var count = lambda.GetReferencesToParameterInBody().Count();
+                                    Logger.Trace("Rewriting to remove state argument ...");
 
-                                    if (count > 1)
-                                    {
-                                        var message = String.Format("Lambda parameter '{0}' is used other than as EndXxx 'result' argument", lambda.Parameter.Identifier);
-
-                                        Logger.Error(message);
-
-                                        foreach (var reference in lambda.GetReferencesToParameterInBody())
-                                        {
-                                            Logger.Error("Reference: {0} @ {1}", reference.ContainingStatement(), reference.GetStartLineNumber());
-                                        }
-
-                                        throw new PreconditionException(message);
-                                    }
-
-                                    if (count < 1)
-                                    {
-                                        throw new Exception("Lambda parameter '" + lambda.Parameter.Identifier + "' is never used!");
-                                    }
-
-                                    rewrittenSyntax = syntax
-                                        .ReplaceNode(
-                                            stateArgument.Expression,
-                                            NewNullLiteral()
-                                        );
+                                    rewrittenSyntax = RewriteStateArgumentToNull(lambda, syntax, stateArgument);
 
                                     break;
                             }
@@ -116,26 +96,37 @@ namespace Refactoring
                     break;
 
                 case SyntaxKind.IdentifierName:
-                    var identifierName = (IdentifierNameSyntax)callbackExpression;
                     Logger.Info("Rewriting method reference to lambda ...");
+
+                    var identifierName = (IdentifierNameSyntax)callbackExpression;
+
                     rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, beginXxxCall, model, callbackArgument, identifierName);
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     Logger.Info("Rewriting parenthesized lambda to simple lambda ...");
+
                     rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, beginXxxCall, model);
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
                     Logger.Info("Rewriting object creation expression to simple lambda ...");
-                    rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, (ObjectCreationExpressionSyntax)callbackExpression, workspace);
+
+                    var objectCreation = (ObjectCreationExpressionSyntax)callbackExpression;
+
+                    rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, objectCreation, workspace);
                     break;
 
                 default:
-                    throw new NotImplementedException(
-                        "Unsupported actual argument syntax node kind: " + callbackExpression.Kind
-                        + ": callback argument: " + callbackArgument
+                    message = String.Format(
+                        "Unsupported actual argument syntax node kind: {0}: callback argument: {1}",
+                        callbackExpression.Kind,
+                        callbackArgument
                     );
+
+                    Logger.Error(message);
+
+                    throw new NotImplementedException(message);
             }
 
             var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
@@ -143,7 +134,7 @@ namespace Refactoring
 
             if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
             {
-                const string message = "Rewritten solution contains more compilation errors than the original solution - not continuing";
+                message = "Rewritten solution contains more compilation errors than the original solution";
 
                 Logger.Warn(message);
                 Logger.Warn("  APM Begin method call located at: {0}:{1}",
@@ -165,6 +156,113 @@ namespace Refactoring
             }
 
             return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
+        }
+
+        private static CompilationUnitSyntax RewriteStateArgumentToNull(SimpleLambdaExpressionSyntax lambda, CompilationUnitSyntax syntax, ArgumentSyntax stateArgument)
+        {
+            if (lambda == null) throw new ArgumentNullException("lambda");
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (stateArgument == null) throw new ArgumentNullException("stateArgument");
+
+            String message;
+
+            var count = lambda.GetReferencesToParameterInBody().Count();
+
+            if (count < 1)
+            {
+                message = String.Format(
+                    "Lambda parameter '{0}' is never used",
+                     lambda.Parameter.Identifier
+                );
+
+                Logger.Error(message);
+
+                throw new PreconditionException(message);
+            }
+
+            if (count == 1) // Assumes IAsyncResult is only used in the EndXxx statement.
+            {
+                return syntax
+                    .ReplaceNode(
+                        stateArgument.Expression,
+                        NewNullLiteral()
+                    );
+            }
+
+            if (count == 2) // Assumes IAsyncResult is first used to retrieve AsyncState, then for EndXxx.
+            {
+                BlockSyntax block;
+                switch (lambda.Body.Kind)
+                {
+                    case SyntaxKind.Block:
+                        block = (BlockSyntax)lambda.Body;
+                        break;
+
+                    default:
+                        throw new PreconditionException("Lambda body must be a block");
+                }
+
+                var statement = FindFirstStatementReferencingAsyncState(block);
+
+                switch (stateArgument.Expression.Kind)
+                {
+                    case SyntaxKind.IdentifierName:
+                        var stateId = (IdentifierNameSyntax)stateArgument.Expression;
+
+                        var identifier = FindAsyncStateVariableName(statement);
+
+                        var references = FindAllReferencesInBlock(block, identifier);
+                        var replacements = references.Select(reference => new SyntaxReplacementPair(reference, stateId));
+
+                        var newBody = block.ReplaceAll(replacements);
+
+                        // Remove first occurrence of AsyncState. Fingers crossed ...
+                        newBody = newBody
+                            .RemoveNode(
+                                newBody.DescendantNodes().First(node => node.ToString().Contains("AsyncState")),
+                                SyntaxRemoveOptions.KeepNoTrivia
+                            );
+
+                        return syntax.ReplaceAll(
+                            new SyntaxReplacementPair(block, newBody),
+                            new SyntaxReplacementPair(stateArgument.Expression, NewNullLiteral())
+                        );
+
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            // Rest of the method executes if count > 2 or if its not the regular pattern of AsyncState casting/EndXxx usage
+
+            message = String.Format(
+                "Lambda parameter '{0}' is used other than as EndXxx 'result' argument",
+                lambda.Parameter.Identifier
+            );
+
+            Logger.Error(message);
+
+            foreach (var reference in lambda.GetReferencesToParameterInBody())
+            {
+                Logger.Error(
+                    "Reference: {0} @ {1}",
+                    reference.ContainingStatement(),
+                    reference.GetStartLineNumber()
+                );
+            }
+
+            throw new PreconditionException(message);
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> FindAllReferencesInBlock(BlockSyntax block, SyntaxToken identifier)
+        {
+            if (block == null) throw new ArgumentNullException("block");
+            if (identifier == null) throw new ArgumentNullException("identifier");
+
+            return block
+                .DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(node => node.Identifier.ValueText.Equals(identifier.ValueText));
         }
 
         private static IEnumerable<IdentifierNameSyntax> GetReferencesToParameterInBody(this SimpleLambdaExpressionSyntax lambda)
@@ -287,41 +385,35 @@ namespace Refactoring
             );
         }
 
-        private static MethodDeclarationSyntax RewriteCallbackWithIntroducedAsyncStateParameter(SemanticModel model, MethodDeclarationSyntax originalCallbackMethod, ExpressionSyntax stateExpression)
+        private static MethodDeclarationSyntax RewriteCallbackWithIntroducedAsyncStateParameter(SemanticModel model, MethodDeclarationSyntax callbackMethod, ExpressionSyntax stateExpression)
         {
+            if (model == null) throw new ArgumentNullException("model");
+            if (callbackMethod == null) throw new ArgumentNullException("callbackMethod");
+            if (stateExpression == null) throw new ArgumentNullException("stateExpression");
+
             var stateExpressionTypeSymbol = model.GetTypeInfo(stateExpression).Type;
             var newParameterTypeName = stateExpressionTypeSymbol.Name;
 
-            var statement = originalCallbackMethod.Body
+            var statement = FindFirstStatementReferencingAsyncState(callbackMethod.Body);
+            var identifier = FindAsyncStateVariableName(statement);
+
+            return callbackMethod
+                .RemoveNode(statement, SyntaxRemoveOptions.KeepNoTrivia)
+                .AddParameterListParameters(
+                    NewParameter(
+                        SyntaxFactory.IdentifierName(newParameterTypeName),
+                        identifier
+                    )
+                );
+        }
+
+        private static StatementSyntax FindFirstStatementReferencingAsyncState(BlockSyntax block)
+        {
+            if (block == null) throw new ArgumentNullException("block");
+
+            return block
                 .Statements
                 .First(stmt => stmt.ToString().Contains("AsyncState"));
-
-            SyntaxToken identifier;
-            switch (statement.Kind)
-            {
-                case SyntaxKind.LocalDeclarationStatement:
-                    var declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
-
-                    if (declaration.Variables.Count != 1)
-                        throw new NotImplementedException(
-                            "AsyncState referenced in LocalDeclarationStatement with multiple variables: " + statement);
-
-                    identifier = declaration.Variables.First().Identifier;
-
-                    break;
-
-                default:
-                    throw new NotImplementedException("First statement that uses AsyncState has unknown kind: " + statement.Kind +
-                                                      ": statement: " + statement);
-            }
-
-            return originalCallbackMethod.RemoveNode(statement, SyntaxRemoveOptions.KeepNoTrivia)
-                                         .AddParameterListParameters(
-                                             NewParameter(
-                                                 SyntaxFactory.IdentifierName(newParameterTypeName),
-                                                 identifier
-                                             )
-                                         );
         }
 
         private static CompilationUnitSyntax RewriteParenthesizedLambdaToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax invocation, SemanticModel model)
@@ -952,6 +1044,25 @@ namespace Refactoring
         {
             return parameterList.Parameters
                                 .First(param => param.Type.ToString().Equals("IAsyncResult"));
+        }
+
+        private static SyntaxToken FindAsyncStateVariableName(StatementSyntax statement)
+        {
+            if (statement == null) throw new ArgumentNullException("statement");
+
+            switch (statement.Kind)
+            {
+                case SyntaxKind.LocalDeclarationStatement:
+                    var declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
+
+                    if (declaration.Variables.Count != 1)
+                        throw new NotImplementedException("AsyncState referenced in LocalDeclarationStatement with multiple variables: " + statement);
+
+                    return declaration.Variables.First().Identifier;
+
+                default:
+                    throw new NotImplementedException("First statement that uses AsyncState has unknown kind: " + statement.Kind + ": statement: " + statement);
+            }
         }
 
         private static StatementSyntax NewVariableDeclarationStatement(string resultName, ExpressionSyntax expression)
