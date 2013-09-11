@@ -89,7 +89,7 @@ namespace Refactoring_Tests
             }
             catch (PreconditionException e)
             {
-                // OK.
+                Logger.Debug("PreconditionException caught as expected.");
             }
         }
 

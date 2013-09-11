@@ -106,11 +106,10 @@ namespace Refactoring
                     break;
 
                 case SyntaxKind.IdentifierName:
+                case SyntaxKind.SimpleMemberAccessExpression:
                     Logger.Info("Rewriting method reference to lambda:\n{0}", beginXxxCall);
 
-                    var identifierName = (IdentifierNameSyntax)callbackExpression;
-
-                    rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, beginXxxCall, model, callbackArgument, identifierName);
+                    rewrittenSyntax = RewriteMethodReferenceToSimpleLambda(syntax, beginXxxCall, model, callbackArgument, callbackExpression);
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -136,9 +135,27 @@ namespace Refactoring
                     break;
 
                 case SyntaxKind.NullLiteralExpression:
-                    message = String.Format("Precondition failed: callback is null:\n{0}", beginXxxCall.ContainingMethod());
+                    message = String.Format("callback is null:\n{0}", beginXxxCall.ContainingMethod());
 
-                    Logger.Error(message);
+                    Logger.Error("Precondition failed: {0}", message);
+
+                    throw new PreconditionException(message);
+
+                case SyntaxKind.InvocationExpression:
+                    message = String
+                        .Format(
+                            "InvocationExpression as callback is not supported: {0}",
+                            beginXxxCall
+                        );
+
+                    Logger.Error("Precondition failed: {0}", message);
+
+                    throw new PreconditionException(message);
+
+                case SyntaxKind.GenericName:
+                    message = String.Format("GenericName syntax kind is not supported");
+
+                    Logger.Error("Precondition failed: {0}", message);
 
                     throw new PreconditionException(message);
 
@@ -350,7 +367,7 @@ namespace Refactoring
             );
         }
 
-        private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, ArgumentSyntax callbackArgument, IdentifierNameSyntax identifierName)
+        private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, ArgumentSyntax callbackArgument, ExpressionSyntax callbackExpression)
         {
             if (syntax == null) throw new ArgumentNullException("syntax");
             if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
@@ -366,14 +383,33 @@ namespace Refactoring
             MethodSymbol originalCallbackMethodSymbol;
             try
             {
-                originalCallbackMethodSymbol = model.LookupMethodSymbol(identifierName);
+                switch (callbackExpression.Kind)
+                {
+                    case SyntaxKind.IdentifierName:
+                        originalCallbackMethodSymbol = model.LookupMethodSymbol((IdentifierNameSyntax)callbackExpression);
+                        break;
+
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        originalCallbackMethodSymbol = model.LookupMethodSymbol((MemberAccessExpressionSyntax)callbackExpression);
+                        break;
+
+                    default:
+                        var message = String
+                            .Format(
+                                "Callback expression kind '{0}' not supported (this shouldn't happen), in:\n{1}",
+                                callbackExpression.Kind,
+                                beginXxxCall.ContainingMethod()
+                            );
+
+                        throw new NotImplementedException(message);
+                }
             }
             catch (MethodSymbolMissingException)
             {
                 var message = String
                     .Format(
                         "Failed to look up method symbol for callback identifier: {0} in:\n{1}",
-                        identifierName,
+                        callbackExpression,
                         beginXxxCall.ContainingMethod()
                     );
 
