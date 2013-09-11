@@ -70,12 +70,12 @@ namespace Refactoring
                             switch (stateArgument.Expression.Kind)
                             {
                                 case SyntaxKind.NullLiteralExpression:
-                                    Logger.Info("Refactoring ...");
+                                    Logger.Info("Refactoring:\n{0}", beginXxxCall.ContainingMethod());
 
                                     return RefactorSimpleLambdaInstance(syntax, beginXxxCall, model, workspace, callbackArgument);
 
                                 default:
-                                    Logger.Trace("Rewriting to remove state argument ...");
+                                    Logger.Info("Rewriting to remove state argument:\n{0}", beginXxxCall);
 
                                     rewrittenSyntax = RewriteStateArgumentToNull(lambda, syntax, stateArgument);
 
@@ -85,18 +85,28 @@ namespace Refactoring
                             break;
 
                         case SyntaxKind.InvocationExpression:
-                            Logger.Info("Rewriting lambda to block form ...");
+                            Logger.Info("Rewriting lambda to block form:\n{0}", beginXxxCall);
+
                             rewrittenSyntax = RewriteInvocationExpressionToBlock(syntax, lambda, model, beginXxxCall);
                             break;
 
                         default:
-                            throw new NotImplementedException("Unsupported lambda body kind: " + lambda.Body.Kind + ": lambda: " + lambda);
+                            message = String
+                                .Format(
+                                    "Unsupported lambda body kind: {0}: method:\n{1}",
+                                    lambda.Body.Kind,
+                                    beginXxxCall.ContainingMethod()
+                                );
+
+                            Logger.Error("Not implemented: {0}", message);
+
+                            throw new NotImplementedException(message);
                     }
 
                     break;
 
                 case SyntaxKind.IdentifierName:
-                    Logger.Info("Rewriting method reference to lambda ...");
+                    Logger.Info("Rewriting method reference to lambda:\n{0}", beginXxxCall);
 
                     var identifierName = (IdentifierNameSyntax)callbackExpression;
 
@@ -104,24 +114,32 @@ namespace Refactoring
                     break;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    Logger.Info("Rewriting parenthesized lambda to simple lambda ...");
+                    Logger.Info("Rewriting parenthesized lambda to simple lambda:\n{0}", beginXxxCall);
 
                     rewrittenSyntax = RewriteParenthesizedLambdaToSimpleLambda(syntax, beginXxxCall, model);
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    Logger.Info("Rewriting object creation expression to simple lambda ...");
+                    Logger.Info("Rewriting object creation expression to simple lambda:\n{0}", beginXxxCall);
 
                     var objectCreation = (ObjectCreationExpressionSyntax)callbackExpression;
 
                     rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, objectCreation, workspace);
                     break;
 
+                case SyntaxKind.NullLiteralExpression:
+                    message = String.Format("Precondition failed: callback is null:\n{0}", beginXxxCall.ContainingMethod());
+
+                    Logger.Error(message);
+
+                    throw new PreconditionException(message);
+
                 default:
                     message = String.Format(
-                        "Unsupported actual argument syntax node kind: {0}: callback argument: {1}",
+                        "Unsupported actual argument syntax node kind: {0}: callback argument: {1}: in method:\n{2}",
                         callbackExpression.Kind,
-                        callbackArgument
+                        callbackArgument,
+                        beginXxxCall.ContainingMethod()
                     );
 
                     Logger.Error(message);
@@ -134,12 +152,12 @@ namespace Refactoring
 
             if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
             {
-                message = "Rewritten solution contains more compilation errors than the original solution";
-
-                Logger.Warn(message);
-                Logger.Warn("  APM Begin method call located at: {0}:{1}",
+                Logger.Error(
+                    "Rewritten solution contains more compilation errors than the original solution while refactoring: {0} @ {1}:{2} in method:\n{3}",
+                    beginXxxCall,
                     beginXxxCall.SyntaxTree.FilePath,
-                    beginXxxCall.GetStartLineNumber()
+                    beginXxxCall.GetStartLineNumber(),
+                    beginXxxCall.ContainingMethod()
                 );
 
                 Logger.Warn("=== SOLUTION ERRORS ===");
@@ -152,7 +170,7 @@ namespace Refactoring
                 Logger.Warn("\n### ORIGINAL CODE ###\n{0}### END OF CODE ###", syntax.Format(workspace));
                 Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
 
-                throw new RefactoringException(message, beginXxxCall);
+                throw new RefactoringException("Rewritten solution contains more compilation errors than the original refactoring");
             }
 
             return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
