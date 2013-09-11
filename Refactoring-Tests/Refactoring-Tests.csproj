@@ -79,6 +79,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AnonymousMethodCallbackTest.cs" />
     <Compile Include="APMBeginInLocalDeclarationStatementFailsWhenIdentifiersCollideTest.cs" />
     <Compile Include="APMToAsyncAwaitRefactoringTestBase.cs" />
     <Compile Include="AsyncCallbackObjectCreationTest.cs" />

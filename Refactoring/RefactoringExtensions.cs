@@ -127,6 +127,14 @@ namespace Refactoring
                     rewrittenSyntax = RewriteObjectCreationToSimpleLambda(syntax, objectCreation, workspace);
                     break;
 
+                case SyntaxKind.AnonymousMethodExpression:
+                    Logger.Info("Rewriting anonymous method (delegate) expression to simple lambda:\n{0}", beginXxxCall);
+
+                    var anonymousMethod = (AnonymousMethodExpressionSyntax)callbackExpression;
+
+                    rewrittenSyntax = RewriteAnonymousMethodToSimpleLambda(syntax, anonymousMethod, workspace);
+                    break;
+
                 case SyntaxKind.NullLiteralExpression:
                     message = String.Format("Precondition failed: callback is null:\n{0}", beginXxxCall.ContainingMethod());
 
@@ -475,6 +483,8 @@ namespace Refactoring
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.IdentifierName:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.AnonymousMethodExpression:
                     return syntax.ReplaceNode(
                         (SyntaxNode)objectCreation,
                         expression
@@ -485,6 +495,29 @@ namespace Refactoring
 
                     throw new NotImplementedException("Unsupported expression type as argument of AsyncCallback constructor: " + expression.Kind + ": " + objectCreation);
             }
+        }
+
+        private static CompilationUnitSyntax RewriteAnonymousMethodToSimpleLambda(CompilationUnitSyntax syntax, AnonymousMethodExpressionSyntax anonymousMethod, Workspace workspace)
+        {
+            if (syntax == null) throw new ArgumentNullException("syntax");
+            if (anonymousMethod == null) throw new ArgumentNullException("anonymousMethod");
+            if (workspace == null) throw new ArgumentNullException("workspace");
+
+            if (anonymousMethod.ParameterList.Parameters.Count != 1)
+                throw new ArgumentException("Anonymous method should have single parameter: " + anonymousMethod);
+
+            var identifier = anonymousMethod.ParameterList.Parameters.First().Identifier;
+
+            ExpressionSyntax lambda = SyntaxFactory.SimpleLambdaExpression(
+                    SyntaxFactory.Parameter(identifier),
+                    anonymousMethod.Block
+                );
+
+            return syntax
+                .ReplaceNode(
+                    anonymousMethod,
+                    lambda
+                );
         }
 
         private static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, Workspace workspace, ArgumentSyntax callbackArgument)
