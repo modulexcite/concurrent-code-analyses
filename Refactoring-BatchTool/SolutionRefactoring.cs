@@ -11,6 +11,7 @@ namespace Refactoring_BatchTool
     public class SolutionRefactoring
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Results = LogManager.GetLogger("RESULTS");
 
         private readonly Workspace _workspace;
 
@@ -18,26 +19,19 @@ namespace Refactoring_BatchTool
         private Solution _refactoredSolution;
 
         public int NumCandidates { get; private set; }
-
         public int NumPreconditionFailures { get; private set; }
-        public int NumRefactoringErrors { get; private set; }
+        public int NumValidCandidates { get { return NumCandidates - NumPreconditionFailures; } }
+
+        public int NumCompilationErrors { get; private set; }
         public int NumRefactoringExceptions { get; private set; }
         public int NumNotImplementedExceptions { get; private set; }
         public int NumOtherExceptions { get; private set; }
 
-        public int NumValidCandidates
-        {
-            get { return NumCandidates - NumPreconditionFailures; }
-        }
-
-        public int NumCompilationFailures
-        {
-            get { return NumRefactoringErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; }
-        }
+        public int NumRefactoringFailures { get { return NumCompilationErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; } }
 
         public int NumSuccesfulRefactorings
         {
-            get { return NumValidCandidates - NumCompilationFailures; }
+            get { return NumValidCandidates - NumRefactoringFailures; }
         }
 
         public SolutionRefactoring(Workspace workspace)
@@ -69,6 +63,8 @@ namespace Refactoring_BatchTool
 
                 throw new Exception(message);
             }
+
+            PrintResults();
         }
 
         private Solution CheckDocument(Document document, Solution solution)
@@ -167,7 +163,7 @@ namespace Refactoring_BatchTool
                     Logger.Error("=== END OF SOLUTION ERRORS ===");
 
                     solution = oldSolution;
-                    NumRefactoringErrors++;
+                    NumCompilationErrors++;
                 }
             }
             catch (RefactoringException e)
@@ -222,6 +218,26 @@ namespace Refactoring_BatchTool
             Logger.Debug("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(_workspace));
 
             return solution.WithDocumentSyntaxRoot(document.Id, refactoredSyntax);
+        }
+
+        public static void LogResultsFileHeader()
+        {
+            Logger.Info("solution,numInstances,numPreconditionExceptions,numValidInstances,NumCompilationFailures,NumRefactoringExceptions,NumNotImplementedExceptions,NumOtherExceptions");
+        }
+
+        private void PrintResults()
+        {
+            Results.Info(
+                "{0},{1},{2},{3},{4},{5},{6},{7}",
+                _originalSolution.FilePath,
+                NumCandidates,
+                NumPreconditionFailures,
+                NumValidCandidates,
+                NumRefactoringExceptions,
+                NumNotImplementedExceptions,
+                NumCompilationErrors,
+                NumOtherExceptions
+            );
         }
     }
 }
