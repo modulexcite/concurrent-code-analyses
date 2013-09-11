@@ -29,15 +29,22 @@ namespace TextInput
 
             request.BeginGetRequestStream(result =>
             {
-                var myRequest = (WebRequest)result.AsyncState;
-                var stream = myRequest.EndGetRequestStream(result);
-
-                stream.Write(_buffer, 0, _buffer.Length);
-
-                myRequest.BeginGetResponse(inner =>
+                try
                 {
-                    var response = myRequest.EndGetResponse(inner);
-                }, null);
+                    var myRequest = (WebRequest)result.AsyncState;
+                    var stream = myRequest.EndGetRequestStream(result);
+
+                    stream.Write(_buffer, 0, _buffer.Length);
+
+                    myRequest.BeginGetResponse(inner =>
+                    {
+                        var response = myRequest.EndGetResponse(inner);
+                    }, null);
+                }
+                catch (WebException e)
+                {
+                    // Dummy
+                }
             }, request);
         }
     }
@@ -56,13 +63,20 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetRequestStreamAsync();
-            var stream = await task.ConfigureAwait(false);
-
-            stream.Write(_buffer, 0, _buffer.Length);
-            request.BeginGetResponse(inner =>
+            try
             {
-                var response = request.EndGetResponse(inner);
-            }, null);
+                var stream = await task.ConfigureAwait(false);
+
+                stream.Write(_buffer, 0, _buffer.Length);
+                request.BeginGetResponse(inner =>
+                {
+                    var response = request.EndGetResponse(inner);
+                }, null);
+            }
+            catch (WebException e)
+            {
+                // Dummy
+            }
         }
     }
 }";

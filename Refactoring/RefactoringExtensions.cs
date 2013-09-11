@@ -202,16 +202,14 @@ namespace Refactoring
                         throw new PreconditionException("Lambda body must be a block");
                 }
 
-                var statement = FindFirstStatementReferencingAsyncState(block);
-
                 switch (stateArgument.Expression.Kind)
                 {
                     case SyntaxKind.IdentifierName:
-                        var stateId = (IdentifierNameSyntax)stateArgument.Expression;
-
+                        var statement = FindFirstStatementReferencingAsyncState(block);
                         var identifier = FindAsyncStateVariableName(statement);
 
                         var references = FindAllReferencesInBlock(block, identifier);
+                        var stateId = (IdentifierNameSyntax)stateArgument.Expression;
                         var replacements = references.Select(reference => new SyntaxReplacementPair(reference, stateId));
 
                         var newBody = block.ReplaceAll(replacements);
@@ -219,7 +217,10 @@ namespace Refactoring
                         // Remove first occurrence of AsyncState. Fingers crossed ...
                         newBody = newBody
                             .RemoveNode(
-                                newBody.DescendantNodes().First(node => node.ToString().Contains("AsyncState")),
+                                newBody
+                                    .DescendantNodes()
+                                    .OfType<LocalDeclarationStatementSyntax>()
+                                    .First(node => node.ToString().Contains("AsyncState")),
                                 SyntaxRemoveOptions.KeepNoTrivia
                             );
 
@@ -407,12 +408,13 @@ namespace Refactoring
                 );
         }
 
-        private static StatementSyntax FindFirstStatementReferencingAsyncState(BlockSyntax block)
+        private static LocalDeclarationStatementSyntax FindFirstStatementReferencingAsyncState(BlockSyntax block)
         {
             if (block == null) throw new ArgumentNullException("block");
 
             return block
-                .Statements
+                .DescendantNodes()
+                .OfType<LocalDeclarationStatementSyntax>()
                 .First(stmt => stmt.ToString().Contains("AsyncState"));
         }
 
