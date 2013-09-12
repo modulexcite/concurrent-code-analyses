@@ -20,7 +20,7 @@ def move(root_src_dir, root_dst_dir):
 
 
 def main():
-    dir= "/Volumes/Data/CodeCorpus/WPApps/"   
+    dir= "/Volumes/Data/CodeCorpus/WPApps/funq/"   
     for x in os.listdir(dir):
         if not os.path.isdir(dir+x):
             continue
@@ -48,7 +48,7 @@ def main():
             src= dir+x
             dst= "/Volumes/Data/WPApps/"+x
             #move(src,dst)
-
+        
 
 def removeNonWPAppsFromList():
     dir= "/Volumes/Data/CodeCorpus/WPApps/"
@@ -76,7 +76,7 @@ def remove():
                 print c
         c+=1
         
-
+main()
        
 
     

@@ -1,0 +1,2890 @@
+UnnecessaryAwaits D:\CodeCorpus\WPApps\32feet\InTheHand.Phone.Bluetooth\InTheHand.Phone.Bluetooth\StreamSocketExtensions.cs
+public static async Task ConnectAsync(this StreamSocket s, HostName remoteHostName, InTheHand.Devices.Bluetooth.Rfcomm.RfcommServiceId serviceId)
+        {
+            await s.ConnectAsync(remoteHostName, serviceId.AsString()).AsTask();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\32feet\InTheHand.Phone.Bluetooth\InTheHand.Phone.Bluetooth\StreamSocketExtensions.cs
+public static async Task ConnectAsync(this StreamSocket s, HostName remoteHostName, Guid serviceGuid)
+        {
+            await s.ConnectAsync(remoteHostName, serviceGuid.ToString("B"));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\32feet\InTheHand.Phone.Bluetooth\InTheHand.Phone.Bluetooth\StreamSocketExtensions.cs
+public static async Task ConnectAsync(this StreamSocket s, HostName remoteHostName, int port)
+        {
+            await s.ConnectAsync(remoteHostName, port.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task ReleaseSymhandleAsync(IAdsSymhandle adsSymhandle)
+        {
+            await ReleaseSymhandleAsync(adsSymhandle.Symhandle);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<byte[]> ReadBytesAsync(IAdsSymhandle adsSymhandle)
+        {
+            return await ReadBytesAsync(adsSymhandle.Symhandle, adsSymhandle.ByteLength);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<T> ReadAsync<T>(IAdsSymhandle adsSymhandle) 
+        {
+            return await ReadAsync<T>(adsSymhandle.Symhandle);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<uint> AddNotificationAsync(uint varHandle, uint length, AdsTransmissionMode transmissionMode, uint cycleTime, object userData)
+        {
+            return await AddNotificationAsync(varHandle, length, transmissionMode, cycleTime, userData, typeof(byte[]));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<uint> AddNotificationAsync(IAdsSymhandle adsSymhandle, AdsTransmissionMode transmissionMode, uint cycleTime, object userData)
+        {
+            return await AddNotificationAsync(adsSymhandle.Symhandle, adsSymhandle.ByteLength, transmissionMode, cycleTime, userData);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<uint> AddNotificationAsync(IAdsSymhandle adsSymhandle, AdsTransmissionMode transmissionMode, uint cycleTime, object userData, Type typeOfValue)
+        {
+            return await AddNotificationAsync(adsSymhandle.Symhandle, adsSymhandle.ByteLength, transmissionMode, cycleTime, userData, typeOfValue);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<uint> AddNotificationAsync<T>(uint varHandle, AdsTransmissionMode transmissionMode, uint cycleTime, object userData) 
+        {
+            uint length = GenericHelper.GetByteLengthFromType<T>(DefaultStringLength);
+            return await AddNotificationAsync(varHandle, length, transmissionMode, cycleTime, userData, typeof(T));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task<uint> AddNotificationAsync<T>(IAdsSymhandle adsSymhandle, AdsTransmissionMode transmissionMode, uint cycleTime, object userData)
+        {
+            return await AddNotificationAsync<T>(adsSymhandle.Symhandle, transmissionMode, cycleTime, userData);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task WriteBytesAsync(IAdsSymhandle adsSymhandle, IEnumerable<byte> varValue)
+        {
+            await WriteBytesAsync(adsSymhandle.Symhandle, varValue);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task WriteAsync<T>(uint varHandle, T varValue) 
+        {
+            IEnumerable<byte> varValueBytes = GenericHelper.GetBytesFromType<T>(varValue, defaultStringLenght);
+            await this.WriteBytesAsync(varHandle, varValueBytes);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AdsClient.cs
+public async Task WriteAsync<T>(IAdsSymhandle adsSymhandle, T varValue) 
+        {
+            await WriteAsync<T>(adsSymhandle.Symhandle, varValue);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AmsSocket.cs
+private async Task<bool> ConnectAsync()
+        {
+            var tcs = new TaskCompletionSource<bool>(socket);
+            #if !SILVERLIGHT
+            socket.Bind(LocalEndPoint);
+            #endif
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.RemoteEndPoint = new DnsEndPoint(ipTarget, ipPortTarget);
+            args.Completed += (sender, e) => { tcs.TrySetResult(e.SocketError == SocketError.Success); };
+            socket.ConnectAsync(args);
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AmsSocket.cs
+public async Task<bool> SendAsync(byte[] message)
+        {
+            var tcs = new TaskCompletionSource<bool>(socket);
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += (sender, e) => { tcs.TrySetResult(e.SocketError == SocketError.Success); };
+            args.SetBuffer(message, 0, message.Length);
+            socket.SendAsync(args);
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\AmsSocket.cs
+private async Task<bool> ReceiveAsync(byte[] message)
+        {
+            var tcs = new TaskCompletionSource<bool>(socket);
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += (sender, e) =>
+            {
+                try { tcs.TrySetResult(e.SocketError == SocketError.Success); }
+                catch (Exception ex) { tcs.TrySetException(ex); }
+            };
+            args.SetBuffer(message, 0, message.Length);
+            try
+            {
+                socket.ReceiveAsync(args);
+            }
+            catch (Exception ex)
+            {
+                if (!Object.ReferenceEquals(ex.GetType(), typeof(ObjectDisposedException))) throw ex;
+            }
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsAddDeviceNotificationCommand.cs
+public async Task<AdsAddDeviceNotificationCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsAddDeviceNotificationCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsDeleteDeviceNotificationCommand.cs
+public async Task<AdsDeleteDeviceNotificationCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsDeleteDeviceNotificationCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsReadCommand.cs
+public async Task<AdsReadCommandResponse> RunAsync(Ams ams) 
+        {
+            return await RunAsync<AdsReadCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsReadDeviceInfoCommand.cs
+public async Task<AdsReadDeviceInfoCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsReadDeviceInfoCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsReadStateCommand.cs
+public async Task<AdsReadStateCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsReadStateCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsWriteCommand.cs
+public async Task<AdsWriteCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsWriteCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\adsclient\src\AdsClient.Phone\..\AdsClient\Commands\AdsWriteReadCommand.cs
+public async Task<AdsWriteReadCommandResponse> RunAsync(Ams ams)
+        {
+            return await RunAsync<AdsWriteReadCommandResponse>(ams);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\AlbertoMonteiro+QCon12WindowsPhone\AlbertoMonteiro-QCon12WindowsPhone-f67aa2a\QCon12.Mobile\Requests\ServiceRequest.cs
+public async Task<List<T>> BaseList(int skip = 0)
+        {
+            if (skip != 0)
+                additional = "/?$skip=" + skip;
+            return await DownloadAndDeserialize<List<T>>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\AlbertoMonteiro+QCon12WindowsPhone\AlbertoMonteiro-QCon12WindowsPhone-f67aa2a\QCon12.Mobile\Requests\ServiceRequest.cs
+public async Task<T> BaseGet(int id)
+        {
+            additional = "/" + id;
+            return await DownloadAndDeserialize<T>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+ArcOrganization\anttikajanus-ArcOrganization-9288033\src\ArcOrganization\Infrastructure\ViewModels\SubScreenViewModel.cs
+public virtual async Task RefreshContentAsync()
+        {
+            await  LoadContentAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+ArcOrganization\anttikajanus-ArcOrganization-9288033\src\ArcOrganization\Services\PortalService.cs
+public async Task<IEnumerable<ArcGISPortalItem>> GetNewestOrganizationWebMapsAsync(int limit = 10)
+        {
+            if (!_portal.IsInitialized)
+            {
+                throw new Exception("Portal is not initialized.");
+            }
+
+            var parameters = new SearchParameters
+            {
+                Limit = limit,
+                QueryString = string.Format("accountid:\"{0}\" AND type:\"Web Map\" AND -type:\"Web Mapping Application\"", _portal.CurrentUser.OrgId),
+                SortField = "uploaded",
+                SortOrder = QuerySortOrder.Descending
+            };
+
+            return await _portal.SearchItemsAsync(parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+ArcOrganization\anttikajanus-ArcOrganization-9288033\src\ArcOrganization\Services\PortalService.cs
+public async Task<IEnumerable<ArcGISPortalItem>> GetNewestOrganizationFeatureServicesAsync(int limit = 10)
+        {
+            if (!_portal.IsInitialized)
+            {
+                throw new Exception("Portal is not initialized.");
+            }
+
+            var parameters = new SearchParameters
+            {
+                Limit = limit,
+                QueryString = string.Format("accountid:\"{0}\" AND type:\"Feature Service\"", _portal.CurrentUser.OrgId),
+                SortField = "uploaded",
+                SortOrder = QuerySortOrder.Descending
+            };
+
+            return await _portal.SearchItemsAsync(parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+Peruka\anttikajanus-Peruka-99a4816\src\PerukaCore\Services\PortalService.cs
+public async Task<IEnumerable<ArcGISPortalItem>> GetItemsAsync(string query)
+        {
+            var parameters = new SearchParameters { QueryString = query };
+
+            return await _portal.SearchItemsAsync(parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+Peruka\anttikajanus-Peruka-99a4816\src\Knet.Phone.ArcGIS\Layers\LayerFactory.cs
+public static async Task<LayersCreatedEventArgs> CreateLayersAsync<T>() where T : CreateLayersTask, new()
+        {
+            var task = new T();
+            return await task.ExecuteAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\anttikajanus+Peruka\anttikajanus-Peruka-99a4816\src\Knet.Phone.Client\ViewModels\ContentScreenViewModel.cs
+public async Task RefreshContentAsync()
+        {
+            await this.LoadContentAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\artem-zinnatullin+jet-image-loader\artem-zinnatullin-jet-image-loader-e7b87eb\JetImageLoader\JetImageLoader.cs
+public async Task<BitmapImage> LoadImage(string imageUrl)
+        {
+            return await LoadImage(new Uri(imageUrl));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<Organization>> GetAllOrganizations()
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<Organization>>(Cache.PolicyLevel.Long, "/organizations?key={0}", APIConfigHolder.Key);
+           
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<Organization> GetOrganization(string organization_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<Organization>(Cache.PolicyLevel.Long, "/organizations/{0}?key={1}", organization_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<Department>> GetDepartments(string organization_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<Department>>(Cache.PolicyLevel.Long, "/departments?key={0}&org_id={1}", APIConfigHolder.Key, organization_id);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<Department>> GetDepartments()
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<Department>>(Cache.PolicyLevel.Long, "/departments?key={0}", APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<Department> GetDepartment(string department_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<Department>(Cache.PolicyLevel.Long, "/departments/{0}?key={1}", department_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<Course>> GetCourses(string search_pattern, string org_id = "", string dept_id = "", bool use_cached_results = true)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<Course>>(
+                use_cached_results ? Cache.PolicyLevel.Short : Cache.PolicyLevel.Reload,
+                "/courses?key={0}{1}{2}{3}", APIConfigHolder.Key,
+                search_pattern != "" ? "&search=" + HttpUtility.UrlEncode(search_pattern) : "",
+                org_id != "" ? "&org_id=" + org_id : "",
+                dept_id != "" ? "&dept_id=" + dept_id : ""
+                );
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<Course> GetCourse(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<Course>(Cache.PolicyLevel.Long, "/courses/{0}?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<CourseOverview> GetCourseOverview(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<CourseOverview>(Cache.PolicyLevel.Short, "/courses/{0}/overview?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<CourseAdditionalPage> GetCourseAdditionalPages(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<CourseAdditionalPage>(Cache.PolicyLevel.Short, "/courses/{0}/pages?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseNews>> GetCourseNews(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseNews>>(Cache.PolicyLevel.BypassCache, "/courses/{0}/news?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseResult>> GetCourseResults(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseResult>>(Cache.PolicyLevel.Short, "/courses/{0}/results?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseLecture>> GetCourseLectures(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseLecture>>(Cache.PolicyLevel.Short, "/courses/{0}/lectures?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseExercise>> GetCourseExercises(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseExercise>>(Cache.PolicyLevel.Short, "/courses/{0}/exercises?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseAssignment>> GetCourseAssignments(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseAssignment>>(Cache.PolicyLevel.Short, "/courses/{0}/assignments?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseEvent>> GetCourseEvents(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseEvent>>(Cache.PolicyLevel.BypassCache, "/courses/{0}/events?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseMaterial>> GetCourseMaterial(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseMaterial>>(Cache.PolicyLevel.Short, "/courses/{0}/material?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseExerciseMaterial>> GetCourseExerciseMaterial(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseExerciseMaterial>>(Cache.PolicyLevel.Short, "/courses/{0}/exercise_material?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\banjoh+noppawp8\banjoh-noppawp8-6f9b64b\NoppaLib\NoppaAPI.cs
+public static async Task<List<CourseText>> GetCourseAdditionalTexts(string course_id)
+        {
+            return await NoppaImpl.GetInstance().GetObject<List<CourseText>>(Cache.PolicyLevel.Short, "/courses/{0}/texts?key={1}", course_id, APIConfigHolder.Key);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\bugsense+BugSense-WP8\bugsense-BugSense-WP8-beabf83\BugSense-WP8\..\Shared\Internal\Files.cs
+public async static Task<Tuple<string, bool>> ReadFrom(string path, string fname)
+		{
+			return await ReadFrom(Path.Combine(path, fname));
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\bugsense+BugSense-WP8\bugsense-BugSense-WP8-beabf83\BugSense-WP8\..\Shared\Internal\Files.cs
+public async static Task Delete(string path, string fname)
+        {
+            await Delete(Path.Combine(path, fname));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\Cache\CachingRestClient.cs
+public async Task<T> RequestAsync<T>(IRestRequest request) where T : class, new()
+        {
+            var key = BuildKey(_restClient, request);
+
+            if (request.Method == Method.GET)
+            {
+                // Prefer fresh data
+                if (_network.IsAvailable)
+                    return await RequestAndCache<T>(request, key);
+                
+                return Cached<T>(key);
+            }
+            
+            return await _requestClient.RequestAsync<T>(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\Cache\CachingRestClient.cs
+public async Task<IEnumerable<T>> RequestListAsync<T>(IRestRequest request)
+        {
+            var key = BuildKey(_restClient, request);
+
+            if (request.Method == Method.GET)
+            {
+                // Prefer fresh data
+                if (_network.IsAvailable)
+                    return await RequestAndCacheList<T>(request, key);
+
+                return Cached<IEnumerable<T>>(key);
+            }
+
+            return await _requestClient.RequestListAsync<T>(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\Cache\ProgressAwareRestClient.cs
+public async Task<IRestResponse> RequestAsync(IRestRequest request)
+        {
+            using (new ProgressScope(_progress, GetMessageFor(request)))
+            {
+                return await _client.RequestAsync(request);
+            }
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\Cache\ProgressAwareRestClient.cs
+public async Task<T> RequestAsync<T>(IRestRequest request) where T : class, new()
+        {
+            using (new ProgressScope(_progress, GetMessageFor(request)))
+            {
+                return await _client.RequestAsync<T>(request);
+            }
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\Cache\ProgressAwareRestClient.cs
+public async Task<IEnumerable<T>> RequestListAsync<T>(IRestRequest request)
+        {
+            using (new ProgressScope(_progress, GetMessageFor(request)))
+                return await _client.RequestListAsync<T>(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\JsonFileRestClient.cs
+public async Task<T> RequestAsync<T>(IRestRequest request) where T : class, new()
+        {
+            var filename = ParseFilename(request);
+            if (filename != null)
+                return await ReadFromFile<T>(filename);
+            return default(T);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trello\Services\JsonFileRestClient.cs
+public async Task<IEnumerable<T>> RequestListAsync<T>(IRestRequest request)
+        {
+            var filename = ParseFilename(request);
+            if (filename != null)
+                return await ReadListFromFile<T>(filename);
+            return Enumerable.Empty<T>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trellow.api\Data\IRequestPipelineStage.cs
+protected async Task<ResponseContext<T>> ContinueIfPossible<T>(ResponseContext<T> context)
+        {
+            if (_nextHandler != null)
+                return await _nextHandler.Handle(context);
+            return context;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Bunk+trellow\Bunk-trellow-6363163\trellow.api\Data\IRequestPipelineStage.cs
+protected async Task<RequestContext<T>> ContinueIfPossible<T>(RequestContext<T> context)
+        {
+            if (_nextHandler != null)
+                return await _nextHandler.Handle(context);
+
+            return context;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\catalogoportavel\Trunk\Catalogo.Portable.Specific.WindowsPhone\..\Catalogo.Portable.Specific.Windows8\DataSources\SpecificCatalogoDataSource.cs
+protected override async Task<List<Categoria>> InternalObterTodasCategoriasAsync()
+        {
+            var mobileService = new MobileServiceClient(APPLICATION_URL, APPLICATION_KEY);
+            var tabelaCategorias = mobileService.GetTable<Categoria>();
+            return await tabelaCategorias.ToListAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\catalogoportavel\Trunk\Catalogo.Portable.Specific.WindowsPhone\..\Catalogo.Portable.Specific.Windows8\DataSources\SpecificCatalogoDataSource.cs
+protected override async Task<List<Item>> InternalObterTodosItensAsync()
+        {
+            var mobileService = new MobileServiceClient(APPLICATION_URL, APPLICATION_KEY);
+            var tabelaItens = mobileService.GetTable<Item>();
+            return await tabelaItens.ToListAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\catalogoportavel\Trunk\Catalogo.Portable.Specific.WindowsPhone\..\Catalogo.Portable.Specific.Windows8\DataSources\SpecificCatalogoDataSource.cs
+protected override async Task InternalInserirCategoriaAsync(Categoria categoria)
+        {
+            var mobileService = new MobileServiceClient(APPLICATION_URL, APPLICATION_KEY);
+            var tabelaEmpresas = mobileService.GetTable<Categoria>();
+            await tabelaEmpresas.InsertAsync(categoria);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\catalogoportavel\Trunk\Catalogo.Portable.Specific.WindowsPhone\..\Catalogo.Portable.Specific.Windows8\DataSources\SpecificCatalogoDataSource.cs
+protected override async Task InternalInserirItemAsync(Item item)
+        {
+            var mobileService = new MobileServiceClient(APPLICATION_URL, APPLICATION_KEY);
+            var tabelaEmpresas = mobileService.GetTable<Item>();
+            await tabelaEmpresas.InsertAsync(item);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\catalogoportavel\Trunk\Catalogo.Portable.Specific.WindowsPhone\..\Catalogo.Portable.Specific.Windows8\DataSources\SpecificCatalogoDataSource.cs
+protected override async Task InternalInserirEmpresaAsync(Empresa empresa)
+        {
+            var mobileService = new MobileServiceClient(APPLICATION_URL, APPLICATION_KEY);
+            var tabelaEmpresas = mobileService.GetTable<Empresa>();
+            await tabelaEmpresas.InsertAsync(empresa);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\cetdevelop\V1\Cet.Develop.WP.IO.Test\Cet.Develop.WP.IO.Test\MainPage.xaml.cs
+private async Task<bool> ConnectAsync(string host, int port)
+        {
+            return await TaskEx.Run(() => App.Client.Connect(host, port));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\cetdevelop\V2\Cet\IO\Cet.IO.DemoModbus\Cet.IO.DemoModbusNetduino_WP7\MainPage.xaml.cs
+private async Task<bool> ConnectAsync(string host, int port)
+        {
+            return await TaskEx.Run(() => App.Client.Connect(host, port));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\cetdevelop\V2\Cet\IO\Cet.IO.DemoModbus\Cet.IO.DemoModbusNetduino_WP8\MainPage.xaml.cs
+private async Task<bool> ConnectAsync(string host, int port)
+        {
+            return await Task.Run(() => App.Client.Connect(host, port));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\CH3COOH+Softbuild.Data\CH3COOH-Softbuild.Data-2e59e15\Softbuild.Data.WinPhone80\..\Source\StorageExtensions.cs
+public static async Task<StorageFile> SaveToPicturesLibraryAsync(string fileName, IRandomAccessStream stream)
+        {
+            var library = KnownFolders.PicturesLibrary;
+            return await SaveFileAsync(library, fileName, stream);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\CH3COOH+Softbuild.Data\CH3COOH-Softbuild.Data-2e59e15\Softbuild.Data.WinPhone80\..\Source\StorageExtensions.cs
+[Obsolete("use SaveFileAsync method.")]
+        public static async Task<StorageFile> SaveToFolderAsync(this IStorageFolder folder, string fileName, IRandomAccessStream stream)
+        {
+            return await SaveFileAsync(folder, fileName, stream);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\christophwille+viennarealtime\christophwille-viennarealtime-82bca59\Source\MundlTransit.WP8\Services\DefaultDataService.cs
+public async Task DeleteFavoriteAsync(Favorite fav)
+        {
+            var db = new RuntimeDataContext();
+            await db.DeleteFavorite(fav);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Cimbalino+Cimbalino-Phone-Toolkit\Cimbalino-Cimbalino-Phone-Toolkit-749fc5b\src\Cimbalino.Phone.Toolkit.Background (WP8)\Services\AsyncStorageService.cs
+public async Task CopyFileAsync(string sourceFileName, string destinationFileName)
+        {
+            await CopyFileAsync(sourceFileName, destinationFileName, false);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Cimbalino+Cimbalino-Phone-Toolkit\Cimbalino-Cimbalino-Phone-Toolkit-749fc5b\src\Cimbalino.Phone.Toolkit.Background (WP8)\Services\AsyncStorageService.cs
+public async Task CreateDirectoryAsync(string dir)
+        {
+            await Storage.CreateFolderAsync(dir);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Cimbalino+Cimbalino-Phone-Toolkit\Cimbalino-Cimbalino-Phone-Toolkit-749fc5b\src\Cimbalino.Phone.Toolkit.Background (WP8)\Services\AsyncStorageService.cs
+public async Task<Stream> CreateFileAsync(string path)
+        {
+            return await Storage.OpenStreamForWriteAsync(path, CreationCollisionOption.ReplaceExisting);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Cimbalino+Cimbalino-Phone-Toolkit\Cimbalino-Cimbalino-Phone-Toolkit-749fc5b\src\Cimbalino.Phone.Toolkit.Background (WP8)\Services\AsyncStorageService.cs
+public async Task<Stream> OpenFileForReadAsync(string path)
+        {
+            return await Storage.OpenStreamForReadAsync(path);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\cpmcgrath+Bankr\cpmcgrath-Bankr-119f564\Bankr.Logic\Logic\DataRetriever.cs
+async Task<string> RunQuery<T>(HttpClient client) where T : CommBankQuery, new()
+        {
+            return await new T
+            {
+                Status    = Status,
+                SessionId = m_sessionId
+            }.Start(client);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\EtaSampleApp\ViewModels\UserViewModel.cs
+public static async Task<UserViewModel> GetUserViewModelFromISOAsync()
+        {
+            var tcs = new TaskCompletionSource<UserViewModel>();
+            var settings = new AppSettingsHelper();
+            var model = settings.GetValueOrNew<UserViewModel>(SettingsKeyName);
+            tcs.SetResult(model);
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\Esmann.WP.Common\Location\GPSHelper.cs
+public async Task<GeoCoordinate> GetPositionAsync()
+        {
+            var tcs = new TaskCompletionSource<GeoCoordinate>();
+
+            if (gps.Permission != GeoPositionPermission.Granted)
+            {
+                tcs.SetResult(null);
+            }
+            bool gotLocation = false;
+
+            var gpsAsObservable = Observable.FromEvent<GeoPositionChangedEventArgs<GeoCoordinate>>(
+                        ev => gps.PositionChanged += ev,
+                        ev => gps.PositionChanged -= ev);
+            var timeout = DateTime.Now.AddSeconds(30);
+            gpsAsObservable.Sample(TimeSpan.FromMilliseconds(500))
+                //.Timeout(timeout)
+                .Select(pos => pos.EventArgs.Position)
+                .Where(pos => pos != null && !gotLocation)
+                .Where(pos => !pos.Location.IsUnknown)
+                .Where(pos => pos.Location.HorizontalAccuracy <= 100)
+                .Where(pos => pos.Timestamp.Ticks >= DateTime.Now.AddSeconds(-10).Ticks)
+                .Select(pos => pos.Location)
+                .Subscribe(next => {
+                        gotLocation = true;
+                        gps.Stop();
+                        tcs.SetResult(next);
+                    });
+            
+            gps.Start();
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\Esmann.WP.Common\ZipCodes\Denmark.cs
+public async Task<GeoLocationCity> PostalCodeToLocationAsync(string postalCode)
+        {
+            int postal = int.Parse(postalCode);
+            return await PostalCodeToLocationAsync(postal);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\Esmann.WP.Common\ZipCodes\Denmark.cs
+public async Task<GeoLocationCity> LocationToPostalCodeAsync(double lat, double lon)
+        {
+            return await LocationToPostalCodeAsync(new GeoCoordinate(lat,lon));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\BingServices\LocationsAPIHelper.cs
+public async Task<GeocodeLocation> ZipCodeToGeoCoordinateAsync(string zipCode, string country = "Denmark")
+        {
+            var tcs = new TaskCompletionSource<GeocodeLocation>();
+
+            string address = string.Format("{0}, {1}", zipCode, country);
+            GeocodeRequest request = new GeocodeRequest();
+            request.Credentials = new Credentials();
+            request.Credentials.ApplicationId = Settings.BingmapsAPIKey;
+            request.Query = address;
+
+            var filters = new ObservableCollection<FilterBase>();
+            filters.Add(new ConfidenceFilter() { MinimumConfidence = Confidence.Medium });
+            GeocodeOptions options = new GeocodeOptions();
+            options.Filters = filters;
+            request.Options = options;
+
+
+            GeocodeServiceClient geocodeService = new GeocodeServiceClient("BasicHttpBinding_IGeocodeService");
+            
+            geocodeService.GeocodeCompleted += (object sender, GeocodeCompletedEventArgs e) => {
+                if (e.Cancelled)
+                {
+                    tcs.SetCanceled();
+                    return;
+                }
+
+                if (e.Error != null)
+                {
+                    tcs.SetException(e.Error);
+                    return;
+                }
+                if (e.Result == null || !e.Result.Results.Any())
+                {
+                    tcs.SetResult(null);
+                    return;
+                }
+                var geoCodeResult = e.Result.Results.FirstOrDefault();
+                if (geoCodeResult == null)
+                {
+                    tcs.TrySetResult(null);
+                    return;
+                }
+
+                if(geoCodeResult.Locations == null || !geoCodeResult.Locations.Any()){
+                     tcs.TrySetResult(null);
+                     return;
+                }
+                var location = geoCodeResult.Locations.FirstOrDefault();
+                if (location == null)
+                {
+                    tcs.SetResult(null);
+                    return;
+                }
+                tcs.SetResult(location);
+            };
+            geocodeService.GeocodeAsync(request);
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\eTilbudsavis+native-windows-phone-sdk\eTilbudsavis-native-windows-phone-sdk-231feb7\BingServices\RouteAPIHelper.cs
+async public Task<MapPolyline> GetRouteAsync(GeoCoordinate from, GeoCoordinate to)
+        {
+            TaskCompletionSource<MapPolyline> tcs = new TaskCompletionSource<MapPolyline>();
+
+            RouteServiceClient routeService = new RouteServiceClient("BasicHttpBinding_IRouteService");
+
+            routeService.CalculateRouteCompleted += (sender, e) =>
+            {
+                var points = e.Result.Result.RoutePath.Points;
+                var coordinates = points.Select(x => new GeoCoordinate(x.Latitude, x.Longitude));
+
+                var routeColor = Colors.Blue;
+                var routeBrush = new SolidColorBrush(routeColor);
+
+                var routeLine = new MapPolyline()
+                {
+                    Locations = new LocationCollection(),
+                    Stroke = routeBrush,
+                    Opacity = 0.65,
+                    StrokeThickness = 5.0,
+                };
+
+                foreach (var location in points)
+                {
+                    routeLine.Locations.Add(new GeoCoordinate(location.Latitude, location.Longitude));
+                }
+
+                tcs.TrySetResult(routeLine);
+            };
+            
+
+            routeService.CalculateRouteAsync(new RouteRequest()
+            {
+                Credentials = new RoutesAPI.Credentials()
+                {
+                    ApplicationId = Settings.BingmapsAPIKey
+                },
+                Options = new RouteOptions()
+                {
+                    RoutePathType = RoutePathType.Points
+                },
+                Waypoints = new ObservableCollection<Waypoint>(
+                    new Waypoint[]{
+                        new Waypoint{Location = new Location{Latitude =to.Latitude, Longitude = to.Longitude}},
+                        new Waypoint{Location = new Location{Latitude =from.Latitude, Longitude = from.Longitude}}
+                
+                })
+            });
+
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\facebook-csharp-sdk+facebook-winclient-sdk\facebook-csharp-sdk-facebook-winclient-sdk-61e6f73\Source\Facebook.Client-WP7\..\Facebook.Client\FacebookSessionClient.cs
+public async Task<FacebookSession> LoginAsync()
+        {
+            return await LoginAsync(null, false);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\facebook-csharp-sdk+facebook-winclient-sdk\facebook-csharp-sdk-facebook-winclient-sdk-61e6f73\Source\Facebook.Client-WP7\..\Facebook.Client\FacebookSessionClient.cs
+public async Task<FacebookSession> LoginAsync(string permissions)
+        {
+            return await LoginAsync(permissions, false);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\facebook-csharp-sdk+facebook-winclient-sdk\facebook-csharp-sdk-facebook-winclient-sdk-61e6f73\Source\Facebook.Client-WP8\..\Facebook.Client\Controls\LoginButton\LoginButton.cs
+public async Task RequestNewPermissions(string permissions)
+        {
+            await this.LogIn(permissions);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\facebook-csharp-sdk+facebook-winclient-sdk\facebook-csharp-sdk-facebook-winclient-sdk-61e6f73\Source\Facebook.Client-WP8\..\Facebook.Client\FacebookSessionClient.cs
+public async Task<FacebookSession> LoginAsync()
+        {
+            return await LoginAsync(null, false);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\facebook-csharp-sdk+facebook-winclient-sdk\facebook-csharp-sdk-facebook-winclient-sdk-61e6f73\Source\Facebook.Client-WP8\..\Facebook.Client\FacebookSessionClient.cs
+public async Task<FacebookSession> LoginAsync(string permissions)
+        {
+            return await LoginAsync(permissions, false);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task InitializeAsync() {
+			if (_sessionProvider.IsSessionExpired) {
+				State = NestViewModelState.LoggingIn;
+				return;
+			}
+
+			await OnLoggedIn();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseLowTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseHighTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task LowerLowTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task LowerHighTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\MainPage\NestViewModel.cs
+public async Task LowerTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetFanModeAsync(Thermostat thermostat, FanMode fanMode) {
+			string url = string.Format(@"{0}/v2/put/device.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string fanModeString = GetFanModeString(fanMode);
+			string requestString = string.Format("{{\"fan_mode\":\"{0}\"}}", fanModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetHvacModeAsync(Thermostat thermostat, HvacMode hvacMode) {
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string hvacModeString = _deserializer.GetHvacModeString(hvacMode);
+			string requestString = string.Format("{{\"target_temperature_type\":\"{0}\"}}", hvacModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetAwayMode(Structure structure, bool isAway) {
+			string url = string.Format(@"{0}/v2/put/structure.{1}", _sessionProvider.TransportUrl, structure.ID);
+			string requestString = string.Format("{{\"away_timestamp\":{0},\"away\":{1},\"away_setter\":0}}", 
+				_timestampProvider.GetTimestamp(), isAway.ToString().ToLower());
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> ChangeTemperatureAsync(Thermostat thermostat, double desiredTemperature, TemperatureMode temperatureMode) {
+			string temperatureProperty = GetTemperaturePropertyString(thermostat, desiredTemperature, temperatureMode);
+
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string requestString = string.Format("{{\"target_change_pending\":true,{0}}}", temperatureProperty);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Services\StatusUpdaterService.cs
+public async Task UpdateStatusAsync() {
+			await UpdateStatusAsync(CurrentStructure);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Web\WebRequestWrapper.cs
+public async Task<Stream> GetRequestStreamAsync() {
+			return await _request.GetRequestStreamAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Web\WebRequestWrapper.cs
+public async Task SetRequestStringAsync(string requestString) {
+			await _request.SetRequestStringAsync(requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest\Web\WebResponseWrapper.cs
+public async Task<string> GetResponseStringAsync() {
+			return await _response.GetResponseStringAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task InitializeAsync() {
+			if (_sessionProvider.IsSessionExpired) {
+				State = NestViewModelState.LoggingIn;
+				return;
+			}
+
+			await OnLoggedIn();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseLowTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseHighTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerLowTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerHighTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetFanModeAsync(Thermostat thermostat, FanMode fanMode) {
+			string url = string.Format(@"{0}/v2/put/device.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string fanModeString = GetFanModeString(fanMode);
+			string requestString = string.Format("{{\"fan_mode\":\"{0}\"}}", fanModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetHvacModeAsync(Thermostat thermostat, HvacMode hvacMode) {
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string hvacModeString = _deserializer.GetHvacModeString(hvacMode);
+			string requestString = string.Format("{{\"target_temperature_type\":\"{0}\"}}", hvacModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetAwayMode(Structure structure, bool isAway) {
+			string url = string.Format(@"{0}/v2/put/structure.{1}", _sessionProvider.TransportUrl, structure.ID);
+			string requestString = string.Format("{{\"away_timestamp\":{0},\"away\":{1},\"away_setter\":0}}", 
+				_timestampProvider.GetTimestamp(), isAway.ToString().ToLower());
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> ChangeTemperatureAsync(Thermostat thermostat, double desiredTemperature, TemperatureMode temperatureMode) {
+			string temperatureProperty = GetTemperaturePropertyString(thermostat, desiredTemperature, temperatureMode);
+
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string requestString = string.Format("{{\"target_change_pending\":true,{0}}}", temperatureProperty);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Services\StatusUpdaterService.cs
+public async Task UpdateStatusAsync() {
+			await UpdateStatusAsync(CurrentStructure);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Web\WebRequestWrapper.cs
+public async Task<Stream> GetRequestStreamAsync() {
+			return await _request.GetRequestStreamAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Web\WebRequestWrapper.cs
+public async Task SetRequestStringAsync(string requestString) {
+			await _request.SetRequestStringAsync(requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.Test\..\WPNest\Web\WebResponseWrapper.cs
+public async Task<string> GetResponseStringAsync() {
+			return await _response.GetResponseStringAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task InitializeAsync() {
+			if (_sessionProvider.IsSessionExpired) {
+				State = NestViewModelState.LoggingIn;
+				return;
+			}
+
+			await OnLoggedIn();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseLowTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseHighTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerLowTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeLow);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerHighTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.RangeHigh);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task RaiseTemperatureAsync() {
+			await RaiseTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\MainPage\NestViewModel.cs
+public async Task LowerTemperatureAsync() {
+			await LowerTemperatureAsync(TemperatureMode.Target);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetFanModeAsync(Thermostat thermostat, FanMode fanMode) {
+			string url = string.Format(@"{0}/v2/put/device.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string fanModeString = GetFanModeString(fanMode);
+			string requestString = string.Format("{{\"fan_mode\":\"{0}\"}}", fanModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetHvacModeAsync(Thermostat thermostat, HvacMode hvacMode) {
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string hvacModeString = _deserializer.GetHvacModeString(hvacMode);
+			string requestString = string.Format("{{\"target_temperature_type\":\"{0}\"}}", hvacModeString);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> SetAwayMode(Structure structure, bool isAway) {
+			string url = string.Format(@"{0}/v2/put/structure.{1}", _sessionProvider.TransportUrl, structure.ID);
+			string requestString = string.Format("{{\"away_timestamp\":{0},\"away\":{1},\"away_setter\":0}}", 
+				_timestampProvider.GetTimestamp(), isAway.ToString().ToLower());
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Services\NestWebService.cs
+public async Task<WebServiceResult> ChangeTemperatureAsync(Thermostat thermostat, double desiredTemperature, TemperatureMode temperatureMode) {
+			string temperatureProperty = GetTemperaturePropertyString(thermostat, desiredTemperature, temperatureMode);
+
+			string url = string.Format(@"{0}/v2/put/shared.{1}", _sessionProvider.TransportUrl, thermostat.ID);
+			string requestString = string.Format("{{\"target_change_pending\":true,{0}}}", temperatureProperty);
+			return await SendPutRequestAsync(url, requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Services\StatusUpdaterService.cs
+public async Task UpdateStatusAsync() {
+			await UpdateStatusAsync(CurrentStructure);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Web\WebRequestWrapper.cs
+public async Task<Stream> GetRequestStreamAsync() {
+			return await _request.GetRequestStreamAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Web\WebRequestWrapper.cs
+public async Task SetRequestStringAsync(string requestString) {
+			await _request.SetRequestStringAsync(requestString);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\GaryJohnson+wpnest\GaryJohnson-wpnest-df25a46\WPNest\WPNest.WP8\..\WPNest\Web\WebResponseWrapper.cs
+public async Task<string> GetResponseStringAsync() {
+			return await _response.GetResponseStringAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\giggio+multassociais-windowsapps\giggio-multassociais-windowsapps-65a420f\src\MultasSociais\MultasSociais.WinPhone8App\ViewModels\DetailsViewModel.cs
+private async Task GuardarQueFoiMultado()
+        {
+            await multasRealizadas.Adicionar(new MultaRealizada { Id = Id });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\giggio+multassociais-windowsapps\giggio-multassociais-windowsapps-65a420f\src\MultasSociais\MultasSociais.WinPhone8App\Models\MultasRealizadas.cs
+public async Task Adicionar(MultaRealizada multaRealizada)
+        {
+            multasRealizadas.Add(multaRealizada);
+            await objectStorageHelper.SaveAsync(multasRealizadas);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\icewind1991+wp-news\icewind1991-wp-news-987d630\News\Models\Server.cs
+async public Task<Item[]> getFolderItemsAsync(Folder folder, int offset = 0)
+        {
+            return await getItemsAsync(1, folder.id, offset);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\icewind1991+wp-news\icewind1991-wp-news-987d630\News\Models\Server.cs
+async public Task<Item[]> getAllItemsAsync(int offset = 0)
+        {
+            return await getItemsAsync(3, 0, offset);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\jamesseanwright+appfog-wp7\jamesseanwright-appfog-wp7-6057539\AppFogWP7\DataService\MyWebClient.cs
+public async Task<string> DownloadStringTaskAsync(Uri uri)
+        {
+            return await _client.DownloadStringTaskAsync(uri);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\jarvisji+kanboxwp\jarvisji-kanboxwp-acb86e8\kanboxwp\kanboxwp\Utils\KBApiUtil.cs
+public static async Task<KbListInfo> GetFileListAsync(string path, KbToken token)
+        {
+            return await GetFileListAsync(path, token, null);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\jarvisji+kanboxwp\jarvisji-kanboxwp-acb86e8\kanboxwp\kanboxwp\Utils\KBApiUtil.cs
+private static async Task<string> doGetAsync(string url)
+        {
+            return await doGetAsync(url, null);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\jarvisji+kanboxwp\jarvisji-kanboxwp-acb86e8\kanboxwp\kanboxwp\ViewModels\MainViewModel.cs
+public async Task<KbAccountInfo> GetAccountInfo()
+        {
+            CheckToken();
+            return await KBApiUtil.GetAccountInfo(token);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\joshtwist+Votabl\joshtwist-Votabl-ffddb88\Source\WindowsPhone8\Votabl\MainViewModel.cs
+private async Task LoginTwitter()
+        {
+            // TODO - ensure login via twitter
+            await App.MobileService.LoginAsync(MobileServiceAuthenticationProvider.Twitter);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\joshtwist+Votabl\joshtwist-Votabl-ffddb88\Source\WindowsPhone8\Votabl\MainViewModel.cs
+private async Task UploadNotificationChannel()
+        {
+            var pushChannel = AcquirePushChannel();
+
+            // TODO - upload push channel
+            var channel = new JObject();
+            channel.Add("channelUri", pushChannel.ChannelUri.AbsoluteUri);
+            channel.Add("deviceType", "WP8");
+
+            await App.MobileService.GetTable("channels").InsertAsync(channel);
+
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Configuration.cs
+public async Task<ServiceEvent<JToken>> Delete()
+        {
+            Validate();
+            return await Url.ExecuteAsync<JToken>(app, method: "DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Configuration.cs
+public async Task<ServiceEvent<IEnumerable<Config>>> All()
+        {
+            Validate();
+            return await Url.ExecuteAsync<IEnumerable<Config>>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Configuration.cs
+public async Task<ServiceEvent<JToken>> Save<T>(T value)
+        {
+            Validate();
+            return await Url.ExecuteAsync<JToken>(app, value.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Configuration.cs
+public async Task<ServiceEvent<JToken>> Get()
+        {
+            return await Get<JToken>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Configuration.cs
+public async Task<ServiceEvent<T>> Get<T>()
+        {
+            Validate();
+            return await Url.ExecuteAsync<T>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Files.cs
+public async Task<ServiceEvent<Stream>> Download(string path, TimeSpan? timeout = null)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException("path");
+
+            Action<long[]> progress = null;
+            if (OnDownloadProgress != null) progress = p => { OnDownloadProgress.Invoke(this, new DownloadProgressArgs(path, p[0], p[1])); };
+            return await buildDownloadUrl(path).ExecuteAsync<Stream>(app, timeout: timeout, onProgress: progress);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Files.cs
+public async Task<ServiceEvent<FilesBrowseResult>> Browse(string path = "/")
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException("path");
+
+            var targetUrl = buildBrowseUrl(path);
+            return await targetUrl.ExecuteAsync<FilesBrowseResult>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Indexes.cs
+public async Task<ServiceEvent<JToken>> All()
+        {
+            return await Url.ExecuteAsync<JToken>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Indexes.cs
+public async Task<ServiceEvent<JToken>> Get(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException("name");
+
+            return await new Uri(Url, "?name=" + name).ExecuteAsync<JToken>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Indexes.cs
+public async Task<ServiceEvent<JToken>> Delete(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException("name");
+
+            return await new Uri(Url, "?name=" + name).ExecuteAsync<JToken>(app, method:"DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Indexes.cs
+public async Task<ServiceEvent<JToken>> Create(string spec, bool safe = false, bool unique = false, bool sparse = false, bool background = false, bool dropDups = false, double? min = null, double? max = null)
+        {
+            if (string.IsNullOrWhiteSpace(spec)) throw new ArgumentNullException("spec");
+
+            var options = new JObject();
+            options["safe"] = safe;
+            options["unique"] = unique;
+            options["sparse"] = sparse;
+            options["background"] = background;
+            options["dropDups"] = dropDups;
+            if (min.HasValue) options["min"] = min.Value;
+            if (max.HasValue) options["max"] = max.Value;
+
+            var body = new JObject();
+            body["spec"] = spec;
+            body["options"] = options;
+
+            return await Url.ExecuteAsync<JToken>(app, options);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<JToken>> Clear()
+        {
+            return await Url.ExecuteAsync<JToken>(app, method: "DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<JToken>>  Write<T>(T message, LogLevel level)
+        {
+            return await new Uri(Url, string.Format("?level={0}", (int)level)).ExecuteAsync<JToken>(app, message.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<IEnumerable<JToken>>> Query(string query = "{}", string options = null)
+        {
+            return await Query<JToken>(query, options);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<IEnumerable<T>>> Query<T>(string query = "{}", string options = null)
+        {
+            if (string.IsNullOrWhiteSpace(query)) throw new ArgumentNullException("query");
+
+            var queryString = string.Format("?query={0}&options={1}",
+                WebUtility.UrlEncode(query),
+                WebUtility.UrlEncode(string.IsNullOrWhiteSpace(options) ? "{}" : options));
+
+            return await new Uri(Url, queryString).ExecuteAsync<IEnumerable<T>>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<IEnumerable<JToken>>> All()
+        {
+            return await All<JToken>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Logging.cs
+public async Task<ServiceEvent<IEnumerable<T>>> All<T>()
+        {
+            return await Query<T>("{}");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\MailSender.cs
+public async Task<ServiceEvent<JToken>> Send(Mail mail)
+        {
+            if (mail == null) throw new ArgumentNullException("mail");
+            if (string.IsNullOrWhiteSpace(mail.to)) throw new ArgumentNullException("mail.to");
+            if (string.IsNullOrWhiteSpace(mail.from)) throw new ArgumentNullException("mail.from");
+
+            return await Url.ExecuteAsync<JToken>(app, mail.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Marketplace.cs
+public async Task<ServiceEvent<AppInfo[]>> GetApplications()
+        {
+            return await QueryApplications();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Queue.cs
+public async Task<ServiceEvent<JToken>> Enqueue<T>(T message)
+        {
+            Validate();
+            return await Url.ExecuteAsync<JToken>(app, message.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Queue.cs
+public async Task<ServiceEvent<JToken>> Dequeue()
+        {
+            return await Dequeue<JToken>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Queue.cs
+public async Task<ServiceEvent<T>> Dequeue<T>()
+        {
+            Validate();
+            return await Url.Concat("next").ExecuteAsync<T>(app, method:"DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Queue.cs
+public async Task<ServiceEvent<JObject>> GetInfo()
+        {
+            Validate();
+            return await Url.ExecuteAsync<JObject>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Services.cs
+public async Task<ServiceEvent<JObject>> Invoke(string method)
+        {
+            return await Invoke<JObject>(method, new JObject());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Services.cs
+public async Task<ServiceEvent<JObject>> Invoke<T>(string method, T args)
+        {
+            if (string.IsNullOrWhiteSpace(method)) throw new ArgumentNullException("method");
+
+            Validate();
+            var endpoint = Url.Concat("invoke/" + method);
+            return await endpoint.ExecuteAsync<JObject>(app, args.ToJToken(), method="POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\SmsSender.cs
+public async Task<ServiceEvent<SMSStatus>> Send(string message)
+        {
+            Validate();
+            var url = new Uri(Url, string.Format("?to={0}&message={1}", Number, message));
+            return await url.ExecuteAsync<SMSStatus>(app, method:"POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\SmsSender.cs
+public async Task<ServiceEvent<SMSStatus>> GetStatus(string messageId)
+        {
+            Validate();
+            if (string.IsNullOrWhiteSpace(messageId)) throw new ArgumentNullException("messageId");
+
+            return await Url.Concat(string.Format("/{0}", messageId)).ExecuteAsync<SMSStatus>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<JToken>> Drop()
+        {
+            Validate();
+            return await Url.ExecuteAsync<JToken>(app, method:"DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<JToken>> Delete(string id)
+        {
+            Validate();
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException("id");
+
+            return await Url.Concat(id).ExecuteAsync<JToken>(app, method: "DELETE");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<JArray>> Query(string query = "{}", string options = "{}", string fields = "{}")
+        {
+            return await DoQuery<JArray>(query, options, fields);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<IEnumerable<T>>> Query<T>(string query = "{}", string options = "{}", string fields = "{}")
+        {
+            return await DoQuery<IEnumerable<T>>(query, options, fields);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+private async Task<ServiceEvent<T>> DoQuery<T>(string query = "{}", string options = "{}", string fields = "{}")
+        {
+            Validate();
+            var queryString = string.Format("?query={0}&options={1}&fields={2}",
+                WebUtility.UrlEncode(query),
+                WebUtility.UrlEncode(options),
+                WebUtility.UrlEncode(fields));
+
+            return await new Uri(Url, queryString).ExecuteAsync<T>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<JToken>> Get(string id)
+        {
+            Validate();
+            return await Url.Concat(id).ExecuteAsync<JToken>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<T>> Get<T>(string id)
+        {
+            Validate();
+            return await Url.Concat(id).ExecuteAsync<T>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Save(StorageObject value, bool isPrivate = false)
+        {
+            return await Save<StorageObject>(value, isPrivate);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Save<T>(T value, bool isPrivate = false)
+        {
+            Validate();
+            var obj = value.ToJToken() as JObject;
+            if (obj == null) throw new ArgumentException("Value must be an object, it could not be a value type.", "value");
+
+            var id = obj.Value<string>("_id");
+            if (string.IsNullOrWhiteSpace(id))
+                return await Insert(obj, isPrivate);
+            else
+                return await Update(id, obj);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Insert(StorageObject value, bool isPrivate = false)
+        {
+            return await Insert<StorageObject>(value, isPrivate);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Insert<T>(T value, bool isPrivate = false)
+        {
+            Validate();
+            return await new Uri(Url, "?isPrivate=" + isPrivate.ToString()).ExecuteAsync<StorageObject>(app, value.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Update(StorageObject value)
+        {
+            return await Update(value._id, value);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<StorageObject>> Update<T>(string id, T value)
+        {
+            Validate();
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException("id");
+        
+            return await Url.Concat(id).ExecuteAsync<StorageObject>(app, value.ToJToken(), "PUT");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<JArray>> All()
+        {
+            Validate();
+            return await Url.ExecuteAsync<JArray>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\..\src\Storage.cs
+public async Task<ServiceEvent<IEnumerable<T>>> All<T>()
+        {
+            Validate();
+            return await Url.ExecuteAsync<IEnumerable<T>>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\Notification.cs
+private async Task<ServiceEvent<JToken>> doSubscribe(string channelName)
+        {
+
+            if (channel == null)
+            {
+                EnableNotifications();
+            }
+
+            if (channel.ChannelUri == null)
+            {
+                return new ServiceEvent<JToken>();
+            }
+
+            var resource = "/subscriptions/"
+                + HttpUtility.UrlEncode(app.Name)
+                + (string.IsNullOrWhiteSpace(channelName) ? "" : "/" + HttpUtility.UrlEncode(channelName));
+
+            return await new Uri(resource).ExecuteAsync<JToken>(app, new CreateSubscriptionBody(channel.ChannelUri).ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\Notification.cs
+public async Task<ServiceEvent<int>> GetSubscriptionsCount()
+        {
+            var resource = "/devices/" + HttpUtility.UrlEncode(deviceId) + "/" + HttpUtility.UrlEncode(app.Name) + "?count=true";
+            return await Url.Concat(resource).ExecuteAsync<int>(app);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\Notification.cs
+public async Task<ServiceEvent<JToken>> Subscribe(string channelName)
+        {
+            if (string.IsNullOrWhiteSpace(channelName)) throw new ArgumentNullException("channelName");
+            return await doSubscribe(channelName);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\Notification.cs
+public async Task<ServiceEvent<JToken>>Unsubscribe(string channelName)
+        {
+            if (string.IsNullOrWhiteSpace(channelName)) throw new ArgumentNullException("channelName");
+            return await doUnsubscribe(channelName);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\Notification.cs
+public async Task<ServiceEvent<JToken>> Push(string channelName, NotificationData data)
+        {
+            var resource = "/push/"
+                + HttpUtility.UrlEncode(app.Name) + "/"
+                + HttpUtility.UrlEncode(channelName);
+
+            return await new Uri(resource).ExecuteAsync<JToken>(app, data.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\kidozen+kido-win\kidozen-kido-win-bf4036c\KidoZen.Client.wp80\PubSubChannel.cs
+public async Task<ServiceEvent<JToken>> Publish<T>(T message)
+        {
+            return await Url.ExecuteAsync<JToken>(app, message.ToJToken(), "POST");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\labs\Main\DaveSexton.Labs\Source\DaveSexton.Labs-Phone 7.1\..\DaveSexton.Labs\GUIConsoleLab.cs
+protected virtual async Task<bool> ExperimentStartingAsync(IList<IExperiment> experiments, int index)
+		{
+			Contract.Requires(HasProxy);
+			Contract.Requires(experiments != null);
+			Contract.Requires(experiments.IsReadOnly);
+			Contract.Requires(index >= 0);
+			Contract.Requires(index < experiments.Count);
+			Contract.Ensures(experiments.Count == Contract.OldValue(experiments.Count));
+
+			if (Proxy.IsRunningAllExperiments && pauseBetweenExperiments && index > 0)
+			{
+				TraceLine();
+#if WINDOWS_PHONE
+				TraceLine(Properties.Resources.PressAnyKeyToStartNextExperimentQToCancel);
+#else
+				TraceLine(Properties.Resources.PressAnyKeyToStartNextExperimentEscapeToCancel);
+#endif
+				TraceLine();
+
+				var key = WaitForKey();
+
+#if WINDOWS_PHONE
+				if (key.Key == ConsoleKey.Q)
+#else
+				if (key.Key == ConsoleKey.Escape)
+#endif
+				{
+					return false;
+				}
+			}
+			else if (!Proxy.IsRunningAllExperiments)
+			{
+				TraceLine();
+			}
+
+			return await Proxy.ExperimentStartingAsync(experiments, index).ConfigureAwait(false);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\labs\Main\DaveSexton.Labs\Source\DaveSexton.Labs-Phone 7.1\..\DaveSexton.Labs\Lab.cs
+internal async Task ExecuteAsync()
+		{
+			Contract.Requires(CanExecute());
+
+			ResetTime();
+
+			Contract.Assume(CanExecute());
+
+			Main();
+
+			await WhenMainCompletesAsync();
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\lucaswerkmeister+wp_geohashing\lucaswerkmeister-wp_geohashing-30abc4c\Base\Geohash.cs
+public static async Task<Geohash> Get()
+		{
+			return await Get(DateTime.Now);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\lucaswerkmeister+wp_geohashing\lucaswerkmeister-wp_geohashing-30abc4c\Base\Geohash.cs
+public static async Task<Geohash> Get(GeoCoordinate position)
+		{
+			return await Get(position, DateTime.Now);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Nznoonee+VKAgent\Nznoonee-VKAgent-9194c0e\VKAgent\ApiRelated\TaskRelated\TaskExecutor.cs
+private async Task<IVkHttpResponseResult> ExecuteHttpRequest()
+		{
+			// Creating request string
+			var requestString = _task.BuildFullRequestString();
+
+			// Calling web request
+			var httpRequest = new HttpRequest(_tokenSource.Token, _taskParams.HttpTimeout);
+			return await httpRequest.DoRequest(requestString, _taskParams.HttpRequestType);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Nznoonee+VKAgent\Nznoonee-VKAgent-9194c0e\VKAgent\ApiRelated\TaskRelated\TaskManager.cs
+public static async Task<ITaskResult> ExecuteAwaitableTask(IRequestTask task, string taskContext = null)
+		{
+			var taskParams = new TaskParameters { Context = taskContext };
+
+			return await ExecuteSingleTaskInternal(task, taskParams);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\obiwang+S1Nyan\obiwang-S1Nyan-e615e80\UnderDev\ViewModel\UserTestViewModel.cs
+private async Task<string> UserLogin()
+        {
+            return await new S1WebClient().Login(testUser, testPass);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task SpinTheLights()
+        {
+            await SendCommand(Commands.CmdLeds);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task TakePicture()
+        {
+            await SendCommand(Commands.CmdShut);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task Left()
+        {
+            await SendCommand(Commands.CmdLeft);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task Right()
+        {
+            await SendCommand(Commands.CmdRight);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task Stop()
+        {
+            await SendCommand(Commands.CmdStop);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\panohead\Coding4Fun PanoHead Windows Phone 8\Coding4Fun.PanoHead\PanoControl.cs
+public async Task Pano()
+        {
+            await SendCommand(String.Format("{0},{1}", Commands.CmdPano, App.panoViewModel.MakePanoCommand()));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\IHttpContent.cs
+public async Task<string> ReadAsStringAsync()
+        {
+            return await Content.ReadAsStringAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyUser> LogIn(string username, string password)
+        {
+            var uri = new Uri(string.Format("/user/{0}/login", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoAuth(uri, username, password);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyUser> SignUp(string username, string password)
+        {
+            var uri = new Uri(string.Format("/user/{0}/", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoAuth(uri, username, password);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyFacebookUser> SignUp(FacebookIdentityToken socialIdentity)
+        {
+            var uri = new Uri(string.Format("/user/{0}/", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoSocialAuth<KinveyFacebookUser, FacebookIdentity>(uri, socialIdentity);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyTwitterUser> SignUp(TwitterIdentityToken socialIdentity)
+        {
+            var uri = new Uri(string.Format("/user/{0}/", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoSocialAuth<KinveyTwitterUser, TwitterIdendity>(uri, socialIdentity);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyGooglePlusUser> SignUp(GooglePlusIdentityToken socialIdentity)
+        {
+            var uri = new Uri(string.Format("/user/{0}/", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoSocialAuth<KinveyGooglePlusUser, GooglePlusIdentity>(uri, socialIdentity);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\Penrillian+KinveyWindowsPhone8\Penrillian-KinveyWindowsPhone8-bd0e0dc\Com.Penrillian.Kinvey\KinveyUserService.cs
+public async Task<KinveyLinkedInUser> SignUp(LinkedInIdentityToken socialIdentity)
+        {
+            var uri = new Uri(string.Format("/user/{0}/", KinveySettings.Get().AppKey), UriKind.Relative);
+            return await DoSocialAuth<KinveyLinkedInUser, LinkedInIdentity>(uri, socialIdentity);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\piccoloaiutante+WP8TestingExample\piccoloaiutante-WP8TestingExample-c5180e6\OangeCode.Wpreborn.SQLIteApp\Db\SqliteAsync.cs
+public async  Task<CreateTablesResult> CreateTablesAsync(params Type[] types)
+        {
+            return await  Task.Factory.StartNew(() =>
+            {
+                CreateTablesResult result = new CreateTablesResult();
+                var conn = GetConnection();
+                using (conn.Lock())
+                {
+                    foreach (Type type in types)
+                    {
+                        int aResult = conn.CreateTable(type);
+                        result.Results[type] = aResult;
+                    }
+                }
+                return result;
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\piccoloaiutante+WP8TestingExample\piccoloaiutante-WP8TestingExample-c5180e6\OangeCode.Wpreborn.SQLIteApp\Db\SqliteAsync.cs
+public async Task<int> InsertOrReplaceAsync(object item)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                var conn = GetConnection();
+                using (conn.Lock())
+                {
+                    return conn.InsertOrReplace(item);
+                }
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\piccoloaiutante+WP8TestingExample\piccoloaiutante-WP8TestingExample-c5180e6\OangeCode.Wpreborn.SQLIteApp\Services\DbServiceAsync.cs
+public async Task<IList<Product>> LoadProductsAsync()
+        {
+            return await _context.Table<Product>().ToListAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\piccoloaiutante+WP8TestingExample\piccoloaiutante-WP8TestingExample-c5180e6\OangeCode.Wpreborn.SQLIteApp\Services\DbService.cs
+public async Task<IList<Product>> LoadProductsAsync()
+        {
+            return await _context.Table<Product>().ToListAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(MediaStreamSource mediaStreamSource)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, mediaStreamSource);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(Stream stream)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, stream);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(Uri source)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, source);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\Extensions\DispatcherExtensions.cs
+public static async Task InvokeAsync(this Dispatcher source, Action action)
+        {
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+            source.BeginInvoke(() =>
+            {
+                action();
+                tcs.SetResult(null);
+            });
+            await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.VideoAdvertising\..\Win8.videoadvertising\clips\ClipAdPayloadHandler.cs
+public async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#else
+        public IAsyncAction PreloadAdAsync(IAdSource adSource)
+        {
+            return AsyncInfo.Run(c => PreloadAdAsync(adSource, c));
+        }
+
+        internal async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#endif
+        {
+            ProcessPayload(adSource);
+            await adHandlerBase.PreloadAdAsync(adSource, cancellationToken);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.VideoAdvertising\..\Win8.VideoAdvertising\DocumentAdPayloadHandler.cs
+public async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#else
+        public IAsyncAction PreloadAdAsync(IAdSource adSource)
+        {
+            return AsyncInfo.Run(c => PreloadAdAsync(adSource, c));
+        }
+
+        internal async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#endif
+        {
+            if (!(adSource.Payload is AdDocumentPayload)) throw new ArgumentException("adSource must contain a payload of type AdDocumentPayload", "adPayload");
+            var adDoc = (AdDocumentPayload)adSource.Payload;
+
+            if (loadOperation != null && loadOperation.Task.IsRunning())
+            {
+                return;
+            }
+
+            await PreloadAdAsync(adDoc, adSource, cancellationToken);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Advertising\..\Win8.Xaml.Advertising\AdHandlerBase.cs
+public async Task CancelActiveAds()
+        {
+            await controller.CancelActiveAds();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.WebVTT\..\Win8.Xaml.WebVTT\WebVTTPlugin.cs
+private async Task<WebVTTDocument> LoadWebVTTDocument(string webvtt, TimeSpan startTime, TimeSpan endTime)
+        {
+            // parse on a background thread
+#if SILVERLIGHT && !WINDOWS_PHONE || WINDOWS_PHONE7
+            return await TaskEx.Run(() => WebVTTParser.ParseDocument(webvtt, startTime, endTime));       
+#else
+            return await Task.Run(() => WebVTTParser.ParseDocument(webvtt, startTime, endTime));
+#endif
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\CFF\Progressive\ProgressiveCffFileParser.cs
+public override async Task<WebRequestorResponse> GetTrackFragmentStream(ManifestTrackType trackType, uint bitrate, ulong timeOffset, string language)
+        {
+            if (language == string.Empty) language = null;
+
+            var track = this.ManifestTracks
+                .Where(t => t.Type == trackType && t.Bitrate == bitrate && t.Language == language)
+                .SingleOrDefault();
+
+            if (track != null)
+            {
+                var entry = track.Fragments.TrackFragmentRandomAccessEntries.FirstOrDefault(e => e.Time == timeOffset);
+
+                if (entry != null)
+                {
+                    return await DownloadFragment(this.fileUri, (long)entry.MoofOffset, (long)entry.SampleSize);
+                }
+            }
+            return null;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\CFF\Progressive\ProgressiveCffFileParser.cs
+private static async Task<WebRequestorResponse> DownloadFragment(Uri uri, long offset, long size)
+        {
+            return await WebRequestor.GetResponseAsync(uri, offset, offset + size - 1);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\Dash\DashDownloaderPlugin.cs
+private async Task<WebRequestorResponse> GetChunkAsync(Uri source, CancellationToken c)
+        {
+            if (ChunkLookup.Any())
+            {
+                var key = source.AbsolutePath;
+
+                if (ChunkLookup.ContainsKey(key))
+                {
+                    ChunkLocation chunkLocation = ChunkLookup[key];
+                    if (ChunkRequested != null) ChunkRequested(this, new ChunkRequestedEventArgs(source, chunkLocation.Uri, string.Format("{0}-{1}", chunkLocation.From, chunkLocation.To)));
+                    return await DownloadResolvedChunkAsync(source, chunkLocation, c);
+                }
+            }
+            if (ChunkRequested != null) ChunkRequested(this, new ChunkRequestedEventArgs(source, source, null));
+#if SILVERLIGHT // SILVERLIGHT requires that we download the chunk
+            return await WebRequestor.GetResponseAsync(source);
+#else
+            return null;
+#endif
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\Dash\DashDownloaderPlugin.cs
+private static async Task<WebRequestorResponse> DownloadResolvedChunkAsync(Uri source, ChunkLocation chunkLocation, CancellationToken c)
+        {
+            // download the chunk and keep the stream open
+            return await WebRequestor.GetResponseAsync(chunkLocation.Uri, (long)chunkLocation.From, (long)chunkLocation.To);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\CFF\Progressive\CffProgressiveDownloaderPlugin.cs
+public async Task<CacheResponse> RequestAsync(CacheRequest request)
+        {
+            return await downloaderPluginBase.RequestAsync(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\Helpers\WebRequestExtensions.cs
+public static async Task<HttpWebResponse> GetResponseAsync(this HttpWebRequest request)
+        {
+            var tcs = new TaskCompletionSource<HttpWebResponse>();
+
+            request.BeginGetResponse(ar =>
+            {
+                try
+                {
+                    var response = (HttpWebResponse)request.EndGetResponse(ar);
+                    tcs.SetResult(response);
+                }
+                catch (WebException ex)
+                {
+                    HttpWebResponse response = (HttpWebResponse)ex.Response;
+                    tcs.SetException(new WebRequestorFailure(response.StatusCode, response.Headers));
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            }, null);
+
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(MediaStreamSource mediaStreamSource)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, mediaStreamSource);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(Stream stream)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, stream);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\..\Win8.xaml\controls\MediaPlayer.cs
+private async Task<MediaLoadingInstruction> OnMediaLoadingAsync(Uri source)
+        {
+            var deferrableOperation = new MediaPlayerDeferrableOperation(cts);
+            var args = new MediaLoadingEventArgs(deferrableOperation, source);
+            return await OnMediaLoadingAsync(args);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL\Extensions\DispatcherExtensions.cs
+public static async Task InvokeAsync(this Dispatcher source, Action action)
+        {
+            TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+            source.BeginInvoke(() =>
+            {
+                action();
+                tcs.SetResult(null);
+            });
+            await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.VideoAdvertising\..\Win8.videoadvertising\clips\ClipAdPayloadHandler.cs
+public async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#else
+        public IAsyncAction PreloadAdAsync(IAdSource adSource)
+        {
+            return AsyncInfo.Run(c => PreloadAdAsync(adSource, c));
+        }
+
+        internal async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#endif
+        {
+            ProcessPayload(adSource);
+            await adHandlerBase.PreloadAdAsync(adSource, cancellationToken);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.VideoAdvertising\..\Win8.VideoAdvertising\DocumentAdPayloadHandler.cs
+public async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#else
+        public IAsyncAction PreloadAdAsync(IAdSource adSource)
+        {
+            return AsyncInfo.Run(c => PreloadAdAsync(adSource, c));
+        }
+
+        internal async Task PreloadAdAsync(IAdSource adSource, CancellationToken cancellationToken)
+#endif
+        {
+            if (!(adSource.Payload is AdDocumentPayload)) throw new ArgumentException("adSource must contain a payload of type AdDocumentPayload", "adPayload");
+            var adDoc = (AdDocumentPayload)adSource.Payload;
+
+            if (loadOperation != null && loadOperation.Task.IsRunning())
+            {
+                return;
+            }
+
+            await PreloadAdAsync(adDoc, adSource, cancellationToken);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Advertising\..\Win8.Xaml.Advertising\AdHandlerBase.cs
+public async Task CancelActiveAds()
+        {
+            await controller.CancelActiveAds();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.WebVTT\..\Win8.Xaml.WebVTT\WebVTTPlugin.cs
+private async Task<WebVTTDocument> LoadWebVTTDocument(string webvtt, TimeSpan startTime, TimeSpan endTime)
+        {
+            // parse on a background thread
+#if SILVERLIGHT && !WINDOWS_PHONE || WINDOWS_PHONE7
+            return await TaskEx.Run(() => WebVTTParser.ParseDocument(webvtt, startTime, endTime));       
+#else
+            return await Task.Run(() => WebVTTParser.ParseDocument(webvtt, startTime, endTime));
+#endif
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\CFF\Progressive\ProgressiveCffFileParser.cs
+public override async Task<WebRequestorResponse> GetTrackFragmentStream(ManifestTrackType trackType, uint bitrate, ulong timeOffset, string language)
+        {
+            if (language == string.Empty) language = null;
+
+            var track = this.ManifestTracks
+                .Where(t => t.Type == trackType && t.Bitrate == bitrate && t.Language == language)
+                .SingleOrDefault();
+
+            if (track != null)
+            {
+                var entry = track.Fragments.TrackFragmentRandomAccessEntries.FirstOrDefault(e => e.Time == timeOffset);
+
+                if (entry != null)
+                {
+                    return await DownloadFragment(this.fileUri, (long)entry.MoofOffset, (long)entry.SampleSize);
+                }
+            }
+            return null;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\CFF\Progressive\ProgressiveCffFileParser.cs
+private static async Task<WebRequestorResponse> DownloadFragment(Uri uri, long offset, long size)
+        {
+            return await WebRequestor.GetResponseAsync(uri, offset, offset + size - 1);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\Dash\DashDownloaderPlugin.cs
+private async Task<WebRequestorResponse> GetChunkAsync(Uri source, CancellationToken c)
+        {
+            if (ChunkLookup.Any())
+            {
+                var key = source.AbsolutePath;
+
+                if (ChunkLookup.ContainsKey(key))
+                {
+                    ChunkLocation chunkLocation = ChunkLookup[key];
+                    if (ChunkRequested != null) ChunkRequested(this, new ChunkRequestedEventArgs(source, chunkLocation.Uri, string.Format("{0}-{1}", chunkLocation.From, chunkLocation.To)));
+                    return await DownloadResolvedChunkAsync(source, chunkLocation, c);
+                }
+            }
+            if (ChunkRequested != null) ChunkRequested(this, new ChunkRequestedEventArgs(source, source, null));
+#if SILVERLIGHT // SILVERLIGHT requires that we download the chunk
+            return await WebRequestor.GetResponseAsync(source);
+#else
+            return null;
+#endif
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\..\Win8.AdaptiveStreaming.Dash\Dash\DashDownloaderPlugin.cs
+private static async Task<WebRequestorResponse> DownloadResolvedChunkAsync(Uri source, ChunkLocation chunkLocation, CancellationToken c)
+        {
+            // download the chunk and keep the stream open
+            return await WebRequestor.GetResponseAsync(chunkLocation.Uri, (long)chunkLocation.From, (long)chunkLocation.To);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\CFF\Offline\CffOfflineDownloaderPlugin.cs
+public async Task<CacheResponse> RequestAsync(CacheRequest request)
+        {
+            return await downloaderPluginBase.RequestAsync(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\CFF\Progressive\CffProgressiveDownloaderPlugin.cs
+public async Task<CacheResponse> RequestAsync(CacheRequest request)
+        {
+            return await downloaderPluginBase.RequestAsync(request);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\playerframework\Phone.SL.Adaptive.Dash\Helpers\WebRequestExtensions.cs
+public static async Task<HttpWebResponse> GetResponseAsync(this HttpWebRequest request)
+        {
+            var tcs = new TaskCompletionSource<HttpWebResponse>();
+
+            request.BeginGetResponse(ar =>
+            {
+                try
+                {
+                    var response = (HttpWebResponse)request.EndGetResponse(ar);
+                    tcs.SetResult(response);
+                }
+                catch (WebException ex)
+                {
+                    HttpWebResponse response = (HttpWebResponse)ex.Response;
+                    tcs.SetException(new WebRequestorFailure(response.StatusCode, response.Headers));
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            }, null);
+
+            return await tcs.Task;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\MessageExchange\RequestAsyncExtensions.cs
+public static async Task<Stream> GetRequestStreamAsync(this IRequest request)
+        {
+            if (request is Request)
+            {
+                return await ((Request) request).internalRequest.GetRequestStreamAsync();
+            }
+
+            return await Task<Stream>.Factory.FromAsync(request.BeginGetRequestStream, request.EndGetRequestStream, null);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PostAsync(string url)
+        {
+            await this.PostAsync(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PostAsync<T>(string url, T parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            await this.PostAsync(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PostAsync(string url, Parameters parameters)
+        {
+            await this.FetchAsync(Method.Post, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task GetAsync(string url)
+        {
+            await this.GetAsync(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task GetAsync<T>(string url, T parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            await this.GetAsync(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task GetAsync(string url, Parameters parameters)
+        {
+            await this.FetchAsync(Method.Get, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PutAsync(string url)
+        {
+            await this.PutAsync(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PutAsync<T>(string url, T parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            await this.PutAsync(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task PutAsync(string url, Parameters parameters)
+        {
+            await this.FetchAsync(Method.Put, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task DeleteAsync(string url)
+        {
+            await this.DeleteAsync(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task DeleteAsync<T>(string url, T parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            await this.DeleteAsync(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task DeleteAsync(string url, Parameters parameters)
+        {
+            await this.FetchAsync(Method.Delete, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PostListAsync<T>(string url)
+        {
+            return await this.PostListAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PostListAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.PostListAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PostListAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchListAsync<T>(Method.Post, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> GetListAsync<T>(string url)
+        {
+            return await this.GetListAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> GetListAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.GetListAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> GetListAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchListAsync<T>(Method.Get, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PutListAsync<T>(string url)
+        {
+            return await this.PutListAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PutListAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.PutListAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> PutListAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchListAsync<T>(Method.Put, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> DeleteListAsync<T>(string url)
+        {
+            return await this.DeleteListAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> DeleteListAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.DeleteListAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<IList<T>> DeleteListAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchListAsync<T>(Method.Delete, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PostAsync<T>(string url)
+        {
+            return await this.PostAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PostAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.PostAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PostAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchAsync<T>(Method.Post, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> GetAsync<T>(string url)
+        {
+            return await this.GetAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> GetAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.GetAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> GetAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchAsync<T>(Method.Get, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PutAsync<T>(string url)
+        {
+            return await this.PutAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PutAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.PutAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> PutAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchAsync<T>(Method.Put, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> DeleteAsync<T>(string url)
+        {
+            return await this.DeleteAsync<T>(url, new Parameters());
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> DeleteAsync<T, S>(string url, S parameter)
+        {
+            var parameters = new Parameters { { string.Empty, parameter } };
+            return await this.DeleteAsync<T>(url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\restafari\main\Restafari.WindowsPhone\..\Restafari\RestClientBase.async.await.cs
+protected async Task<T> DeleteAsync<T>(string url, Parameters parameters)
+        {
+            return await this.FetchAsync<T>(Method.Delete, url, parameters);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\selbekk+inspire\selbekk-inspire-843b072\Inspire\Controller\QuoteController.cs
+public async Task<Quote> GetRandomQuote()
+        {
+            return await RestService.Get<Quote>();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\ClientCommon\CacheControllerAsync.cs
+internal async Task<CacheRefreshStatistics> SynchronizeAsync()
+        {
+            return await SynchronizeAsync(CancellationToken.None);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\IsolatedStorage\StorageHandler.cs
+public async Task ClearConflicts()
+        {
+            await DeleteFiles(".C");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\IsolatedStorage\StorageHandler.cs
+public async Task ClearErrors()
+        {
+            await DeleteFiles(".E");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\IsolatedStorage\StorageHandler.cs
+public async Task ClearCacheFiles()
+        {
+            await DeleteFiles("*");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\IsolatedStorage\StorageHandler.cs
+public async Task ClearCache()
+        {
+            changes.Clear();
+            await ClearCacheFiles();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\SQLite\SQLiteManager.cs
+internal async Task<bool> ScopeTableExist()
+        {
+            return await Task<Boolean>.Factory.StartNew(() =>
+            {
+
+                using (SQLiteConnection connection = new SQLiteConnection(this.DatabasePath))
+                {
+                    try
+                    {
+                        SQLiteCommand sqlCommand = new SQLiteCommand(connection);
+
+                        sqlCommand.CommandText = SQLiteConstants.ScopeExist;
+
+                        var tableScope = sqlCommand.ExecuteScalar<String>();
+
+                        return tableScope == "ScopeInfoTable";
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+
+                }
+            });
+
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\SQLite\SQLiteManager.cs
+internal async Task CreateTables()
+        {
+            await Task.Factory.StartNew(() =>
+             {
+
+                 if (schema == null || schema.Collections == null || schema.Collections.Count == 0)
+                     return;
+
+                 foreach (var table in schema.Collections.Where(table => table.Name != SQLiteConstants.ScopeInfo))
+                     this.sqliteHelper.CreateTable(table);
+             });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\SQLite\SQLiteManager.cs
+internal async Task CreateScopeTable()
+        {
+            await Task.Factory.StartNew(() =>
+            {
+
+
+                using (SQLiteConnection connection = new SQLiteConnection(this.DatabasePath))
+                {
+                    try
+                    {
+                        connection.CreateTable<ScopeInfoTable>();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                    }
+
+
+                }
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\SQLite\SQLiteManager.cs
+internal async Task<SQLiteConfiguration> ReadConfiguration(string databaseScopeName)
+        {
+
+            return await Task<SQLiteConfiguration>.Factory.StartNew((() =>
+            {
+                SQLiteConfiguration configuration = new SQLiteConfiguration();
+
+                using (SQLiteConnection connection = new SQLiteConnection(this.DatabasePath, SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite))
+                {
+                    string s = null;
+                    List<String> t = new List<string>();
+                    bool scopeInfoTableFounded = false;
+                    DateTime d = new DateTime(1900, 1, 1);
+                    Byte[] blob = null;
+                    try
+                    {
+                        string name = databaseScopeName;
+
+                        connection.RunInTransaction(() =>
+                            {
+                                var scopeInfoTable = connection.Find<ScopeInfoTable>(name);
+
+                                if (scopeInfoTable == null)
+                                {
+                                    scopeInfoTableFounded = false;
+                                    return;
+                                }
+                                XDocument document = XDocument.Parse(scopeInfoTable.Configuration);
+
+                                s = scopeInfoTable.ServiceUri;
+
+                                t = (from tt in document.Descendants()
+                                     where tt.Name == "Types"
+                                     select tt.Value).ToList();
+
+                                d = scopeInfoTable.LastSyncDate;
+
+                                blob = scopeInfoTable.AnchorBlob;
+
+                                scopeInfoTableFounded = true;
+
+                            });
+                    }
+                    catch
+                    {
+                        scopeInfoTableFounded = false;
+                    }
+
+                    if (!scopeInfoTableFounded)
+                        return null;
+
+                    // Configure Configuration en return it
+                    configuration.ScopeName = databaseScopeName;
+                    configuration.ServiceUri = new Uri(s);
+                    configuration.Types = t;
+                    configuration.LastSyncDate = d;
+                    configuration.AnchorBlob = blob;
+
+
+                }
+
+                return configuration;
+            }));
+
+
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sqlitesync4winphone8\SyncClient.WindowsPhone8\SQLite\SQLiteManager.cs
+internal async Task SaveConfiguration(SQLiteConfiguration configuration)
+        {
+            XElement xScopeInfoTable = new XElement("ScopeInfoTable");
+
+            // Create Types xml doc.
+            foreach (var t in configuration.Types)
+                xScopeInfoTable.Add(new XElement("Types", t));
+
+            XDocument doc = new XDocument(xScopeInfoTable);
+
+            var scopeInfoTable = new ScopeInfoTable
+            {
+                ScopeName = configuration.ScopeName,
+                ServiceUri = configuration.ServiceUri.AbsoluteUri,
+                Configuration = doc.ToString(),
+                AnchorBlob = configuration.AnchorBlob,
+                LastSyncDate = configuration.LastSyncDate
+            };
+
+            await Task.Factory.StartNew(() =>
+            {
+
+                // Saving Configuration
+                using (SQLiteConnection connection = new SQLiteConnection(this.DatabasePath))
+                {
+                    try
+                    {
+                        connection.RunInTransaction(() =>
+                        {
+                            if (connection.Find<ScopeInfoTable>(configuration.ScopeName) != null)
+                                connection.Update(scopeInfoTable);
+                            else
+                                connection.Insert(scopeInfoTable);
+                        });
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                        throw new Exception("Impossible to save Sync Configuration", ex);
+                    }
+                }
+            });
+
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sugarsyncapi\v1\Appology.SugarSync.Phone\..\Appology.SugarSync.Desktop\IO\SugarSyncDirectoryInfo.cs
+public static async Task<SugarSyncDirectoryInfo> FindDirectory(string path, SugarSyncAccount account)
+        {
+            return await InternalCreateDirectory(path, false, account);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\sugarsyncapi\v1\Appology.SugarSync.Phone\..\Appology.SugarSync.Desktop\IO\SugarSyncDirectoryInfo.cs
+public static async Task<SugarSyncDirectoryInfo> CreateDirectory(string path, bool recursive, SugarSyncAccount account)
+        {
+            return await InternalCreateDirectory(path, recursive, account);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Samples\Fabrikam\Fabrikam.Phone\DataModel\ContextModel.cs
+public async Task<bool> DatabaseExist()
+        {
+            // Get the isolated storage file for the application.
+            StorageFolder applicationFolder = ApplicationData.Current.LocalFolder;
+
+            return await applicationFolder.FileExistsAsync("fabrikamfiber_sqlite.db");
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Samples\Fabrikam\Fabrikam.Phone\DataModel\ContextModel.cs
+internal async Task DeleteItem(ServiceTicketViewModel serviceTicketViewModel)
+        {
+            await Task.Factory.StartNew(() =>
+            {
+                using (SQLiteConnection db = new SQLiteConnection(this.DatabasePath,
+                                                                  SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite))
+                {
+                    db.Delete(serviceTicketViewModel.ServiceTicket);
+                }
+                
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Samples\Fabrikam\Fabrikam.Phone\ViewModels\MainViewModel.cs
+private async Task Save()
+        {
+            await ContextModel.Current.SaveItems(this.ServiceTickets);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Sync Framework 4.0 Toolkit\C#\WP8Client\..\WinRTClient\ClientCommon\CacheControllerAsync.cs
+internal async Task<CacheRefreshStatistics> SynchronizeAsync()
+        {
+            return await SynchronizeAsync(CancellationToken.None);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Sync Framework 4.0 Toolkit\C#\WP8Client\..\WinRTClient\SQLite\SQLiteContext.cs
+public async Task<CacheRefreshStatistics> SynchronizeAsync()
+        {
+            if (!loaded)
+                LoadSchema();
+
+            return await this.cacheController.SynchronizeAsync();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Sync Framework 4.0 Toolkit\C#\WP8Client\..\WinRTClient\SQLite\SQLiteContext.cs
+public async Task<CacheRefreshStatistics> SynchronizeAsync(CancellationToken cancellationToken)
+        {
+            if (!loaded)
+                LoadSchema();
+
+            return await this.cacheController.SynchronizeAsync(cancellationToken);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\syncwinrt\Sync Framework 4.0 Toolkit\C#\WP8Client\..\WinRTClient\SQLite\SQLiteContext.cs
+public override async Task SaveChangeSet(ChangeSet changeSet)
+        {
+            ThrowIfDisposed();
+
+            if (changeSet == null)
+                throw new ArgumentNullException("changeSet");
+
+            if (!syncActive)
+                throw new InvalidOperationException("SaveChangeSet cannot be called without calling BeginSession");
+
+            // Cast to the specific entity.
+            IEnumerable<SQLiteOfflineEntity> entities = changeSet.Data.Cast<SQLiteOfflineEntity>();
+
+            // Save the configuration (Blob and LastSyncDate) and all Entitites.
+            await Task.Factory.StartNew(() =>
+            {
+                Manager.SaveDownloadedChanges(entities);
+
+                // Set the new Last Sync Date
+                this.Configuration.LastSyncDate = DateTime.UtcNow;
+                this.Configuration.AnchorBlob = changeSet.ServerBlob;
+
+                Manager.SaveConfiguration(this.Configuration);
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\w8bouncycastle\WinRTBouncyCastle\WinRTBouncyCastle\src\cms\KeyAgreeRecipientInformation.cs
+public async override Task<CmsTypedStream> GetContentStream(
+			ICipherParameters key)
+		{
+			if (!(key is AsymmetricKeyParameter))
+				throw new ArgumentException("KeyAgreement requires asymmetric key", "key");
+
+			AsymmetricKeyParameter receiverPrivateKey = (AsymmetricKeyParameter) key;
+
+			if (!receiverPrivateKey.IsPrivate)
+				throw new ArgumentException("Expected private key", "key");
+
+			KeyParameter sKey = GetSessionKey(receiverPrivateKey);
+
+			return await GetContentFromSessionKey(sKey);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\w8bouncycastle\WinRTBouncyCastle\WinRTBouncyCastle\src\cms\KeyTransRecipientInformation.cs
+public async override Task<CmsTypedStream> GetContentStream(
+            ICipherParameters key)
+        {
+			KeyParameter sKey = UnwrapKey(key);
+
+			return await GetContentFromSessionKey(sKey);
+		}
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windns\WindowsDns\Windows.Dns.WP\..\Windows.Dns\Resolver.cs
+public static async Task<Response> Lookup(Request request, IPAddress dnsServer, int timeoutInSeconds = 2)
+        {
+            // check the inputs
+            if (request == null) throw new ArgumentNullException("request");
+            if (dnsServer == null) throw new ArgumentNullException("dnsServer");
+
+            return await Task.Factory.StartNew(() =>
+                                                   {
+                                                       // We will not catch exceptions here, rather just refer them to the caller
+
+                                                       // create an end point to communicate with
+                                                       var server = new IPEndPoint(dnsServer, DnsPort);
+
+
+                                                       SocketRequest sr = null;
+                                                       var mre = new ManualResetEvent(false);
+                                                       DataReceived = bts =>
+                                                                          {
+                                                                              // ReSharper disable AccessToModifiedClosure
+                                                                              if (sr == bts)
+                                                                                  // ReSharper restore AccessToModifiedClosure
+                                                                              {
+                                                                                  mre.Set();
+                                                                              }
+                                                                          };
+
+                                                       // send the request and get the response
+                                                       //byte[] responseMessage =;
+                                                       sr = UdpTransfer(server, request);
+                                                       mre.WaitOne(timeoutInSeconds*1000);
+                                                       return sr.Response;
+                                                   });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\WindowsPhone8.Core.Xaml\Controls\RichText\RichTextBlockHtmlLoader.cs
+private async Task<string> ToHtmlAsync(RichTextBox richTextBlock)
+        {
+            return await Task.Run<string>(() =>
+            {
+                return ToHtml(richTextBlock);
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\WindowsPhone8.Core.Xaml\Controls\SuperFlyout.cs
+public static async Task ShowHtmlFile(string title, string htmlFilePath)
+        {
+            await AppHelper.NavigateToUriAsync(new Uri("/Windows8Accelerator.Core.Xaml;component/Controls/SuperFlyoutPage.xaml", UriKind.Relative), new SuperFlyoutNavigationParameter()
+            {
+                Title = title,
+                HtmlFilePath = htmlFilePath,
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\WindowsPhone8.Core.Xaml\Helpers\AppHelper.cs
+public override async Task ShowErrorMessageAndGoBackAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK);
+            await NavigateBack();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\WindowsPhone8.Core.Xaml\Helpers\HtmlHelper.cs
+public override async Task PreLoadHtmlImagesAsync(string html)
+        {
+            html = WebUtility.HtmlDecode(html);
+
+            var htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(html);
+
+            await VisitPreLoadHtmlImages(htmlDocument.DocumentNode);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\AppHelperBase.cs
+public async Task NavigateAsync(string pageTypeName)
+        {
+            await NavigateAsync(pageTypeName, null);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\AppHelperBase.cs
+public async Task SaveStateAsync()
+        {
+            await ObjectPersister.SaveAsync("AppState.bin", StorageLocation.Local, _State, ObjectPersisterFormat.Binary);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Controls\SuperFlyout.cs
+public static async Task ShowHtmlFile(string title, string htmlFilePath)
+        {
+            await AppHelper.NavigateToUriAsync(new Uri("/Windows8Accelerator.WindowsPhone7.Core.Xaml;component/Controls/SuperFlyoutPage.xaml", UriKind.Relative), new SuperFlyoutNavigationParameter()
+            {
+                Title = title,
+                HtmlFilePath = htmlFilePath,
+            });
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\WebHelperBase.cs
+public async Task<string> GetJsonAsync(string url, string user = null, string password = null)
+        {
+            return await GetStringAsync(url, "application/json", user , password );
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\WebHelperBase.cs
+public async Task<string> GetStringAsync(string url, string accept = null, string user = null, string password = null)
+        {
+            using (ProgressBarManager.NewWork())
+            {
+                return await InternalGetStringAsync(new Uri(url), accept, user, password);
+            } 
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\WebHelperBase.cs
+public async Task<string> PostJsonAsync(string url, object postData, string user = null, string password = null)
+        {
+            var postDataAsJson = JsonConvert.SerializeObject(postData);
+            return await PostStringAsync(url, postDataAsJson, "application/json", user, password);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\WebHelperBase.cs
+public async Task<string> PostStringAsync(string url, string postData, string accept = null, string user = null, string password = null)
+        {
+            using (ProgressBarManager.NewWork())
+            {
+                return await InternalPostStringAsync(new Uri(url), postData, accept, user, password);
+            }
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Caching\CacheManager.cs
+public static async Task<Uri> GetOrRetrieveUriAsync(string url)
+        {
+            return await GetOrRetrieveUriAsync(new Uri(url));
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\AppHelper.cs
+public override async Task ShowErrorMessageAndGoBackAsync(string title, string message)
+        {
+            MessageBox.Show(message, title, MessageBoxButton.OK);
+            await NavigateBack();
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Helpers\HtmlHelper.cs
+public override async Task PreLoadHtmlImagesAsync(string html)
+        {
+            html = HttpUtility.HtmlDecode(html);
+
+            var htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(html);
+
+            await VisitPreLoadHtmlImages(htmlDocument.DocumentNode);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\windows8accelerator\Trunk\Windows8Accelerator\Windows8Accelerator.WindowsPhone7.Core.Xaml\Storage\StorageHelper.cs
+public async Task<FileInfo[]> GetFilesAsync(StorageLocation storageLocation)
+        {
+            return await GetFilesAsync(null, storageLocation);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\wpupnp\UPnP\PhoneTestApp\ContentDirectory.cs
+public async Task<Browse_Result> Browse(string ObjectID, string BrowseFlag, string Filter, uint StartingIndex, uint RequestedCount, string SortCriteria)
+        {
+            return await base.Action_Async(Browse_Info, new object[] { ObjectID, BrowseFlag, Filter, StartingIndex, RequestedCount, SortCriteria }, new Browse_Result()) as Browse_Result;
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\yamac+windows-demos\yamac-windows-demos-cbb221f\YamacDemos.WP8\..\YamacDemos.Common\Data\DemoItemRepositorySource.cs
+public async Task<DemoItem[]> GetChunkAsync(uint start, uint count)
+        {
+            if (start < 1 || start > MaxItems || count > MaxItems)
+            {
+                throw new ArgumentOutOfRangeException("The parameter 'start' or 'count' is out of range.");
+            }
+            if (start + count > MaxItems)
+            {
+                count = MaxItems - start + 1;
+            }
+            return await Repository.GetItemsAsync(start, count);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\yamac+windows-demos\yamac-windows-demos-cbb221f\YamacDemos.WP8\..\YamacDemos.Common\Data\DemoItemStaticRepository.cs
+public async Task<DemoItem[]> GetItemsAsync(uint start = 1, uint count = 10)
+        {
+            Debug.WriteLine("GetItemsAsync({0}, {1})", start, count);
+            var items = Enumerable
+                .Range((int)start, (int)count)
+                .Select<int, DemoItem>
+                (
+                    x =>
+                    {
+                        return new DemoItem { Id = x, Title = "title" + x, Description = "description" + x };
+                    }
+                ).ToArray();
+            return await Task.Run<DemoItem[]>(() => items);
+        }
+-----------------------
+UnnecessaryAwaits D:\CodeCorpus\WPApps\zxingnet\trunk\Clients\WindowsPhone8Demo\ViewModels\CaptureViewModel.cs
+private async Task StartCapturingAsync()
+        {
+            CameraCaptureSequence sequence = PhotoCaptureDevice.CreateCaptureSequence(1);
+            var memoryStream = new MemoryStream();
+            sequence.Frames[0].CaptureStream = memoryStream.AsOutputStream();
+
+            PhotoCaptureDevice.SetProperty(KnownCameraPhotoProperties.FlashMode, FlashState.Off);
+            PhotoCaptureDevice.SetProperty(KnownCameraPhotoProperties.SceneMode, CameraSceneMode.Macro);
+
+            await PhotoCaptureDevice.PrepareCaptureSequenceAsync(sequence);
+        }
+-----------------------
