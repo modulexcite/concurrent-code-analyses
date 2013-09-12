@@ -32,6 +32,11 @@ namespace Refactoring_BatchTool
         static void Main()
         {
             Logger.Info("Hello, world!");
+            Logger.Info("Results file header:");
+            SolutionRefactoring.LogResultsFileHeader();
+            Logger.Info("Symbols file header:");
+            SolutionRefactoring.LogSymbolsFileHeader();
+            Logger.Info("Starting ...");
 
             var apps = Directory.GetDirectories(CandidatesDir).Take(BatchSize);
 
@@ -54,7 +59,10 @@ namespace Refactoring_BatchTool
             
             }
 
-            Logger.Info("Completed run.");
+            Logger.Info("Completed run. Results file header:");
+            SolutionRefactoring.LogResultsFileHeader();
+            Logger.Info("Symbols file header:");
+            SolutionRefactoring.LogSymbolsFileHeader();
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
@@ -83,8 +91,8 @@ namespace Refactoring_BatchTool
             Logger.Info("!!! * Number of precondition failures           : {0}", refactoring.NumPreconditionFailures);
             Logger.Info("!!! * Number of valid candidates                : {0}", refactoring.NumValidCandidates);
             Logger.Info("!!! * Number of succesful refactorings          : {0}", refactoring.NumSuccesfulRefactorings);
-            Logger.Info("!!! * Number of failed refactorings             : {0}", refactoring.NumCompilationFailures);
-            Logger.Info("!!!    - Compilation failures    : {0}", refactoring.NumCompilationFailures);
+            Logger.Info("!!! * Number of failed refactorings             : {0}", refactoring.NumRefactoringFailures);
+            Logger.Info("!!!    - Compilation failures    : {0}", refactoring.NumCompilationErrors);
             Logger.Info("!!!    - RefactoringExceptions   : {0}", refactoring.NumRefactoringExceptions);
             Logger.Info("!!!    - NotImplementedExceptions: {0}", refactoring.NumNotImplementedExceptions);
             Logger.Info("!!!    - Other exceptions        : {0}", refactoring.NumOtherExceptions);

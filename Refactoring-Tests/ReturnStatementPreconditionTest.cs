@@ -8,6 +8,7 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatRefactoringBeginXxxInReturnStatementThrowsPreconditionException()
         {
+            // Fails. Currently implemented in batch tool.
             AssertThatRefactoringOriginalCodeThrowsPreconditionException(
                 Code,
                 FirstBeginInvocationFinder("request.BeginGetResponse")
