@@ -69,15 +69,15 @@ namespace Refactoring_BatchTool
 
             if (method.IsAPMBeginMethod())
             {
-                Logger.Info("Found APM Begin method invocation, annotating it: @ {0}:{1}",
-                    node.SyntaxTree.FilePath,
-                    node.GetStartLineNumber()
-                );
-                Logger.Trace("Actual code @ {0}:{1}:\n{2}",
-                    node.SyntaxTree.FilePath,
-                    node.GetStartLineNumber(),
-                    node
-                );
+                //Logger.Info("Found APM Begin method invocation, annotating it: @ {0}:{1}",
+                //    node.SyntaxTree.FilePath,
+                //    node.GetStartLineNumber()
+                //);
+                //Logger.Trace("Actual code @ {0}:{1}:\n{2}",
+                //    node.SyntaxTree.FilePath,
+                //    node.GetStartLineNumber(),
+                //    node
+                //);
 
                 var annotation = new RefactorableAPMInstance(NumAnnotations++);
 

@@ -14,6 +14,9 @@ namespace Refactoring_BatchTool
     public class APMRefactoring
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Success = LogManager.GetLogger("Success");
+        private static readonly Logger Fail = LogManager.GetLogger("Fail");
+        private static readonly Logger TempLog2 = LogManager.GetLogger("TempLog2");
 
         private readonly Workspace _workspace;
 
@@ -54,28 +57,29 @@ namespace Refactoring_BatchTool
         public Solution SafelyRefactorSolution(Solution solution, Document document, int index)
         {
             var numInitialErrors = solution.CompilationErrorCount();
-
+            var oldErrors = solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Select(a => a.Id);
             var oldSolution = solution;
             try
             {
                 solution = ExecuteRefactoring(document, solution, index);
 
+                var oldFile= document.GetTextAsync().Result;
+                var newFile = solution.GetDocument(document.Id).GetTextAsync().Result;
+
                 if (solution.CompilationErrorCount() > numInitialErrors)
                 {
-                    Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
+                    
+                    Fail.Info("{0}", document.FilePath);
+                    Fail.Info("{0}\r\n*************************************************************************************************", oldFile);
+                    Fail.Info("{0}\r\n=================================================================================================", newFile);
 
-                    Logger.Warn("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
-                        document.GetTextAsync().Result);
-                    Logger.Warn("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
-                        solution.GetDocument(document.Id).GetTextAsync().Result);
-
-                    Logger.Error("=== SOLUTION ERRORS ===");
+                    Fail.Error("$$$$$$$$$$$$$$$$$$$$$$$$$ SOLUTION ERRORS $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
                     foreach (
-                        var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+                        var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error && !oldErrors.Any(a=> a.Equals(d.Id))))
                     {
-                        Logger.Error("=== Solution error: {0}", diagnostic);
+                        Fail.Error("{0}", diagnostic);
                     }
-                    Logger.Error("=== END OF SOLUTION ERRORS ===");
+                    Fail.Error("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
                     CompilationError = true;
                     RefactoredSolution = solution;
@@ -83,8 +87,12 @@ namespace Refactoring_BatchTool
                 }
                 else
                 {
-                    RefactoredSolution = solution;
 
+                    Success.Info("{0}", document.FilePath);
+                    Success.Info("{0}\r\n*************************************************************************************************", oldFile);
+                    Success.Info("{0}\r\n=================================================================================================", newFile);
+
+                    RefactoredSolution = solution;
                     NumMethodSymbolLookups += SemanticModelExtensions.NumMethodSymbolLookups;
                     SemanticModelExtensions.ResetSymbolLookupCounter();
                 }
@@ -127,8 +135,8 @@ namespace Refactoring_BatchTool
 
             var syntax = ((SyntaxTree)document.GetSyntaxTreeAsync().Result).GetRoot();
 
-            Logger.Info("Refactoring annotated document: index={0}", index);
-            Logger.Debug("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", syntax);
+            //Logger.Info("Refactoring annotated document: index={0}", index);
+            //Logger.Debug("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", syntax);
 
             var startTime = DateTime.UtcNow;
 
@@ -137,8 +145,10 @@ namespace Refactoring_BatchTool
             var endTime = DateTime.UtcNow;
             var refactoringTime = endTime.Subtract(startTime).Milliseconds;
 
-            Logger.Debug("Refactoring completed in {0} ms.", refactoringTime);
-            Logger.Debug("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(_workspace));
+            //Logger.Debug("Refactoring completed in {0} ms.", refactoringTime);
+            //Logger.Debug("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(_workspace));
+
+            TempLog2.Info("{0},{1},{2}", index, document.FilePath, refactoringTime);
 
             return solution.WithDocumentSyntaxRoot(document.Id, refactoredSyntax);
         }

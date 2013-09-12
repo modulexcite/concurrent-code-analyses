@@ -31,12 +31,12 @@ namespace Refactoring_BatchTool
 
         static void Main()
         {
-            Logger.Info("Hello, world!");
-            Logger.Info("Results file header:");
+            //Logger.Info("Hello, world!");
+            //Logger.Info("Results file header:");
             SolutionRefactoring.LogResultsFileHeader();
-            Logger.Info("Symbols file header:");
+            //Logger.Info("Symbols file header:");
             SolutionRefactoring.LogSymbolsFileHeader();
-            Logger.Info("Starting ...");
+            //Logger.Info("Starting ...");
 
             var apps = Directory.GetDirectories(CandidatesDir).Take(BatchSize);
 
@@ -59,9 +59,9 @@ namespace Refactoring_BatchTool
             
             }
 
-            Logger.Info("Completed run. Results file header:");
+            //Logger.Info("Completed run. Results file header:");
             SolutionRefactoring.LogResultsFileHeader();
-            Logger.Info("Symbols file header:");
+            //Logger.Info("Symbols file header:");
             SolutionRefactoring.LogSymbolsFileHeader();
 
             Console.WriteLine(@"Press any key to quit ...");
@@ -123,7 +123,6 @@ namespace Refactoring_BatchTool
                 if (solution == null)
                 {
                     Logger.Error("Failed to load solution file: {0}", solutionPath);
-
                     throw new Exception("Failed to load solution file: " + solutionPath);
                 }
 
