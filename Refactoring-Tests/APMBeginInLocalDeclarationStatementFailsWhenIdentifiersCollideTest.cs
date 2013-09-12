@@ -3,10 +3,10 @@
 namespace Refactoring_Tests
 {
     [TestFixture]
-    public class TryCatchBlockTest : APMToAsyncAwaitRefactoringTestBase
+    public class APMBeginInLocalDeclarationStatementTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
-        public void TestThatEndXxxInTryBlockIsRefactoredCorrectly()
+        public void TestThatAPMBeginRewritingUsesNonCollidingIdentifierForLambdaParameter()
         {
             AssertThatOriginalCodeIsRefactoredCorrectly(
                 OriginalCode,
@@ -25,30 +25,18 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            request.BeginGetResponse(Callback, request);
-
-            DoSomethingWhileGetResponseIsRunning();
+            var result = request.BeginGetResponse(Callback, request);
         }
 
         private void Callback(IAsyncResult result)
         {
             var request = (WebRequest)result.AsyncState;
+            var response = request.EndGetResponse(result);
 
-            try
-            {
-                var response = request.EndGetResponse(result);
-
-                DoSomethingWithResponse(response);
-            }
-            catch (WebException e)
-            {
-                HandleException(e);
-            }
+            DoSomethingWithRequestAndResponse(request, response);
         }
 
-        private static void DoSomethingWhileGetResponseIsRunning() { }
-        private static void DoSomethingWithResponse(WebResponse response) { }
-        private static void HandleException(WebException e) { }
+        private static void DoSomethingWithRequestAndResponse(WebRequest request, WebResponse response) { }
     }
 }";
 
@@ -64,28 +52,17 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-            DoSomethingWhileGetResponseIsRunning();
             await Callback(task, request).ConfigureAwait(false);
         }
 
         private async Task Callback(Task<WebResponse> task, WebRequest request)
         {
+            var response = await task.ConfigureAwait(false);
 
-            try
-            {
-                var response = await task.ConfigureAwait(false);
-
-                DoSomethingWithResponse(response);
-            }
-            catch (WebException e)
-            {
-                HandleException(e);
-            }
+            DoSomethingWithRequestAndResponse(request, response);
         }
 
-        private static void DoSomethingWhileGetResponseIsRunning() { }
-        private static void DoSomethingWithResponse(WebResponse response) { }
-        private static void HandleException(WebException e) { }
+        private static void DoSomethingWithRequestAndResponse(WebRequest request, WebResponse response) { }
     }
 }";
     }

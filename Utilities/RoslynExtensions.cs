@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Semantics;
@@ -5,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
 using System.Xml;
+using NLog;
 
 namespace Utilities
 {
@@ -13,6 +17,8 @@ namespace Utilities
     /// </summary>
     public static class RoslynExtensions
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public static bool IsCSProject(this Project project)
         {
             return project.Language.Equals("C#");
@@ -26,7 +32,7 @@ namespace Utilities
             var linesWithNoText = 0;
             foreach (var l in text.Lines)
             {
-                if (string.IsNullOrEmpty(l.ToString().Trim()))
+                if (String.IsNullOrEmpty(l.ToString().Trim()))
                 {
                     ++linesWithNoText;
                 }
@@ -63,6 +69,10 @@ namespace Utilities
         public static int IsWindowsPhoneProject(this Project project)
         {
             XmlDocument doc = new XmlDocument();
+
+            if (project.FilePath == null || !project.FilePath.Any())
+                return 0;
+
             doc.Load(project.FilePath);
 
             XmlNamespaceManager mgr = new XmlNamespaceManager(doc.NameTable);
@@ -213,7 +223,7 @@ namespace Utilities
             if (methodCallSymbol == null)
                 return null;
 
-            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a=> a.GetSyntax());
+            var nodes = methodCallSymbol.DeclaringSyntaxReferences.Select(a => a.GetSyntax());
 
             if (nodes == null || nodes.Count() == 0)
                 return null;
@@ -242,9 +252,6 @@ namespace Utilities
             //}
         }
 
-
-
-
         public static Enums.SyncDetected DetectSynchronousUsages(this MethodSymbol methodCallSymbol, SemanticModel semanticModel)
         {
             var list = semanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
@@ -272,11 +279,40 @@ namespace Utilities
 
 
 
+        public static int CompilationErrorCount(this Solution solution)
+        {
+            return solution
+                .GetDiagnostics()
+                .Count(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
 
+        public static IEnumerable<Diagnostic> GetDiagnostics(this Solution solution)
+        {
+            if (solution == null) throw new ArgumentNullException("solution");
 
+            return solution.Projects
+                .Select(project => project.GetCompilationAsync().Result)
+                .SelectMany(compilation => compilation.GetDiagnostics());
+        }
 
+        public static async Task<Solution> TryLoadSolutionAsync(this MSBuildWorkspace workspace, string solutionPath)
+        {
+            if (workspace == null) throw new ArgumentNullException("workspace");
+            if (solutionPath == null) throw new ArgumentNullException("solutionPath");
 
+            Logger.Trace("Trying to load solution file: {0}", solutionPath);
 
+            try
+            {
+                return await workspace.OpenSolutionAsync(solutionPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+
+                return null;
+            }
+        }
 
     }
 }

@@ -20,24 +20,56 @@ namespace Utilities
 
             Logger.Trace("Looking up symbol for: {0}", expression);
 
-            switch (expression.Kind)
+            var symbol = model.GetSymbolInfo(expression).Symbol;
+
+            var methodSymbol = symbol as MethodSymbol;
+            if (methodSymbol != null)
             {
-                case SyntaxKind.PointerMemberAccessExpression:
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.IdentifierName:
-
-                    var symbol = model.GetSymbolInfo(expression).Symbol;
-
-                    if (symbol != null)
-                    {
-                        return (MethodSymbol)symbol;
-                    }
-
-                    throw new Exception("No symbol for invocation expression: " + invocation);
-
-                default:
-                    throw new NotImplementedException("Unsupported expression kind: " + expression.Kind + ": " + invocation);
+                return methodSymbol;
             }
+
+            throw new MethodSymbolMissingException(invocation);
+        }
+
+        public static MethodSymbol LookupMethodSymbol(this SemanticModel model, IdentifierNameSyntax identifier)
+        {
+            if (model == null) throw new ArgumentNullException("model");
+            if (identifier == null) throw new ArgumentNullException("identifier");
+
+            var expression = identifier;
+
+            Logger.Trace("Looking up symbol for: {0}", expression);
+
+            var symbol = model.GetSymbolInfo(expression).Symbol;
+
+            var methodSymbol = symbol as MethodSymbol;
+            if (methodSymbol != null)
+            {
+                return methodSymbol;
+            }
+
+            throw new MethodSymbolMissingException(expression);
+        }
+    }
+
+    public class SymbolMissingException : Exception
+    {
+        public SymbolMissingException(String message)
+            : base(message)
+        {
+        }
+    }
+
+    public class MethodSymbolMissingException : SymbolMissingException
+    {
+        public MethodSymbolMissingException(InvocationExpressionSyntax invocation)
+            : base("No method symbol found for invocation: " + invocation)
+        {
+        }
+
+        public MethodSymbolMissingException(IdentifierNameSyntax identifier)
+            : base("No method symbol found for identifier: " + identifier)
+        {
         }
     }
 }
