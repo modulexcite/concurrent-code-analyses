@@ -7,5 +7,11 @@ namespace Refactoring
     /// </summary>
     public class RefactorableAPMInstance : SyntaxAnnotation
     {
+        public int Index { get; private set; }
+
+        public RefactorableAPMInstance(int index)
+        {
+            Index = index;
+        }
     }
 }

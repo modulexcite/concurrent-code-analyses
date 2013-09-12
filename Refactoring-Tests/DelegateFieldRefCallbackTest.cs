@@ -1,29 +1,19 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
-using System.Linq;
+using Refactoring;
 
 namespace Refactoring_Tests
 {
     [TestFixture]
     public class DelegateFieldRefCallbackTest : APMToAsyncAwaitRefactoringTestBase
     {
-        [TestCase(Ignore = true, IgnoreReason = "Delegates are only sometimes refactorable")]
+        [Test]
         public void TestThatDelegateCallbackIsRefactoredCorrectly()
         {
-            StatementFinder statementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(node => node.ToString().Contains("Begin"));
-
-            try
-            {
-                AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCode, RefactoredCode, statementFinder);
-                Assert.Fail("Should have failed.");
-            }
-            catch (InvalidCastException)
-            {
-            }
+            AssertThatRefactoringOriginalCodeThrowsPreconditionException(
+                OriginalCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCode = @"using System;
@@ -47,7 +37,5 @@ namespace TextInput
         private static void DoSomethingWithResponse(WebResponse response) { }
     }
 }";
-
-        private const string RefactoredCode = @"";
     }
 }

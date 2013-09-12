@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NUnit.Framework;
-using System.Linq;
+﻿using NUnit.Framework;
 
 namespace Refactoring_Tests
 {
@@ -10,23 +8,31 @@ namespace Refactoring_Tests
         [Test]
         public void TestThatTheSimpleCaseWithParenthesizedLambdaCallbackIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(invocation => invocation.ToString().Contains("Begin"));
-
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithParenthesizedLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithParenthesizedLambda,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         [Test]
         public void TestThatTheSimpleCaseWithSimpleLambdaCallbackIsRefactoredCorrectly()
         {
-            StatementFinder actualStatementFinder =
-                syntax => syntax.GetRoot().DescendantNodes()
-                                .OfType<ExpressionStatementSyntax>()
-                                .First(invocation => invocation.ToString().Contains("Begin"));
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithSimpleLambda,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
+        }
 
-            AssertThatOriginalCodeIsRefactoredCorrectly(OriginalCodeWithSimpleLambda, RefactoredCodeWithoutWhitespaceFixes, actualStatementFinder);
+        [Test]
+        public void TestThatLambdaCallbackWithSetButUnreferencedAsyncStateWhichIsAlsoCapturedDirectlyIsRefactoredCorrectly()
+        {
+            AssertThatOriginalCodeIsRefactoredCorrectly(
+                OriginalCodeWithSimpleLambdaWithCapturedAsyncState,
+                RefactoredCode,
+                FirstBeginInvocationFinder("request.BeginGetResponse")
+            );
         }
 
         private const string OriginalCodeWithParenthesizedLambda = @"using System;
@@ -77,22 +83,23 @@ namespace TextInput
     }
 }";
 
-        private const string RefactoredCodeWithoutWhitespaceFixes = @"using System;
+        private const string OriginalCodeWithSimpleLambdaWithCapturedAsyncState = @"using System;
 using System.Net;
 
 namespace TextInput
 {
     class SimpleAPMCase
     {
-        public async void FireAndForget()
+        public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            var task = request.GetResponseAsync();
+            request.BeginGetResponse(result => {
+                var response = request.EndGetResponse(result);
+
+                DoSomethingWithResponse(response);
+            }, request);
 
             DoSomethingWhileGetResponseIsRunning();
-            var response = task.GetAwaiter().GetResult();
-
-            DoSomethingWithResponse(response);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
@@ -100,9 +107,9 @@ namespace TextInput
     }
 }";
 
-        // TODO: Replace GetAwaiter().GetResult() with await task.ConfigureAwait(false) once available
         private const string RefactoredCode = @"using System;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace TextInput
 {
@@ -112,10 +119,9 @@ namespace TextInput
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
-
             DoSomethingWhileGetResponseIsRunning();
+            var response = await task.ConfigureAwait(false);
 
-            var response = task.GetAwaiter().GetResult();
             DoSomethingWithResponse(response);
         }
 

@@ -1,18 +1,25 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NUnit.Framework;
 
 namespace Refactoring_Tests
 {
     [TestFixture]
-    public class EndXxxDeeperInCallGraphTest : APMToAsyncAwaitRefactoringTestBase
+    public class UnusedIAsyncResultCapturedAtBeginXxxTest : APMToAsyncAwaitRefactoringTestBase
     {
         [Test]
-        public void TestThatNestedEndGetResponseIsRefactoredCorrectly()
+        public void TestThatUnusedIAsyncResultCapturedAtBeginXxxIsIgnored()
         {
             AssertThatOriginalCodeIsRefactoredCorrectly(
                 OriginalCode,
                 RefactoredCode,
                 FirstBeginInvocationFinder("request.BeginGetResponse")
             );
+        }
+
+        // TODO [Test]
+        public void TestThatUsedIAsyncResultCapturedAtBeginXxxFailsPrecondition()
+        {
         }
 
         private const string OriginalCode = @"using System;
@@ -25,23 +32,13 @@ namespace TextInput
         public void FireAndForget()
         {
             var request = WebRequest.Create(""http://www.microsoft.com/"");
-            request.BeginGetResponse(result =>
-            {
-                var response = Nested0(result, request);
+            var result = (IAsyncResult) request.BeginGetResponse(result => {
+                var response = request.EndGetResponse(result);
+
                 DoSomethingWithResponse(response);
             }, null);
 
             DoSomethingWhileGetResponseIsRunning();
-        }
-
-        private static WebResponse Nested0(IAsyncResult result, WebRequest request)
-        {
-            return Nested1(result, request);
-        }
-
-        private static WebResponse Nested1(IAsyncResult result, WebRequest request)
-        {
-            return request.EndGetResponse(result);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
@@ -62,18 +59,9 @@ namespace TextInput
             var request = WebRequest.Create(""http://www.microsoft.com/"");
             var task = request.GetResponseAsync();
             DoSomethingWhileGetResponseIsRunning();
-            var response = await Nested0(task, request).ConfigureAwait(false);
+            var response = await task.ConfigureAwait(false);
+
             DoSomethingWithResponse(response);
-        }
-
-        private static async Task<WebResponse> Nested0(Task<WebResponse> task, WebRequest request)
-        {
-            return await Nested1(task, request).ConfigureAwait(false);
-        }
-
-        private static async Task<WebResponse> Nested1(Task<WebResponse> task, WebRequest request)
-        {
-            return await task.ConfigureAwait(false);
         }
 
         private static void DoSomethingWhileGetResponseIsRunning() { }
