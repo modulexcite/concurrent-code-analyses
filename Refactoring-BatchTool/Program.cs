@@ -21,7 +21,7 @@ namespace Refactoring_BatchTool
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\8digits-WindowsPhone-SDK-Sample-App\EightDigitsTest.sln";
 
         private const string CandidatesDir = @"D:\CodeCorpus\Refactoring\";
-        private const int BatchSize = 3;
+        private const int BatchSize = 30;
 
         private const string RefactoredAppsFile = @"C:\Users\semih\Desktop\Logs\RefactoredApps.log";
         private static readonly string[] RefactoredApps =
@@ -59,10 +59,7 @@ namespace Refactoring_BatchTool
             
             }
 
-            //Logger.Info("Completed run. Results file header:");
-            SolutionRefactoring.LogResultsFileHeader();
-            //Logger.Info("Symbols file header:");
-            SolutionRefactoring.LogSymbolsFileHeader();
+
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
@@ -127,7 +124,7 @@ namespace Refactoring_BatchTool
                 }
 
                 refactoring = new SolutionRefactoring(workspace);
-                refactoring.Run();
+                //refactoring.Run();
 
                 workspace.CloseSolution();
             }

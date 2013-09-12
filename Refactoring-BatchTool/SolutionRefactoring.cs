@@ -62,6 +62,11 @@ namespace Refactoring_BatchTool
                 //foreach (var refer in project.MetadataReferences)
                 //    // check whether they already reference microsoft.bcl.async
                 //    list.Add(refer);
+
+
+                foreach (var refe in project.MetadataReferences)
+                    TempLog.Info("{0}", refe.Display);
+
                 if (project.IsWindowsPhoneProject() == 1)
                 {
                     list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.dll"));
@@ -94,7 +99,7 @@ namespace Refactoring_BatchTool
                 
             }
 
-            _originalSolution = newSolution;
+           _originalSolution = newSolution;
            
         }
 
