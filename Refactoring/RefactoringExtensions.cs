@@ -172,8 +172,8 @@ namespace Refactoring
                     throw new NotImplementedException(message);
             }
 
-            //var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
-            //var rewrittenSolution = solution.WithDocumentSyntaxRoot(document.Id, rewrittenSyntax);
+            var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
+            var rewrittenSolution = solution.WithDocumentSyntaxRoot(document.Id, rewrittenSyntax);
 
             //if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
             //{
