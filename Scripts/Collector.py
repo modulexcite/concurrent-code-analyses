@@ -97,7 +97,7 @@ def copyfolder(src, dst):
         else: raise
 
 def NugetPackageRestore():
-    dir= "/Volumes/Data/CodeCorpus/WPApps/"   
+    dir= "/Volumes/Data/CodeCorpus/Refactoring/"   
     for x in os.listdir(dir):
         if not os.path.isdir(dir+x):
             continue
@@ -121,9 +121,12 @@ def NugetPackageRestore():
                         if not isSolutionFound:
                             packagesFolder = root
                         
-                        if not os.path.isfile(packagesFolder+"/.nuget/NuGet.exe"):
-                            shutil.copyfile('.nuget/NuGet.exe', packagesFolder+"/.nuget/NuGet.exe")
-                            print packagesFolder
+                        print packagesFolder
+                        
+#                        if not os.path.isfile(packagesFolder+"/.nuget/NuGet.exe"):
+#                            copyfolder('.nuget/', packagesFolder+"/.nuget/")
+#                            print packagesFolder
 
 
 
+NugetPackageRestore()

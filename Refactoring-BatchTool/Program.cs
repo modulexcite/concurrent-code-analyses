@@ -20,10 +20,10 @@ namespace Refactoring_BatchTool
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\awful2\wp\Awful\Awful.WP8.sln";
         //private const string SolutionFile = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\8digits-WindowsPhone-SDK-Sample-App\EightDigitsTest.sln";
 
-        private const string CandidatesDir = @"C:\Users\david\Projects\UIUC\Candidates\Automatic\";
-        private const int BatchSize = 100;
+        private const string CandidatesDir = @"D:\CodeCorpus\Refactoring\";
+        private const int BatchSize = 3;
 
-        private const string RefactoredAppsFile = @"C:\Users\david\Projects\UIUC\Logs\RefactoredApps.log";
+        private const string RefactoredAppsFile = @"C:\Users\semih\Desktop\Logs\RefactoredApps.log";
         private static readonly string[] RefactoredApps =
             File.Exists(RefactoredAppsFile)
                 ? File.ReadAllLines(RefactoredAppsFile)
@@ -33,16 +33,25 @@ namespace Refactoring_BatchTool
         {
             Logger.Info("Hello, world!");
 
-            var solutionFilePaths = Directory.GetDirectories(CandidatesDir)
-                .SelectMany(app => Directory.GetFiles(app, "*.sln", SearchOption.AllDirectories))
-                .Where(path => !RefactoredApps.Any(path.Equals))
-                .Take(BatchSize);
+            var apps = Directory.GetDirectories(CandidatesDir).Take(BatchSize);
 
-            Logger.Info("Starting run over max {0} solution files...", BatchSize);
+            Logger.Info("Starting run over max {0} apps...", BatchSize);
 
-            foreach (var solutionFilePath in solutionFilePaths)
+
+            foreach(var app in apps)
             {
-                TryRunOverSolutionFile(solutionFilePath);
+                Logger.Info("Running over app: {0}", app.Split('\\').Last());
+
+                var solutionFilePaths = from f in Directory.GetFiles(app, "*.sln", SearchOption.AllDirectories)
+                                    let directoryName = Path.GetDirectoryName(f)
+                                    where !directoryName.Contains(@"\tags") &&
+                                          !directoryName.Contains(@"\branches")
+                                    select f;
+                foreach (var solutionFilePath in solutionFilePaths.Where(path => !RefactoredApps.Any(path.Equals)))
+                {
+                    TryRunOverSolutionFile(solutionFilePath);
+                }
+            
             }
 
             Logger.Info("Completed run.");
@@ -102,7 +111,7 @@ namespace Refactoring_BatchTool
             using (var workspace = MSBuildWorkspace.Create())
             {
                 var solution = workspace.TryLoadSolutionAsync(solutionPath).Result;
-
+                
                 if (solution == null)
                 {
                     Logger.Error("Failed to load solution file: {0}", solutionPath);

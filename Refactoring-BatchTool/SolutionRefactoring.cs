@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using NLog;
 using Refactoring;
 using Utilities;
+using System.Collections.Generic;
 
 namespace Refactoring_BatchTool
 {
@@ -220,8 +221,18 @@ namespace Refactoring_BatchTool
 
             Logger.Debug("Refactoring completed in {0} ms.", refactoringTime);
             Logger.Debug("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(_workspace));
+            var oldProject = document.Project;
 
-            return solution.WithDocumentSyntaxRoot(document.Id, refactoredSyntax);
+            List<MetadataReference> list= new List<MetadataReference>();
+            foreach(var refer in oldProject.MetadataReferences)
+                list.Add(refer);
+            list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.dll"));
+            list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.Extensions.dll"));
+            list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.Extensions.Phone.dll"));
+            list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.1.0.16-rc\lib\sl4-windowsphone71\System.Runtime.dll"));
+            list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.1.0.16-rc\lib\sl4-windowsphone71\System.Threading.Tasks.dll"));
+
+            return solution.WithDocumentSyntaxRoot(document.Id, refactoredSyntax).WithProjectMetadataReferences(oldProject.Id,list);
         }
     }
 }
