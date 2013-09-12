@@ -172,31 +172,31 @@ namespace Refactoring
                     throw new NotImplementedException(message);
             }
 
-            var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
-            var rewrittenSolution = solution.WithDocumentSyntaxRoot(document.Id, rewrittenSyntax);
+            //var rewrittenDocument = document.WithSyntaxRoot(rewrittenSyntax);
+            //var rewrittenSolution = solution.WithDocumentSyntaxRoot(document.Id, rewrittenSyntax);
 
-            if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
-            {
-                Logger.Error(
-                    "Rewritten solution contains more compilation errors than the original solution while refactoring: {0} @ {1}:{2} in method:\n{3}",
-                    beginXxxCall,
-                    beginXxxCall.SyntaxTree.FilePath,
-                    beginXxxCall.GetStartLineNumber(),
-                    beginXxxCall.ContainingMethod()
-                );
+            //if (rewrittenSolution.CompilationErrorCount() > numErrorsInSolutionBeforeRewriting)
+            //{
+            //    Logger.Error(
+            //        "Rewritten solution contains more compilation errors than the original solution while refactoring: {0} @ {1}:{2} in method:\n{3}",
+            //        beginXxxCall,
+            //        beginXxxCall.SyntaxTree.FilePath,
+            //        beginXxxCall.GetStartLineNumber(),
+            //        beginXxxCall.ContainingMethod()
+            //    );
 
-                Logger.Warn("=== SOLUTION ERRORS ===");
-                foreach (var diagnostic in rewrittenSolution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
-                {
-                    Logger.Warn("  - {0}", diagnostic);
-                }
-                Logger.Warn("=== END OF SOLUTION ERRORS ===");
+            //    Logger.Warn("=== SOLUTION ERRORS ===");
+            //    foreach (var diagnostic in rewrittenSolution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+            //    {
+            //        Logger.Warn("  - {0}", diagnostic);
+            //    }
+            //    Logger.Warn("=== END OF SOLUTION ERRORS ===");
 
-                Logger.Warn("\n### ORIGINAL CODE ###\n{0}### END OF CODE ###", syntax.Format(workspace));
-                Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
+            //    Logger.Warn("\n### ORIGINAL CODE ###\n{0}### END OF CODE ###", syntax.Format(workspace));
+            //    Logger.Warn("\n### REWRITTEN CODE ###\n{0}### END OF CODE ###", rewrittenSyntax.Format(workspace));
 
-                throw new RefactoringException("Rewritten solution contains more compilation errors than the original refactoring");
-            }
+            //    throw new RefactoringException("Rewritten solution contains more compilation errors than the original refactoring");
+            //}
 
             return RefactorAPMToAsyncAwait(rewrittenDocument, rewrittenSolution, workspace, index);
         }
