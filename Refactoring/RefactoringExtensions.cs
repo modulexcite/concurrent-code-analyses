@@ -584,6 +584,11 @@ namespace Refactoring
 
             var originatingMethodSyntax = beginXxxCall.ContainingMethod();
 
+            if (!originatingMethodSyntax.ReturnsVoid())
+            {
+                throw new PreconditionException("Initiating method does not return void");
+            }
+
             // TODO: Look up the symbol to check that it actually exists.
             var methodNameBase = GetAsyncMethodNameBase(beginXxxCall);
 

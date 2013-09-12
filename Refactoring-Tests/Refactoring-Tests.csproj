@@ -88,6 +88,7 @@
     <Compile Include="AsyncStateUnaliasingTest.cs" />
     <Compile Include="BeginInTryCatchTest.cs" />
     <Compile Include="CallGraphPathTest.cs" />
+    <Compile Include="InitiatingMethodReturningValueTest.cs" />
     <Compile Include="InvocationExpressionResultCallbackTest.cs" />
     <Compile Include="NestedAPMInstances.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
