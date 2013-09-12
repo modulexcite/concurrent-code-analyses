@@ -40,32 +40,50 @@ namespace Analysis
                 var asynctype = DetectAsynchronousUsages(node, symbol);
                 Result.StoreDetectedAsyncUsage(asynctype);
                 Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
-                if (asynctype == Enums.AsyncDetected.APM)
-                {
-                    
-                    if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
-                        Result.asyncUsageResults.APMWP7++;
-                    else
-                        Result.asyncUsageResults.APMWP8++;
-                }
-                
+
+                //if (asynctype == Enums.AsyncDetected.Task || asynctype == Enums.AsyncDetected.Threadpool || asynctype == Enums.AsyncDetected.Thread)
+                //{
+                //    foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                //    {
+
+                //        var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
+
+                //        if (methodCallSymbol != null)
+                //        {
+                //            var synctype = ((MethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+
+                //            if (synctype != Utilities.Enums.SyncDetected.None)
+                //                Logs.TempLog.Info("LONGRUNNING {0} {1}\r\n{2}\r\n--------------------------", methodCallSymbol, Document.FilePath, node);
+                //        }
+                //    }
+                //}
+                 
             }
 
 
             base.VisitInvocationExpression(node);
         }
 
+
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            if (node.ToString().Contains("PostAsync(string url, string postData, object user)"))
-                Console.WriteLine(node);
+            if (node.HasAsyncModifier() && node.ToString().Contains("await"))
+            {
+                if(Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
+                    Result.asyncUsageResults_WP7.NumAsyncAwaitMethods++;
+                else
+                    Result.asyncUsageResults_WP8.NumAsyncAwaitMethods++;
+            }
+                    
+
             base.VisitMethodDeclaration(node);
         }
+
 
         private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
-
+            
             // DETECT ASYNC CALLS
             if (methodCallSymbol.IsThreadStart())
                 return Enums.AsyncDetected.Thread;
@@ -75,8 +93,8 @@ namespace Analysis
                 return Enums.AsyncDetected.AsyncDelegate;
             else if (methodCallSymbol.IsBackgroundWorkerMethod())
                 return Enums.AsyncDetected.BackgroundWorker;
-            else if (methodCallSymbol.IsTPLMethod())
-                return Enums.AsyncDetected.TPL;
+            else if (methodCallSymbol.IsTaskCreationMethod())
+                return Enums.AsyncDetected.Task;
 
 
             //// DETECT GUI UPDATE CALLS
@@ -96,46 +114,10 @@ namespace Analysis
             else if (methodCallSymbol.IsTAPMethod())
                 return Enums.AsyncDetected.TAP;
 
-            
             else
                 return Enums.AsyncDetected.None;
         }
 
-        private void ProcessMethodCallsInMethod(MethodDeclarationSyntax node, int n)
-        {
-            var newMethods = new List<MethodDeclarationSyntax>();
-            Result.WriteNodeToCallTrace(node, n);
 
-            try
-            {
-                foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
-                {
-                    var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
-
-                    var type = DetectAsynchronousUsages(methodCall, methodCallSymbol);
-                    Result.StoreDetectedAsyncUsage(type);
-                    Result.WriteDetectedAsyncToCallTrace(type, methodCallSymbol);
-
-                    var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
-
-                    // go down only 3 deep levels
-                    if (methodDeclarationNode != null && n < 3 && methodDeclarationNode != node)
-                        newMethods.Add(methodDeclarationNode);
-                }
-
-                foreach (var newMethod in newMethods)
-                    ProcessMethodCallsInMethod(newMethod, n + 1);
-            }
-            catch (Exception ex)
-            {
-                Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}:{2}", node, Document.FilePath, node.Span.Start, ex);
-
-                if (!(
-                      ex is FormatException ||
-                      ex is ArgumentException ||
-                      ex is PathTooLongException))
-                    throw;
-            }
-        }
     }
 }

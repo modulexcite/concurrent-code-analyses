@@ -1,4 +1,7 @@
 ﻿using Analysis;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using System;
 using System.Configuration;
@@ -18,9 +21,18 @@ namespace Collector
 
             StartAnalyze();
             //Results();
-            //ExtractToCsvForAPM();
+            //ExtractToCsv();
+            //test();
+            //ExtractToCsvAsyncAwait();
         }
+        private static void test()
+        {
+            var app = new AsyncAnalysis(@"D:\CodeCorpus\WPApps\Digillect+mvvm-wp", "temp");
+            app.Analyze();
 
+            Console.WriteLine("finished");
+            Console.ReadLine();
+        }
 
         private static void StartAnalyze()
         {
@@ -31,7 +43,7 @@ namespace Collector
             else
                 appsToAnalyze = Directory.GetDirectories(AppsPath).ToArray<string>();
 
-            var collector = new Collector(appsToAnalyze, 1000);
+            var collector = new Collector(appsToAnalyze, 2000);
             collector.Run();
 
             
@@ -72,25 +84,48 @@ namespace Collector
             var results = File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json)).ToList();
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\summary.csv"))
             {
-                file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,apmwp7,apmwp8,apm,eap,tap,async/await");
+                file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,apmwp7,apm8,eap7,eap8,tap7,tap8,aa7,aa8,thread7,thread8,asyncdelegate7,asyncdelegate8,backgroundworker7,backgroundworker8,threadpool7,threadpool8,task7,task8");
                 foreach (var result in results)
                 {
-                    file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}",
-                        result.AppName,
-                        result.generalResults.NumTotalProjects,
-                        result.generalResults.NumUnanalyzedProjects,
-                        result.generalResults.NumPhone7Projects,
-                        result.generalResults.NumPhone8Projects,
-                        result.generalResults.SLOCWP7,
-                        result.generalResults.SLOCWP8,
-                        result.generalResults.NumTotalSLOC,
-                        result.asyncUsageResults.APMWP7,
-                        result.asyncUsageResults.APMWP8,
-                        result.asyncUsageResults.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.APM],
-                        result.asyncUsageResults.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.EAP],
-                        result.asyncUsageResults.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.TAP],
-                        result.asyncAwaitResults.NumAsyncTaskMethods + result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods + result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods);
+                    if (result.generalResults.NumTotalSLOC > 499)
+                    {
+                        file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},{21},{22},{23},{24},{25}",
+                            result.AppName,
+                            result.generalResults.NumTotalProjects,
+                            result.generalResults.NumUnanalyzedProjects,
+                            result.generalResults.NumPhone7Projects,
+                            result.generalResults.NumPhone8Projects,
+                            result.generalResults.SLOCWP7,
+                            result.generalResults.SLOCWP8,
+                            result.generalResults.NumTotalSLOC,
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.APM],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.APM],
 
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.EAP],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.EAP],
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.TAP],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.TAP],
+
+                            result.asyncUsageResults_WP7.NumAsyncAwaitMethods,
+                            result.asyncUsageResults_WP8.NumAsyncAwaitMethods,
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Thread],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Thread],
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.AsyncDelegate],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.AsyncDelegate],
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.BackgroundWorker],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.BackgroundWorker],
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Threadpool],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Threadpool],
+
+                            result.asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Task],
+                            result.asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.Task]
+                            );
+                    }
                 }
 
             }
@@ -98,7 +133,37 @@ namespace Collector
         }
 
 
+        private static void ExtractToCsvAsyncAwait()
+        {
+            var SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
+            var results = File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json)).ToList();
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\summary.csv"))
+            {
+                file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,asyncawait_wp7,asyncawait_wp8,asyncvoideventhandler,asyncvoidnoneventhandler,configureawait");
+                foreach (var result in results)
+                {
+                    if (result.generalResults.NumTotalSLOC > 499)
+                    {
+                        file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}",
+                            result.AppName,
+                            result.generalResults.NumTotalProjects,
+                            result.generalResults.NumUnanalyzedProjects,
+                            result.generalResults.NumPhone7Projects,
+                            result.generalResults.NumPhone8Projects,
+                            result.generalResults.SLOCWP7,
+                            result.generalResults.SLOCWP8,
+                            result.generalResults.NumTotalSLOC,
+                            result.asyncAwaitResults.NumAsyncAwaitMethods_WP7,
+                            result.asyncAwaitResults.NumAsyncAwaitMethods_WP8,
+                            result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods,
+                            result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods,
+                            result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait);
+                    }
+                }
 
+            }
+
+        }
 
         private static void ExtractToCsvForAPM()
         {
