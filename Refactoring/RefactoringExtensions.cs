@@ -328,15 +328,12 @@ namespace Refactoring
             var stateArgument = FindAsyncStateInvocationArgument(model, beginXxxCall);
             var stateExpression = stateArgument.Expression;
 
-            var originalCallbackMethodSymbol = model.LookupMethodSymbol(callbackInvocation);
-            var originalCallbackMethod = (MethodDeclarationSyntax)originalCallbackMethodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+            var replacements = new List<SyntaxReplacementPair>();
 
             ArgumentListSyntax argumentList;
-            MethodDeclarationSyntax rewrittenCallbackMethod;
             if (stateExpression.Kind == SyntaxKind.NullLiteralExpression)
             {
                 argumentList = callbackInvocation.ArgumentList;
-                rewrittenCallbackMethod = originalCallbackMethod;
             }
             else
             {
@@ -344,27 +341,21 @@ namespace Refactoring
                     SyntaxFactory.Argument(stateExpression)
                 );
 
-                rewrittenCallbackMethod = RewriteCallbackWithIntroducedAsyncStateParameter(model, originalCallbackMethod, stateExpression);
+                var originalCallbackMethodSymbol = model.LookupMethodSymbol(callbackInvocation);
+                var originalCallbackMethod = (MethodDeclarationSyntax)originalCallbackMethodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                var rewrittenCallbackMethod = RewriteCallbackWithIntroducedAsyncStateParameter(model, originalCallbackMethod, stateExpression);
+
+                replacements.Add(new SyntaxReplacementPair(stateExpression, NewNullLiteral()));
+                replacements.Add(new SyntaxReplacementPair(originalCallbackMethod, rewrittenCallbackMethod));
             }
 
             var newLambdaBody = NewBlock(
                 SyntaxFactory.ExpressionStatement(callbackInvocation.WithArgumentList(argumentList))
             );
 
-            return syntax.ReplaceAll(
-                new SyntaxReplacementPair(
-                    lambda.Body,
-                    newLambdaBody
-                ),
-                new SyntaxReplacementPair(
-                    stateExpression,
-                    NewNullLiteral()
-                ),
-                new SyntaxReplacementPair(
-                    originalCallbackMethod,
-                    rewrittenCallbackMethod
-                )
-            );
+            replacements.Add(new SyntaxReplacementPair(lambda.Body, newLambdaBody));
+
+            return syntax.ReplaceAll(replacements);
         }
 
         private static CompilationUnitSyntax RewriteMethodReferenceToSimpleLambda(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, ArgumentSyntax callbackArgument, ExpressionSyntax callbackExpression)
@@ -608,6 +599,11 @@ namespace Refactoring
             // Finally, rewrite the originating method, and the method with the EndXxx statement.
 
             var invocationPathToEndXxx = TryFindCallGraphPathToEndXxx(lambdaBlock, methodNameBase, model);
+
+            if (invocationPathToEndXxx.Count == 0)
+            {
+                throw new PreconditionException("Could not find End call in lambda body call graph");
+            }
 
             // These two get special treatment.
             var initialCall = invocationPathToEndXxx.RemoveLast();
@@ -934,6 +930,7 @@ namespace Refactoring
                 // TODO: Also considier IdentifierName EndXxx instances.
                 var endXxxExpression = lambdaBlock.DescendantNodes()
                                                   .OfType<MemberAccessExpressionSyntax>()
+                                                  .Where(node => NodeIsNotContainedInLambdaExpression(node, lambdaBlock))
                                                   .First(stmt => stmt.Name.ToString().Equals("End" + methodNameBase));
 
                 return (InvocationExpressionSyntax)endXxxExpression.Parent;

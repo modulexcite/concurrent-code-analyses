@@ -92,7 +92,7 @@ namespace Utilities
     public class MethodSymbolMissingException : SymbolMissingException
     {
         public MethodSymbolMissingException(InvocationExpressionSyntax invocation)
-            : base("No method symbol found for invocation: " + invocation)
+            : base("No method symbol found for invocation:\n" + invocation)
         {
         }
 
