@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using Refactoring;
 using Utilities;
@@ -11,34 +13,35 @@ namespace Refactoring_BatchTool
     public class SolutionRefactoring
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Results = LogManager.GetLogger("RESULTS");
+        private static readonly Logger Symbols = LogManager.GetLogger("SYMBOLS");
 
         private readonly Workspace _workspace;
 
         private readonly Solution _originalSolution;
         private Solution _refactoredSolution;
 
-        public int NumCandidates { get; private set; }
+        private readonly List<APMRefactoring> _refactorings = new List<APMRefactoring>();
 
+        public IEnumerable<APMRefactoring> Refactorings { get { return _refactorings; } }
+
+        public int NumCandidates { get; private set; }
         public int NumPreconditionFailures { get; private set; }
-        public int NumRefactoringErrors { get; private set; }
+        public int NumValidCandidates { get { return NumCandidates - NumPreconditionFailures; } }
+
+        public int NumCompilationErrors { get; private set; }
         public int NumRefactoringExceptions { get; private set; }
         public int NumNotImplementedExceptions { get; private set; }
         public int NumOtherExceptions { get; private set; }
 
-        public int NumValidCandidates
-        {
-            get { return NumCandidates - NumPreconditionFailures; }
-        }
-
-        public int NumCompilationFailures
-        {
-            get { return NumRefactoringErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; }
-        }
+        public int NumRefactoringFailures { get { return NumCompilationErrors + NumRefactoringExceptions + NumNotImplementedExceptions + NumOtherExceptions; } }
 
         public int NumSuccesfulRefactorings
         {
-            get { return NumValidCandidates - NumCompilationFailures; }
+            get { return NumValidCandidates - NumRefactoringFailures; }
         }
+
+        public int NumMethodSymbolLookups { get; private set; }
 
         public SolutionRefactoring(Workspace workspace)
         {
@@ -69,6 +72,8 @@ namespace Refactoring_BatchTool
 
                 throw new Exception(message);
             }
+
+            PrintResults();
         }
 
         private Solution CheckDocument(Document document, Solution solution)
@@ -115,8 +120,48 @@ namespace Refactoring_BatchTool
                 {
                     case SyntaxKind.ExpressionStatement:
                     case SyntaxKind.LocalDeclarationStatement:
-                        refactoredSolution = SafelyRefactorSolution(refactoredSolution, refactoredDocument, index);
+                        var refactoring = new APMRefactoring(refactoredSolution, _workspace);
+
+                        refactoredSolution = refactoring.SafelyRefactorSolution(refactoredSolution, refactoredDocument, index);
                         refactoredDocument = refactoredSolution.GetDocument(document.Id);
+
+                        _refactorings.Add(refactoring);
+
+                        if (refactoring.PreconditionFailed)
+                        {
+                            NumPreconditionFailures++;
+                        }
+                        else if (refactoring.NotImplementedExceptionWasThrown)
+                        {
+                            NumNotImplementedExceptions++;
+                        }
+                        else if (refactoring.CompilationError)
+                        {
+                            NumCompilationErrors++;
+                        }
+                        else if (refactoring.RefactoringExceptionWasThrown)
+                        {
+                            NumRefactoringExceptions++;
+                        }
+                        else if (refactoring.OtherExceptionWasThrown)
+                        {
+                            NumOtherExceptions++;
+                        }
+                        else if (refactoring.Succesful)
+                        {
+                            // OK.
+
+                            var numMethodSymbolLookups = refactoring.NumMethodSymbolLookups;
+
+                            LogSymbolLookupResults(solution, document, beginXxxSyntax, numMethodSymbolLookups);
+
+                            NumMethodSymbolLookups += numMethodSymbolLookups;
+                        }
+                        else
+                        {
+                            throw new Exception("Unrecognized refactoring result");
+                        }
+
                         break;
 
                     case SyntaxKind.ReturnStatement:
@@ -139,89 +184,40 @@ namespace Refactoring_BatchTool
 
             return refactoredSolution;
         }
-
-        private Solution SafelyRefactorSolution(Solution solution, Document document, int index)
+        public static void LogSymbolsFileHeader()
         {
-            var numInitialErrors = solution.CompilationErrorCount();
-
-            var oldSolution = solution;
-            try
-            {
-                solution = ExecuteRefactoring(document, solution, index);
-
-                if (solution.CompilationErrorCount() > numInitialErrors)
-                {
-                    Logger.Error("Refactoring {0} caused new compilation errors. It will not be applied.", index);
-
-                    Logger.Warn("=== ORIGINAL CODE ===\n{0}\n=== END ORIGINAL CODE ===",
-                        document.GetTextAsync().Result);
-                    Logger.Warn("=== REFACTORED CODE WITH ERROR(S) ===\n{0}\n=== END REFACTORED CODE WITH ERRORS ===",
-                        solution.GetDocument(document.Id).GetTextAsync().Result);
-
-                    Logger.Error("=== SOLUTION ERRORS ===");
-                    foreach (
-                        var diagnostic in solution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
-                    {
-                        Logger.Error("=== Solution error: {0}", diagnostic);
-                    }
-                    Logger.Error("=== END OF SOLUTION ERRORS ===");
-
-                    solution = oldSolution;
-                    NumRefactoringErrors++;
-                }
-            }
-            catch (RefactoringException e)
-            {
-                Logger.Error("Refactoring failed: index={0}: {1}: {2}", index, e.Message, e);
-                solution = oldSolution;
-
-                NumRefactoringExceptions++;
-            }
-            catch (NotImplementedException e)
-            {
-                Logger.Error("Not implemented: index={0}: {1}: {2}", index, e.Message, e);
-                solution = oldSolution;
-
-                NumNotImplementedExceptions++;
-            }
-            catch (PreconditionException e)
-            {
-                Logger.Error("Precondition failed: {0}: {1}", e.Message, e);
-                solution = oldSolution;
-
-                NumPreconditionFailures++;
-            }
-            catch (Exception e)
-            {
-                Logger.Error("Unhandled exception while refactoring: index={0}: {1}\n{2}", index, e.Message, e);
-                solution = oldSolution;
-
-                NumOtherExceptions++;
-            }
-
-            return solution;
+            Logger.Info("solution,document,instanceLineNo,numMethodSymbolLookups");
         }
 
-        private Solution ExecuteRefactoring(Document document, Solution solution, int index)
+        private static void LogSymbolLookupResults(Solution solution, Document document, InvocationExpressionSyntax beginXxxSyntax, int numMethodSymbolLookups)
         {
-            if (document == null) throw new ArgumentNullException("document");
+            Symbols.Info(
+                "{0},{1},{2},{3}",
+                solution.FilePath,
+                document.FilePath,
+                beginXxxSyntax.GetStartLineNumber(),
+                numMethodSymbolLookups
+            );
+        }
 
-            var syntax = ((SyntaxTree)document.GetSyntaxTreeAsync().Result).GetRoot();
+        public static void LogResultsFileHeader()
+        {
+            Logger.Info("solution,numInstances,numPreconditionExceptions,numValidInstances,NumCompilationFailures,NumRefactoringExceptions,NumNotImplementedExceptions,NumOtherExceptions");
+        }
 
-            Logger.Info("Refactoring annotated document: index={0}", index);
-            Logger.Debug("=== CODE TO REFACTOR ===\n{0}=== END OF CODE ===", syntax);
-
-            var startTime = DateTime.UtcNow;
-
-            var refactoredSyntax = RefactoringExtensions.RefactorAPMToAsyncAwait(document, solution, _workspace, index);
-
-            var endTime = DateTime.UtcNow;
-            var refactoringTime = endTime.Subtract(startTime).Milliseconds;
-
-            Logger.Debug("Refactoring completed in {0} ms.", refactoringTime);
-            Logger.Debug("=== REFACTORED CODE ===\n{0}=== END OF CODE ===", refactoredSyntax.Format(_workspace));
-
-            return solution.WithDocumentSyntaxRoot(document.Id, refactoredSyntax);
+        private void PrintResults()
+        {
+            Results.Info(
+                "{0},{1},{2},{3},{4},{5},{6},{7}",
+                _originalSolution.FilePath,
+                NumCandidates,
+                NumPreconditionFailures,
+                NumValidCandidates,
+                NumRefactoringExceptions,
+                NumNotImplementedExceptions,
+                NumCompilationErrors,
+                NumOtherExceptions
+            );
         }
     }
 }

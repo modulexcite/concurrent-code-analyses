@@ -86,9 +86,10 @@
     <Compile Include="AsyncMethodNeverGetsReturnTypeTaskVoidTest.cs" />
     <Compile Include="AsyncStatePassingTest.cs" />
     <Compile Include="AsyncStateUnaliasingTest.cs" />
+    <Compile Include="InvocationExpressionResultCallbackTest.cs" />
     <Compile Include="NestedAPMInstances.cs" />
     <Compile Include="EndXxxDeeperInCallGraphTest.cs" />
-    <Compile Include="DelegateFieldRefCallbackTest.cs" />
+    <Compile Include="NonMethodReferenceCallbackTest.cs" />
     <Compile Include="LambdaCallbackTest.cs" />
     <Compile Include="MethodRefCallbackTest.cs" />
     <Compile Include="NullCallbackTest.cs" />
