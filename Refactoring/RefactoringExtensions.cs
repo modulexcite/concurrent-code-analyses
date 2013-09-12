@@ -720,14 +720,22 @@ namespace Refactoring
             var tapStatement = NewTAPStatement(beginXxxCall, methodNameBase, taskName);
             var beginXxxStatement = beginXxxCall.ContainingStatement();
 
-            var originalCallingMethod = beginXxxCall.ContainingMethod();
+            var originalContainingBlock = beginXxxStatement.ContainingBlock();
 
-            var rewrittenMethod = originalCallingMethod
+            var rewrittenContainingBlock = originalContainingBlock
                 .ReplaceNode(
                     beginXxxStatement,
                     tapStatement
                 )
-                .AddBodyStatements(rewrittenLambdaBlock.Statements.ToArray());
+                .AddStatements(rewrittenLambdaBlock.Statements.ToArray());
+
+            var originalInitiatingMethod = beginXxxCall.ContainingMethod();
+
+            var rewrittenMethod = originalInitiatingMethod
+                .ReplaceNode(
+                    originalContainingBlock,
+                    rewrittenContainingBlock
+                );
 
             if (!rewrittenMethod.HasAsyncModifier())
                 rewrittenMethod = rewrittenMethod.AddModifiers(NewAsyncKeyword());
@@ -1048,6 +1056,25 @@ namespace Refactoring
                     return syntax;
                 }
 
+                parent = parent.Parent;
+            }
+
+            return null;
+        }
+
+        public static BlockSyntax ContainingBlock(this SyntaxNode node)
+        {
+            if (node == null) throw new ArgumentNullException("node");
+
+            var parent = node.Parent;
+
+            while (parent != null)
+            {
+                var syntax = parent as BlockSyntax;
+                if (syntax != null)
+                {
+                    return syntax;
+                }
                 parent = parent.Parent;
             }
 
