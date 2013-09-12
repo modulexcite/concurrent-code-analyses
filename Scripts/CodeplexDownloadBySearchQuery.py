@@ -109,6 +109,19 @@ def main():
         #       i=i+1
 
 
+
+def lookupLatestUpdate():
+    name= "bxf"
+    try:
+        for line2 in urlopen("http://"+name+".codeplex.com/SourceControl/list/changesets").readlines():
+            if '<span class="smartDate' in line2:
+                updated = line2.split('title="')[1].split('"')[0]
+                break
+        print name + " " + updated
+    except Exception:
+        print str(a) + " " + name + " *******"
+        pass
+
 def read():
     f = open("undownloaded.txt", "r")
     i=1
@@ -119,4 +132,7 @@ def read():
             os.makedirs(dir+name)
             i+=1
      
-read()
+    
+    
+ 
+lookupLatestUpdate()

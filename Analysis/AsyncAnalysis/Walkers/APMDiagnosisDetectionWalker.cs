@@ -30,43 +30,59 @@ namespace Analysis
                 {
                     Result.apmDiagnosisResults.NumAPMEndMethods++;
 
-                    var ancestors2 = node.Ancestors().OfType<TryStatementSyntax>();
-                    if (ancestors2.Any())
-                    {
-                        Logs.TempLog4.Info("TRYCATCHED ENDXXX:\r\n{0}\r\n---------------------------------------------------", ancestors2.First());
-                        Result.apmDiagnosisResults.NumAPMEndTryCatchedMethods++;
-                    }
 
-                    SyntaxNode block = null;
-                    var lambdas = node.Ancestors().OfType<SimpleLambdaExpressionSyntax>();
-                    if (lambdas.Any())
+                    var tmp = node.ArgumentList.Arguments.First().DescendantNodes().OfType<IdentifierNameSyntax>(); 
+                    
+                    if(tmp.Any())
                     {
-                        block = lambdas.First();
-                    }
+                        var id = tmp.First();
 
-                    if (block == null)
-                    {
-                        var lambdas2 = node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>();
-                        if (lambdas2.Any())
-                            block = lambdas2.First();
-                    }
-
-                    if (block == null)
-                    {
-                        var ancestors3 = node.Ancestors().OfType<MethodDeclarationSyntax>();
-                        if (ancestors3.Any())
-                            block = ancestors3.First();
+                        if(node.Ancestors().OfType<BlockSyntax>().First().DescendantNodes().OfType<IdentifierNameSyntax>().Where(a=> (a.Identifier.ToString()== id.Identifier.ToString())).Count()>2)
+                            Logs.TempLog3.Info("IAsyncResultSomewhereElse {0}\r\n{1}\r\n--------------------", Document.FilePath, node.Ancestors().OfType<BlockSyntax>().First());
 
                     }
+                    
 
-                    if (block != null)
-                    {
-                        if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
-                        {
-                            Logs.TempLog5.Info("NESTED ENDXXX:\r\n{0}\r\n---------------------------------------------------", block);
-                            Result.apmDiagnosisResults.NumAPMEndNestedMethods++;
-                        }
-                    }
+                   
+
+
+                    //var ancestors2 = node.Ancestors().OfType<TryStatementSyntax>();
+                    //if (ancestors2.Any())
+                    //{
+                    //    Logs.TempLog4.Info("TRYCATCHED ENDXXX:\r\n{0}\r\n---------------------------------------------------", ancestors2.First());
+                    //    Result.apmDiagnosisResults.NumAPMEndTryCatchedMethods++;
+                    //}
+
+                    //SyntaxNode block = null;
+                    //var lambdas = node.Ancestors().OfType<SimpleLambdaExpressionSyntax>();
+                    //if (lambdas.Any())
+                    //{
+                    //    block = lambdas.First();
+                    //}
+
+                    //if (block == null)
+                    //{
+                    //    var lambdas2 = node.Ancestors().OfType<ParenthesizedLambdaExpressionSyntax>();
+                    //    if (lambdas2.Any())
+                    //        block = lambdas2.First();
+                    //}
+
+                    //if (block == null)
+                    //{
+                    //    var ancestors3 = node.Ancestors().OfType<MethodDeclarationSyntax>();
+                    //    if (ancestors3.Any())
+                    //        block = ancestors3.First();
+
+                    //}
+
+                    //if (block != null)
+                    //{
+                    //    if (block.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("Begin") && !a.Name.ToString().Equals("BeginInvoke")))
+                    //    {
+                    //        Logs.TempLog5.Info("NESTED ENDXXX:\r\n{0}\r\n---------------------------------------------------", block);
+                    //        Result.apmDiagnosisResults.NumAPMEndNestedMethods++;
+                    //    }
+                    //}
 
                 }
             }
@@ -99,49 +115,60 @@ namespace Analysis
 
             Result.apmDiagnosisResults.NumAPMBeginMethods++;
 
-            var statement = node.Ancestors().OfType<StatementSyntax>().First();
-            var ancestors = node.Ancestors().OfType<MethodDeclarationSyntax>();
-            if (ancestors.Any())
+
+
+
+
+            if (node.Ancestors().Where(a => (a is BinaryExpressionSyntax) || (a is VariableDeclaratorSyntax) || (a is VariableDeclarationSyntax) || (a is ReturnStatementSyntax)).Any() )
             {
-                var method = ancestors.First();
+                Logs.TempLog2.Info("UnderStatement {0}\r\n{1}\r\n--------------------", Document.FilePath, node.Ancestors().OfType<BlockSyntax>().First());
+            }
 
-                bool isFound = false;
-                bool isAPMFollowed = false;
-                foreach (var tmp in method.Body.ChildNodes())
-                {
-                    if (isFound)
-                        isAPMFollowed = true;
-                    if (statement == tmp)
-                        isFound = true;
-                }
 
-                if (isAPMFollowed)
-                {
-                    Result.apmDiagnosisResults.NumAPMBeginFollowed++;
-                    Logs.TempLog2.Info("APMFOLLOWED:\r\n{0}\r\n---------------------------------------------------", method);
+
+            //var statement = node.Ancestors().OfType<StatementSyntax>().First();
+            //var ancestors = node.Ancestors().OfType<MethodDeclarationSyntax>();
+            //if (ancestors.Any())
+            //{
+            //    var method = ancestors.First();
+
+            //    bool isFound = false;
+            //    bool isAPMFollowed = false;
+            //    foreach (var tmp in method.Body.ChildNodes())
+            //    {
+            //        if (isFound)
+            //            isAPMFollowed = true;
+            //        if (statement == tmp)
+            //            isFound = true;
+            //    }
+
+            //    if (isAPMFollowed)
+            //    {
+            //        Result.apmDiagnosisResults.NumAPMBeginFollowed++;
+            //        Logs.TempLog2.Info("APMFOLLOWED:\r\n{0}\r\n---------------------------------------------------", method);
                     
-                }
-            }
+            //    }
+            //}
 
-            SyntaxNode callbackBody = null;
+            //SyntaxNode callbackBody = null;
 
-            if (callbackArg.Expression.Kind.ToString().Contains("IdentifierName"))
-            {
-                var methodSymbol = SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol;
+            //if (callbackArg.Expression.Kind.ToString().Contains("IdentifierName"))
+            //{
+            //    var methodSymbol = SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol;
 
-                if (methodSymbol.Kind.ToString().Equals("Method"))
-                    callbackBody = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
-            }
-            else if (callbackArg.Expression.Kind.ToString().Contains("LambdaExpression"))
-                callbackBody = node;
+            //    if (methodSymbol.Kind.ToString().Equals("Method"))
+            //        callbackBody = (MethodDeclarationSyntax)methodSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+            //}
+            //else if (callbackArg.Expression.Kind.ToString().Contains("LambdaExpression"))
+            //    callbackBody = node;
 
-            if (callbackBody != null)
-            {
-                if (callbackBody.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
-                    Logs.TempLog3.Info("APMEND in Callback:\r\n{0}\r\nCaller: {1}\r\nDeclaringSyntaxNodes:\r\n{2}\r\n--------------------------------------------------", Document.FilePath, node, callbackBody);
-                else
-                    Logs.TempLog3.Info("NO APMEND in Callback:\r\n{0}\r\nCaller: {1}\r\nDeclaringSyntaxNodes:\r\n{2}\r\n--------------------------------------------------", Document.FilePath, node, callbackBody);
-            }
+            //if (callbackBody != null)
+            //{
+            //    if (callbackBody.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Any(a => a.Name.ToString().StartsWith("End")))
+            //        Logs.TempLog3.Info("APMEND in Callback:\r\n{0}\r\nCaller: {1}\r\nDeclaringSyntaxNodes:\r\n{2}\r\n--------------------------------------------------", Document.FilePath, node, callbackBody);
+            //    else
+            //        Logs.TempLog3.Info("NO APMEND in Callback:\r\n{0}\r\nCaller: {1}\r\nDeclaringSyntaxNodes:\r\n{2}\r\n--------------------------------------------------", Document.FilePath, node, callbackBody);
+            //}
 
 
             

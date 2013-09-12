@@ -16,12 +16,13 @@ namespace Analysis
 
         public class AsyncAwaitResults
         {
+            public int NumAsyncAwaitMethods_WP7;
+            public int NumAsyncAwaitMethods_WP8;
+
             public int NumAsyncVoidNonEventHandlerMethods;
             public int NumAsyncVoidEventHandlerMethods;
             public int NumAsyncTaskMethods;
             public int NumAsyncMethodsHavingConfigureAwait;
-            public int NumAsyncMethodsHavingBlockingCalls;
-            public int NumAsyncMethodsNotHavingAwait;
         }
 
         public class APMDiagnosisResults
@@ -41,8 +42,7 @@ namespace Analysis
 
         public class AsyncUsageResults
         {
-            public int APMWP7;
-            public int APMWP8;
+            public int NumAsyncAwaitMethods;
             public int[] NumAsyncProgrammingUsages = new int[11];
         }
 
@@ -54,7 +54,9 @@ namespace Analysis
 
         public SyncUsageResults syncUsageResults { get; set; }
 
-        public AsyncUsageResults asyncUsageResults { get; set; }
+        public AsyncUsageResults asyncUsageResults_WP7 { get; set; }
+
+        public AsyncUsageResults asyncUsageResults_WP8 { get; set; }
 
         public AsyncAnalysisResult(string appName)
             : base(appName)
@@ -63,13 +65,19 @@ namespace Analysis
             asyncAwaitResults = new AsyncAwaitResults();
             apmDiagnosisResults = new APMDiagnosisResults();
             syncUsageResults = new SyncUsageResults();
-            asyncUsageResults = new AsyncUsageResults();
+            asyncUsageResults_WP7 = new AsyncUsageResults();
+            asyncUsageResults_WP8 = new AsyncUsageResults();
         }
 
         public void StoreDetectedAsyncUsage(Enums.AsyncDetected type)
         {
             if (Enums.AsyncDetected.None != type)
-                asyncUsageResults.NumAsyncProgrammingUsages[(int)type]++;
+            {
+                if(CurrentAnalyzedProjectType== Enums.ProjectType.WP7)
+                    asyncUsageResults_WP7.NumAsyncProgrammingUsages[(int)type]++;
+                else
+                    asyncUsageResults_WP8.NumAsyncProgrammingUsages[(int)type]++;
+            }
         }
 
         public override void WriteSummaryLog()
@@ -93,7 +101,12 @@ namespace Analysis
             return bool.Parse(ConfigurationManager.AppSettings["IsSyncUsageDetectionEnabled"]);
         }
 
-        public bool ShouldSerializeasyncUsageResults()
+        public bool ShouldSerializeasyncUsageResults_WP7()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
+        }
+
+        public bool ShouldSerializeasyncUsageResults_WP8()
         {
             return bool.Parse(ConfigurationManager.AppSettings["IsAsyncUsageDetectionEnabled"]);
         }

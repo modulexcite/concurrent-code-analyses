@@ -5,6 +5,8 @@ namespace Utilities
     public class Logs
     {
         public static readonly Logger Log = LogManager.GetLogger("Console");
+        public static readonly Logger ErrorLog = LogManager.GetLogger("ErrorLog");
+       
 
         public static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
         public static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");

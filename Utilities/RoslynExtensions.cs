@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
@@ -116,7 +117,9 @@ namespace Utilities
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this MethodSymbol symbol)
         {
-            return symbol.ReturnTask() && !symbol.ToString().StartsWith("System.Threading.Tasks");
+            return (symbol.ReturnTask() && symbol.DeclaringSyntaxReferences.Count() == 0 && !symbol.ToString().StartsWith("System.Threading.Tasks"))
+                || (symbol.ReturnTask() && symbol.ToString().Contains("FromAsync"));
+                
         }
 
         public static bool IsEAPMethod(this InvocationExpressionSyntax invocation)
@@ -134,9 +137,14 @@ namespace Utilities
         }
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
-        public static bool IsTPLMethod(this MethodSymbol symbol)
+        public static bool IsTaskCreationMethod(this MethodSymbol symbol)
         {
-            return symbol.ReturnTask() && symbol.ToString().StartsWith("System.Threading.Tasks");
+            return symbol.ToString().Contains("System.Threading.Tasks.Task.Start") 
+                || symbol.ToString().Contains("System.Threading.Tasks.Task.Run")
+                || symbol.ToString().Contains("System.Threading.Tasks.TaskFactory.StartNew")
+                || symbol.ToString().Contains("System.Threading.Tasks.TaskEx.RunEx")
+                || symbol.ToString().Contains("System.Threading.Tasks.TaskEx.Run");
+
         }
 
         public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
@@ -191,7 +199,7 @@ namespace Utilities
 
         public static bool ReturnTask(this MethodSymbol symbol)
         {
-            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().Contains("System.Threading.Tasks.Task");
+            return !symbol.ReturnsVoid && symbol.ReturnType.ToString().StartsWith("System.Threading.Tasks.Task");
         }
 
         public static bool IsInSystemWindows(this UsingDirectiveSyntax node)
@@ -244,6 +252,33 @@ namespace Utilities
             //}
         }
 
+        public static Enums.SyncDetected DetectSynchronousUsages(this MethodSymbol methodCallSymbol, SemanticModel semanticModel)
+        {
+            var list = semanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
+                                includeReducedExtensionMethods: true);
+
+            var name = methodCallSymbol.Name;
+            Enums.SyncDetected type = Enums.SyncDetected.None;
+
+
+            foreach (var tmp in list)
+            {
+                if (tmp.Name.Equals("Begin" + name))
+                {
+                    type |= Enums.SyncDetected.APMReplacable;
+                }
+                if (tmp.Name.Equals(name + "Async"))
+                {
+                    type |= Enums.SyncDetected.TAPReplacable;
+                }
+            }
+
+
+            return type;
+        }
+
+
+
         public static int CompilationErrorCount(this Solution solution)
         {
             return solution
@@ -278,5 +313,6 @@ namespace Utilities
                 return null;
             }
         }
+
     }
 }

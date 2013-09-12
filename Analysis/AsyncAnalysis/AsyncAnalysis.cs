@@ -76,11 +76,6 @@ namespace Analysis
                 walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethods };
                 walker.Visit(root);
             }
-            if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
-            {
-                walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethods };
-                walker.Visit(root);
-            }
             if (bool.Parse(ConfigurationManager.AppSettings["DispatcherDetectionEnabled"]))
             {
                 walker = new DispatcherDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document, AnalyzedMethods = AnalyzedMethodsDict };

@@ -72,9 +72,11 @@ namespace Analysis
                         if (ex is InvalidProjectFileException ||
                             ex is FormatException ||
                             ex is ArgumentException ||
-                            ex is PathTooLongException)
+                            ex is PathTooLongException ||
+                            ex is AggregateException
+                            )
                         {
-                            Logs.Log.Info("Project not analyzed: {0}: Reason: {1}", projectPath, ex.Message);
+                            Logs.ErrorLog.Info("Project not analyzed: {0}: Reason: {1}", projectPath, ex.Message);
                         }
                         else
                             throw;
@@ -94,7 +96,7 @@ namespace Analysis
             }
             catch (Exception ex)
             {
-                Logs.Log.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
+                Logs.ErrorLog.Info("Solution not analyzed: {0}: Reason: {1}", solutionPath, ex.Message);
                 return null;
             }
         }
@@ -103,7 +105,6 @@ namespace Analysis
         {
             Result.AddProject();
             IEnumerable<Document> documents;
-
             if ((documents = TryLoadProject(project)) != null
                 && project.IsCSProject())
             {
@@ -136,11 +137,14 @@ namespace Analysis
             }
             catch (Exception ex)
             {
+
                 if (ex is FormatException ||
                     ex is ArgumentException ||
                     ex is PathTooLongException)
                 {
-                    Logs.Log.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
+                    
+                    Logs.ErrorLog.Info("Project not analyzed: {0}: Reason: {1}", project.FilePath, ex.Message);
+
                 }
                 else
                     throw;
@@ -153,8 +157,9 @@ namespace Analysis
         {
             if (FilterDocument(document))
             {
+                //document.GetTextAsync().Result.
                 var root = (SyntaxNode)document.GetSyntaxRootAsync().Result;
-                var sloc = root.CountSLOC();
+                var sloc = document.GetTextAsync().Result.Lines.Count;
                 Result.generalResults.NumTotalSLOC += sloc;
 
                 if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
@@ -167,7 +172,7 @@ namespace Analysis
                 }
                 catch (InvalidProjectFileException ex)
                 {
-                    Logs.Log.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
+                    Logs.ErrorLog.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
                     Result.generalResults.NumTotalSLOC -= sloc;
                     if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
                         Result.generalResults.SLOCWP7 -= sloc;
