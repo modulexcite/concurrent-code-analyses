@@ -63,9 +63,8 @@ namespace Refactoring_BatchTool
                 //    // check whether they already reference microsoft.bcl.async
                 //    list.Add(refer);
 
-
-                foreach (var refe in project.MetadataReferences)
-                    TempLog.Info("{0}", refe.Display);
+                if (project.MetadataReferences.Where(a => a.Display.ToString().Contains("AsyncCtpLibrary") || a.Display.ToString().Contains("Microsoft.Bcl.Async")).Any())
+                    continue;
 
                 if (project.IsWindowsPhoneProject() == 1)
                 {
@@ -263,9 +262,9 @@ namespace Refactoring_BatchTool
                 NumCandidates,
                 NumPreconditionFailures,
                 NumValidCandidates,
+                NumCompilationErrors,
                 NumRefactoringExceptions,
                 NumNotImplementedExceptions,
-                NumCompilationErrors,
                 NumOtherExceptions
             );
         }
