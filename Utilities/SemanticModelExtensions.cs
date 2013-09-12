@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
+﻿using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
@@ -10,6 +9,13 @@ namespace Utilities
     public static class SemanticModelExtensions
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        public static int NumMethodSymbolLookups { get; private set; }
+
+        public static void ResetSymbolLookupCounter()
+        {
+            NumMethodSymbolLookups = 0;
+        }
 
         public static MethodSymbol LookupMethodSymbol(this SemanticModel model, InvocationExpressionSyntax invocation)
         {
@@ -25,6 +31,7 @@ namespace Utilities
             var methodSymbol = symbol as MethodSymbol;
             if (methodSymbol != null)
             {
+                NumMethodSymbolLookups++;
                 return methodSymbol;
             }
 
@@ -45,6 +52,7 @@ namespace Utilities
             var methodSymbol = symbol as MethodSymbol;
             if (methodSymbol != null)
             {
+                NumMethodSymbolLookups++;
                 return methodSymbol;
             }
 
@@ -65,6 +73,7 @@ namespace Utilities
             var methodSymbol = symbol as MethodSymbol;
             if (methodSymbol != null)
             {
+                NumMethodSymbolLookups++;
                 return methodSymbol;
             }
 

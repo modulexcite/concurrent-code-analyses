@@ -31,8 +31,12 @@ namespace Refactoring_BatchTool
 
         static void Main()
         {
-            Logger.Info("Hello, world! Results file header:");
+            Logger.Info("Hello, world!");
+            Logger.Info("Results file header:");
             SolutionRefactoring.LogResultsFileHeader();
+            Logger.Info("Symbols file header:");
+            SolutionRefactoring.LogSymbolsFileHeader();
+            Logger.Info("Starting ...");
 
             var solutionFilePaths = Directory.GetDirectories(CandidatesDir)
                 .SelectMany(app => Directory.GetFiles(app, "*.sln", SearchOption.AllDirectories))
@@ -48,6 +52,8 @@ namespace Refactoring_BatchTool
 
             Logger.Info("Completed run. Results file header:");
             SolutionRefactoring.LogResultsFileHeader();
+            Logger.Info("Symbols file header:");
+            SolutionRefactoring.LogSymbolsFileHeader();
 
             Console.WriteLine(@"Press any key to quit ...");
             Console.ReadKey();
