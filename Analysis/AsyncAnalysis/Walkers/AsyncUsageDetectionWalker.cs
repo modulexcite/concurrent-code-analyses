@@ -40,7 +40,7 @@ namespace Analysis
                 var asynctype = DetectAsynchronousUsages(node, symbol);
                 Result.StoreDetectedAsyncUsage(asynctype);
                 Result.WriteDetectedAsyncUsage(asynctype, Document.FilePath, symbol);
-
+                Result.WriteDetectedAsyncUsageToTable(asynctype,Document,symbol,node);
                 //if (asynctype == Enums.AsyncDetected.Task || asynctype == Enums.AsyncDetected.Threadpool || asynctype == Enums.AsyncDetected.Thread)
                 //{
                 //    foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
