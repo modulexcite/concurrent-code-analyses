@@ -54,6 +54,8 @@ _ReSharper*/
 #NuGet
 packages/
 
+Scripts/Scripts-Results/
+
 #ncrunch
 *ncrunch*
 *crunch*.local.xml
