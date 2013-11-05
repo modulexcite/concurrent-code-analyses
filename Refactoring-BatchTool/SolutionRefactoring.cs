@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
 using Refactoring;
 using Utilities;
+using System.Collections.Generic;
 
 namespace Refactoring_BatchTool
 {
@@ -15,6 +16,8 @@ namespace Refactoring_BatchTool
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly Logger Results = LogManager.GetLogger("RESULTS");
         private static readonly Logger Symbols = LogManager.GetLogger("SYMBOLS");
+
+        private static readonly Logger TempLog = LogManager.GetLogger("TempLog");
 
         private readonly Workspace _workspace;
 
@@ -50,6 +53,53 @@ namespace Refactoring_BatchTool
             _workspace = workspace;
 
             _originalSolution = _workspace.CurrentSolution;
+            Solution newSolution = _originalSolution;
+            var projectlist = _originalSolution.Projects.AsEnumerable();
+            
+            foreach(var project in projectlist)
+            {
+                List<MetadataReference> list = new List<MetadataReference>();
+                //foreach (var refer in project.MetadataReferences)
+                //    // check whether they already reference microsoft.bcl.async
+                //    list.Add(refer);
+
+                if (project.MetadataReferences.Where(a => a.Display.ToString().Contains("AsyncCtpLibrary") || a.Display.ToString().Contains("Microsoft.Bcl.Async")).Any())
+                    continue;
+
+                if (project.IsWindowsPhoneProject() == 1)
+                {
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.Extensions.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\sl4-windowsphone71\Microsoft.Threading.Tasks.Extensions.Phone.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.1.0.16-rc\lib\sl4-windowsphone71\System.Runtime.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.1.0.16-rc\lib\sl4-windowsphone71\System.Threading.Tasks.dll"));
+                }
+                else if (project.IsWindowsPhoneProject() == 2)
+                {
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\wp8\Microsoft.Threading.Tasks.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\wp8\Microsoft.Threading.Tasks.Extensions.dll"));
+                    list.Add(new MetadataFileReference(@"C:\Users\Semih\Desktop\lib\Microsoft.Bcl.Async.1.0.14-rc\lib\wp8\Microsoft.Threading.Tasks.Extensions.Phone.dll"));
+                }
+                else
+                    continue;
+
+                newSolution = newSolution.AddMetadataReferences(project.Id, list);
+
+
+            }
+
+            if (newSolution.CompilationErrorCount() > _originalSolution.CompilationErrorCount())
+            {
+                TempLog.Info("{0}", newSolution.FilePath);
+                foreach (var diagnostic in newSolution.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error))
+                {
+                    TempLog.Info("=== Solution error: {0}", diagnostic);
+                }
+                
+            }
+
+           _originalSolution = newSolution;
+           
         }
 
         public void Run()
@@ -63,15 +113,15 @@ namespace Refactoring_BatchTool
             _refactoredSolution = documents.Aggregate(_originalSolution,
                 (sln, doc) => CheckDocument(doc, sln));
 
-            Logger.Info("Applying changes to workspace ...");
-            if (!_workspace.TryApplyChanges(_refactoredSolution))
-            {
-                const string message = "Failed to apply changes in solution to workspace";
+            //Logger.Info("Applying changes to workspace ...");
+            //if (!_workspace.TryApplyChanges(_refactoredSolution))
+            //{
+            //    const string message = "Failed to apply changes in solution to workspace";
 
-                Logger.Error(message);
+            //    Logger.Error(message);
 
-                throw new Exception(message);
-            }
+            //    throw new Exception(message);
+            //}
 
             PrintResults();
         }
@@ -81,7 +131,7 @@ namespace Refactoring_BatchTool
             if (document == null) throw new ArgumentNullException("document");
             if (solution == null) throw new ArgumentNullException("solution");
 
-            Logger.Trace("Checking document: {0}", document.FilePath);
+            //Logger.Trace("Checking document: {0}", document.FilePath);
 
             var annotatedSolution = AnnotateDocumentInSolution(document, solution);
 
@@ -110,7 +160,7 @@ namespace Refactoring_BatchTool
             var refactoredDocument = refactoredSolution.GetDocument(document.Id);
             var candidatesInDocument = refactoredDocument.GetNumRefactoringCandidatesInDocument();
 
-            Logger.Trace("Found {0} APM instances. Refactoring one-by-one ...", candidatesInDocument);
+            //Logger.Trace("Found {0} APM instances. Refactoring one-by-one ...", candidatesInDocument);
             for (var index = 0; index < candidatesInDocument; index++)
             {
                 var beginXxxSyntax = refactoredDocument.GetAnnotatedInvocation(index);
@@ -186,7 +236,7 @@ namespace Refactoring_BatchTool
         }
         public static void LogSymbolsFileHeader()
         {
-            Logger.Info("solution,document,instanceLineNo,numMethodSymbolLookups");
+            Symbols.Info("solution,document,instanceLineNo,numMethodSymbolLookups");
         }
 
         private static void LogSymbolLookupResults(Solution solution, Document document, InvocationExpressionSyntax beginXxxSyntax, int numMethodSymbolLookups)
@@ -199,10 +249,9 @@ namespace Refactoring_BatchTool
                 numMethodSymbolLookups
             );
         }
-
         public static void LogResultsFileHeader()
         {
-            Logger.Info("solution,numInstances,numPreconditionExceptions,numValidInstances,NumCompilationFailures,NumRefactoringExceptions,NumNotImplementedExceptions,NumOtherExceptions");
+            Results.Info("solution,numInstances,numPreconditionExceptions,numValidInstances,NumCompilationFailures,NumRefactoringExceptions,NumNotImplementedExceptions,NumOtherExceptions");
         }
 
         private void PrintResults()
@@ -213,9 +262,9 @@ namespace Refactoring_BatchTool
                 NumCandidates,
                 NumPreconditionFailures,
                 NumValidCandidates,
+                NumCompilationErrors,
                 NumRefactoringExceptions,
                 NumNotImplementedExceptions,
-                NumCompilationErrors,
                 NumOtherExceptions
             );
         }

@@ -32,15 +32,12 @@ namespace Analysis
             //{
             //    Logs.TempLog5.Info("NotHavingAwait {0}\r\n{1}\r\n------------------------------", Document.FilePath, node);
             //}
-
-
             if (node.HasAsyncModifier() && node.ToString().Contains("await"))
             {
                 if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
                     Result.asyncAwaitResults.NumAsyncAwaitMethods_WP7++;
                 else
                     Result.asyncAwaitResults.NumAsyncAwaitMethods_WP8++;
-
 
                 if (node.ReturnType.ToString().Equals("void"))
                 {
@@ -53,6 +50,30 @@ namespace Analysis
                     Result.asyncAwaitResults.NumAsyncTaskMethods++;
 
 
+
+
+                if (IsFireForget(node))
+                    Result.WriteDetectedMisuseAsyncUsageToTable(1, Document, node);
+
+                if (IsUnnecessaryAsyncAwait(node))
+                    Result.WriteDetectedMisuseAsyncUsageToTable(2, Document, node);
+
+
+                if(IsThereLongRunning(node))
+                    Result.WriteDetectedMisuseAsyncUsageToTable(3, Document, node);
+
+
+                //var startTime = DateTime.UtcNow;
+                if (IsUnnecessarilyCaptureContext(node, 0))
+                    Result.WriteDetectedMisuseAsyncUsageToTable(4,Document,node);
+                    //Logs.TempLog.Info("ConfigureAwaitUse {0}\r\n{1}\r\n------------------------------",Document.FilePath,node);
+
+                //var endTime = DateTime.UtcNow;
+                //Logs.TempLog5.Info(endTime.Subtract(startTime).Milliseconds);
+
+
+
+
                 //if (node.Body.ToString().Contains("ConfigureAwait"))
                 //{
 
@@ -61,6 +82,16 @@ namespace Analysis
                 //}
 
 
+
+                //foreach (var loop in node.DescendantNodes().Where(a => a is ForEachStatementSyntax || a is ForStatementSyntax || a is WhileStatementSyntax))
+                //{
+                //    foreach (var tap in loop.DescendantNodes().OfType<InvocationExpressionSyntax>())
+                //    {
+                //        MethodSymbol sym = (MethodSymbol)SemanticModel.GetSymbolInfo(tap).Symbol;
+                //        if (sym != null && sym.IsTAPMethod())
+                //            Logs.TempLog2.Info("ExpensiveAwaits {0} {1}\r\n{2}\r\n-----------------------", sym, Document.FilePath, node);
+                //    }
+                //}
 
                 //var symbol = SemanticModel.GetDeclaredSymbol(node);
                 //bool isThereAnyCaller = false;
@@ -78,43 +109,6 @@ namespace Analysis
                 //        }
                 //    }
                 //}
-
-
-
-                //int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
-                //Logs.TempLog4.Info(numAwaits);
-                //int numReturnAwaits = Regex.Matches(node.Body.ToString(), "return await").Count;
-
-                //if (!node.ReturnType.ToString().Equals("void") &&
-                //    !node.DescendantNodes().OfType<StatementSyntax>().Where(a => a.ToString().Contains("await")).Any(a => a.Ancestors().OfType<TryStatementSyntax>().Any()))
-                //{
-                //    if (numAwaits == numReturnAwaits)
-                //        Logs.TempLog.Info("UnnecessaryAwaits {0}\r\n{1}\r\n-----------------------", Document.FilePath, node);
-                //    else if (numAwaits == 1 && node.Body.Statements.Count > 0 && node.Body.Statements.Last().ToString().StartsWith("await"))
-                //        Logs.TempLog.Info("UnnecessaryAwaits {0}\r\n{1}\r\n-----------------------", Document.FilePath, node);
-                //}
-
-
-
-                //foreach (var loop in node.DescendantNodes().Where(a => a is ForEachStatementSyntax || a is ForStatementSyntax || a is WhileStatementSyntax))
-                //{
-                //    foreach (var tap in loop.DescendantNodes().OfType<InvocationExpressionSyntax>())
-                //    {
-                //        MethodSymbol sym = (MethodSymbol)SemanticModel.GetSymbolInfo(tap).Symbol;
-                //        if (sym != null && sym.IsTAPMethod())
-                //            Logs.TempLog2.Info("ExpensiveAwaits {0} {1}\r\n{2}\r\n-----------------------", sym, Document.FilePath, node);
-                //    }
-                //}
-                    
-
-                //ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
-
-
-                if (CheckConfigureAwaitUse(node,0))
-                    Logs.TempLog.Info("ConfigureAwaitUse {0}\r\n{1}\r\n------------------------------",Document.FilePath,node);
-                
-
-
             }
 
             //if (node.HasEventArgsParameter())
@@ -131,9 +125,54 @@ namespace Analysis
             base.VisitMethodDeclaration(node);
         }
 
-        private bool CheckConfigureAwaitUse(MethodDeclarationSyntax node, int n)
-        {
 
+        private bool IsFireForget(MethodDeclarationSyntax node)
+        {
+            return node.ReturnType.ToString().Equals("void") && !node.HasEventArgsParameter();
+        }
+
+        private bool IsUnnecessaryAsyncAwait(MethodDeclarationSyntax node)
+        {
+            int numAwaits = Regex.Matches(node.Body.ToString(), "await").Count;
+            int numReturnAwaits = Regex.Matches(node.Body.ToString(), "return await").Count;
+
+            if (!node.ReturnType.ToString().Equals("void") &&
+                !node.DescendantNodes().OfType<StatementSyntax>().Where(a => a.ToString().Contains("await")).Any(a => a.Ancestors().OfType<TryStatementSyntax>().Any()))
+            {
+                if (numAwaits == numReturnAwaits)
+                    return true;
+                else if (numAwaits == 1 && node.Body.Statements.Count > 0 && node.Body.Statements.Last().ToString().StartsWith("await"))
+                    return true;
+            }
+            return false;
+        }
+
+
+        private bool IsThereLongRunning(MethodDeclarationSyntax node)
+        {
+            foreach (var blocking in node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Where(a => BlockingMethodCalls.Any(b => b.Equals(a.Name.ToString()))))
+                return true;
+
+            foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            {
+                var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
+
+                if (methodCallSymbol != null)
+                {
+                    var synctype = ((MethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+
+                    if (synctype != Utilities.Enums.SyncDetected.None)
+                    {
+                        if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool IsUnnecessarilyCaptureContext(MethodDeclarationSyntax node, int n)
+        {
             if (CheckUIElementAccess(node))
                 return false;
             else
@@ -159,7 +198,7 @@ namespace Analysis
                             }
                         }
                         foreach (var newMethod in newMethods)
-                            result = result && CheckConfigureAwaitUse(newMethod, n+1);
+                            result = result && IsUnnecessarilyCaptureContext(newMethod, n+1);
                     }
                     catch (Exception ex)
                     {

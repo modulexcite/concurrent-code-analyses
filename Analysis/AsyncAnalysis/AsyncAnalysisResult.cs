@@ -1,8 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using System;
 using System.Configuration;
+using System.IO;
 using Utilities;
+using System.Linq;
 
 namespace Analysis
 {
@@ -58,6 +61,7 @@ namespace Analysis
 
         public AsyncUsageResults asyncUsageResults_WP8 { get; set; }
 
+        public string commit;
         public AsyncAnalysisResult(string appName)
             : base(appName)
         {
@@ -67,6 +71,11 @@ namespace Analysis
             syncUsageResults = new SyncUsageResults();
             asyncUsageResults_WP7 = new AsyncUsageResults();
             asyncUsageResults_WP8 = new AsyncUsageResults();
+            var tmp = File.ReadLines(@"C:\Users\Semih\Desktop\commitMap.txt").Where(line => line.Contains(appName.Replace('+', '/')));
+            if(tmp.Any())
+                commit = tmp.First().Split(',')[1];
+
+
         }
 
         public void StoreDetectedAsyncUsage(Enums.AsyncDetected type)
@@ -176,6 +185,52 @@ namespace Analysis
 
                 Logs.SyncClassifierLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.ContainingNamespace, symbol.ContainingType, symbol.Name, symbol.Parameters);
             }
+        }
+
+        internal void WriteDetectedAsyncUsageToTable(Enums.AsyncDetected type, Microsoft.CodeAnalysis.Document Document, MethodSymbol symbol, InvocationExpressionSyntax node)
+        {
+            if (Enums.AsyncDetected.None != type)
+            {
+                string resultfile = @"C:\Users\Semih\Desktop\Tables\" + (int)type + ".txt";
+                string delimStr = "/";
+                char[] delimiter = delimStr.ToCharArray();
+                var location = node.GetLocation().GetLineSpan(false);
+                var app= AppName.Replace("+","/");
+
+                string filepathWithLineNumbers = "http://www.github.com/"+ app +"/blob/" + commit +"/"+
+                    Document.FilePath.Replace(@"\",@"/").Split(delimiter,6)[5] +"#L"+(location.StartLinePosition.Line+1)+"-"+(location.EndLinePosition.Line+1);
+                var row = String.Format(@"<tr> <td>{0}</td><td>{1}</td><td><a href='{2}'>Link to Source Code</a></td> </tr>", app, symbol, filepathWithLineNumbers);
+
+                using (StreamWriter sw = File.AppendText(resultfile))
+                {
+                    sw.WriteLine(row);
+                }	
+
+            }
+        }
+
+
+        internal void WriteDetectedMisuseAsyncUsageToTable(int type, Microsoft.CodeAnalysis.Document Document, MethodDeclarationSyntax node)
+        {
+
+                string resultfile = @"C:\Users\Semih\Desktop\MisuseTables\" + type + ".txt";
+                string delimStr = "/";
+                char[] delimiter = delimStr.ToCharArray();
+                var location = node.GetLocation().GetLineSpan(false);
+                var app = AppName.Replace("+", "/");
+
+                var methodName= node.Modifiers.ToString()+ " "+ node.ReturnType.ToString()+ " "+ node.Identifier.ToString() + " "+ node.ParameterList.ToString();
+
+                string filepathWithLineNumbers = "http://www.github.com/" + app + "/blob/" + commit + "/" +
+                    Document.FilePath.Replace(@"\", @"/").Split(delimiter, 6)[5] + "#L" + (location.StartLinePosition.Line + 1) + "-" + (location.EndLinePosition.Line + 1);
+                var row = String.Format(@"<tr><td>{0}</td><td><a href='{1}'>Link to Source Code</a></td> </tr>", methodName, filepathWithLineNumbers);
+
+                using (StreamWriter sw = File.AppendText(resultfile))
+                {
+                    sw.WriteLine(row);
+                }
+
+            
         }
     }
 }

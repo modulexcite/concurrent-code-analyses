@@ -37,18 +37,18 @@ namespace Refactoring_BatchTool
 
         public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            Logger.Trace("Visiting invocation: {0}", node);
+            //Logger.Trace("Visiting invocation: {0}", node);
 
             if (node == null) throw new ArgumentNullException("node");
 
             if (!node.ToString().Contains("Begin"))
                 return node;
 
-            Logger.Debug("Found potential Begin method: {0} at {1}:{2}",
-                node,
-                node.SyntaxTree.FilePath,
-                node.GetStartLineNumber()
-            );
+            //Logger.Debug("Found potential Begin method: {0} at {1}:{2}",
+            //    node,
+            //    node.SyntaxTree.FilePath,
+            //    node.GetStartLineNumber()
+            //);
 
             MethodSymbol method;
             try
@@ -57,27 +57,27 @@ namespace Refactoring_BatchTool
             }
             catch (SymbolMissingException e)
             {
-                Logger.Trace("Symbol missing for invocation: {0} @ {1}:{2}: {3}",
-                    node,
-                    node.SyntaxTree.FilePath,
-                    node.GetStartLineNumber(),
-                    e.Message
-                );
+                //Logger.Trace("Symbol missing for invocation: {0} @ {1}:{2}: {3}",
+                //    node,
+                //    node.SyntaxTree.FilePath,
+                //    node.GetStartLineNumber(),
+                //    e.Message
+                //);
 
                 return node;
             }
 
             if (method.IsAPMBeginMethod())
             {
-                Logger.Info("Found APM Begin method invocation, annotating it: @ {0}:{1}",
-                    node.SyntaxTree.FilePath,
-                    node.GetStartLineNumber()
-                );
-                Logger.Trace("Actual code @ {0}:{1}:\n{2}",
-                    node.SyntaxTree.FilePath,
-                    node.GetStartLineNumber(),
-                    node
-                );
+                //Logger.Info("Found APM Begin method invocation, annotating it: @ {0}:{1}",
+                //    node.SyntaxTree.FilePath,
+                //    node.GetStartLineNumber()
+                //);
+                //Logger.Trace("Actual code @ {0}:{1}:\n{2}",
+                //    node.SyntaxTree.FilePath,
+                //    node.GetStartLineNumber(),
+                //    node
+                //);
 
                 var annotation = new RefactorableAPMInstance(NumAnnotations++);
 

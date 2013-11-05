@@ -145,6 +145,9 @@ def finalizeApps():
     wp8async=0
     purewp7async=0
     bothAsyncAwait=0
+    index=0
+    repo="Github"
+    link=""
     f= open('summary.csv')
     
     for line in f.readlines():
@@ -158,13 +161,22 @@ def finalizeApps():
         for line2 in open('/Volumes/Data/Dropbox/Asyncifier-Results/CodeCorpusStatistics.csv').readlines():
             tmp2= line2.split(',')
             name2 = tmp2[0].replace('/','+')
+            if '+' in name2:
+                repo="Github"
+            else:
+                repo= "Codeplex"
+            if 'Github'==repo:
+                link= "http://www.github.com/"+tmp2[0]
+            else:
+                link= "http://"+ tmp2[0]+".codeplex.com/"
+            
             if name == name2:
                 date= tmp2[1]
                 found=True
                 if ('2012' in date or '2013' in date):
                     if sloc> 499:
-                        if '+' in name2:
-                            print tmp2[0]
+                        index+=1
+                        print "<tr><td>"+str(index)+"</td><td>"+tmp2[0]+"</td><td>"+repo+"</td><td><a href=\""+link+"\">Link to Repo</a></td></tr>"
                         numsloc+=sloc
                         wp7= int(tmp[3])
                         wp8= int(tmp[4])
@@ -190,14 +202,12 @@ def finalizeApps():
                             ii+=1
                             
                         if int(tmp[9])>0:
-                            #print name
-                            
                             apm+=int(tmp[9])
                             iii+=1
                         if ",0,0,0,0,0,0,0,0,0,0,0" in line:
                             nonasync+=1
-       # if not found:
-            #print name  
+        if not found:
+            print name  
 #            isApp= False
 #            for root, dirnames, filenames in os.walk(dir+name):
 #                for file in fnmatch.filter(filenames, 'App.xaml'):
@@ -396,39 +406,9 @@ def extractAPMApps():
                 if name.replace('+','/') == line2.split(',')[0]:
                     print tmp[9]+","+ tmp[8] +","+ line2.replace('\n','')
             
-def commitNumber():
-    f= open('githubapps.txt')
-    analyze=False
-    for line in f.readlines():
-        appname= line.replace('\n','')
-        
-        if 'vikramkone/SuperAlarm' in appname:
-           analyze=True
-        
-        if analyze:
-            os.chdir('/Volumes/Data/asyncifier/code/Scripts/temp')
-            result= os.system('git clone git@github.com:'+ appname+'.git')
-            
-            if result == 0:
-                os.chdir(appname.split('/')[1])
-                
-                commit= os.popen('git log --until=15.08.2013').read()
-                commit= commit.split('commit ')[1].split('\n')[0]
-                shutil.rmtree('/Volumes/Data/asyncifier/code/Scripts/temp/'+appname.split('/')[1])
-                with open("/Volumes/Data/asyncifier/code/Scripts/test.txt", "a") as myfile:
-                    myfile.write(appname+","+commit+'\n')
-            else:
-                with open("/Volumes/Data/asyncifier/code/Scripts/error.txt", "a") as myfile:
-                    myfile.write(appname+'\n')
-                    
-def asd():
-    for file in os.listdir("usage"):
-        fileName = "usage/"+file
-        newcontent= open(fileName).read().replace('\\','/')
-        open(fileName,'w').write(newcontent)
-        
-        
-asd()           
+
+ 
+finalizeApps()           
 #longrunningApps()                                       
 #blockingApps()
 #finalizeApps()
