@@ -20,6 +20,7 @@ namespace Collector
         {
 
             StartAnalyze();
+            //TaskifierAnalysisResult.ExtractToCsv();
             //Results();
             //ExtractToCsv();
             //test();

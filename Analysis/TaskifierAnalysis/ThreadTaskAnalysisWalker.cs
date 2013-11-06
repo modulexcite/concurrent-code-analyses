@@ -28,14 +28,14 @@ namespace Analysis
         private const string InvokeFile = @"C:\\Users\Semih\Desktop\invoke.txt";
         private const string InvokeTestFile = @"C:\\Users\Semih\Desktop\invokeTest.txt";
 
-        public ThreadTaskAnalysis Outer;
+        public TaskifierAnalysis Outer;
         public String Id;
         public SemanticModel SemanticModel;
         public string Namespace;
 
-        private readonly ThreadTaskAnalysisResult _summary;
+        private readonly TaskifierAnalysisResult _summary;
 
-        public ThreadTaskAnalysisWalker(ThreadTaskAnalysisResult summary)
+        public ThreadTaskAnalysisWalker(TaskifierAnalysisResult summary)
         {
             _summary = summary;
         }
@@ -58,7 +58,6 @@ namespace Analysis
         {
             if (node.ToString().Contains("new Thread") && node.Parent.ToString().Contains(".Join"))
             {
-                _summary.NumberOfTaskInstances++;
                 if (Id.ToLower().Contains("test"))
                     Helper.WriteInstance(LoopThreadTestFile, Id, node.Parent.ToString());
                 else
@@ -71,7 +70,6 @@ namespace Analysis
             if (node.DescendantNodes().OfType<IdentifierNameSyntax>().Any(a => "StartNew".Equals(a.ToString()))
                 && !node.ToString().Contains("Stopwatch"))
             {
-                _summary.NumberOfTaskInstances++;
                 if (Id.ToLower().Contains("test"))
                     Helper.WriteInstance(LoopTaskTestFile, Id, node.Parent.ToString());
                 else
@@ -86,7 +84,6 @@ namespace Analysis
                 && !node.Parent.ChildNodes().Any(a => a is ForStatementSyntax)
                 && !node.Parent.ChildNodes().Any(a => a is ForEachStatementSyntax))
             {
-                _summary.NumberOfTaskInstances++;
                 if (Id.ToLower().Contains("test"))
                     Helper.WriteInstance(InvokeTestFile, Id, node.Parent.ToString());
                 else
@@ -100,11 +97,8 @@ namespace Analysis
         {
             string name = node.Name.ToString();
             if ("System.Threading".Equals(name))
-                _summary.IsThreading++;
             if ("System.Threading.Tasks".Equals(name))
-                _summary.IsTpl++;
             if ("System.Threading.Tasks.Dataflow".Equals(name))
-                _summary.IsDataflow++;
             base.VisitUsingDirective(node);
         }
 
@@ -117,7 +111,6 @@ namespace Analysis
 
             if (ThreadpoolSignatures.Any(expression.Equals))
             {
-                _summary.NumberOfThreadInstances++;
                 if (Id.ToLower().Contains("test"))
                     Helper.WriteInstance(ThreadTestFile, Id, node.Parent.Parent.ToString());
                 else
@@ -130,7 +123,6 @@ namespace Analysis
         {
             if ("Thread".Equals(node.Type.ToString()))
             {
-                _summary.NumberOfThreadInstances++;
                 if (Id.ToLower().Contains("test"))
                     Helper.WriteInstance(ThreadTestFile, Id, node.Parent.Parent.Parent.Parent.ToString());
                 else
