@@ -19,5 +19,8 @@ namespace Utilities
         };
 
         public enum CallbackType { None, Identifier, Lambda };
+
+        public enum ThreadingNamespaceDetected { ThreadClass = 0, ThreadpoolClass = 1, OtherClass = 2, None };
+        public enum TasksNamespaceDetected { TaskClass = 0, ParallelClass = 1, OtherClass = 2, None };
     }
 }

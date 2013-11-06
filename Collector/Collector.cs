@@ -43,7 +43,8 @@ namespace Collector
             {
                 var appName = subdir.Split('\\').Last();
 
-                var app = new AsyncAnalysis(subdir, appName);
+                //var app = new AsyncAnalysis(subdir, appName);
+                var app = new TaskifierAnalysis(subdir, appName);
 
                 Logs.Log.Info(@"{0}: {1}", index, appName);
 

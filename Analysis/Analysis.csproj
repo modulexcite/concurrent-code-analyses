@@ -86,13 +86,16 @@
     <Compile Include="AsyncAnalysis\Walkers\SyncUsageDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\Walkers\GeneralAsyncDetectionWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysis.cs" />
-    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisResult.cs" />
-    <Compile Include="ThreadTaskAnalysis\ThreadTaskAnalysisWalker.cs" />
+    <Compile Include="TaskifierAnalysis\TaskifierAnalysis.cs" />
+    <Compile Include="TaskifierAnalysis\TaskifierAnalysisResult.cs" />
+    <Compile Include="TaskifierAnalysis\ThreadTaskAnalysisWalker.cs" />
+    <Compile Include="TaskifierAnalysis\Walkers\TasksUsageDetectionWalker.cs" />
+    <Compile Include="TaskifierAnalysis\Walkers\ThreadUsageDetectionWalker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="TaskifierAnalysis\.DS_Store" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">

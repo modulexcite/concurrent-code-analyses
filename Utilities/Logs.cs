@@ -17,6 +17,8 @@ namespace Utilities
         public static readonly Logger TempLog3 = LogManager.GetLogger("TempLog3");
         public static readonly Logger TempLog4 = LogManager.GetLogger("TempLog4");
         public static readonly Logger TempLog5 = LogManager.GetLogger("TempLog5");
+        public static readonly Logger TempLog6 = LogManager.GetLogger("TempLog6");
+
 
         public static readonly Logger CallTraceLog = LogManager.GetLogger("CallTraceLog");
 
