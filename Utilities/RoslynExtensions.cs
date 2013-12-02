@@ -162,6 +162,20 @@ namespace Utilities
             return symbol.ToString().Contains("Thread.Start");
         }
 
+        public static bool IsParallelFor(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Parallel.For");
+        }
+        public static bool IsParallelForEach(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Parallel.ForEach");
+        }
+
+        public static bool IsParallelInvoke(this MethodSymbol symbol)
+        {
+            return symbol.ToString().Contains("Parallel.Invoke");
+        }
+
         public static bool IsAsyncDelegate(this MethodSymbol symbol)
         {
             return symbol.ToString().Contains("Invoke") &&

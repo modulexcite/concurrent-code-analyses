@@ -2,14 +2,14 @@
 using System;
 using System.IO;
 using System.Xml;
-
+using System.Linq;
 namespace Test
 {
     internal class Test1
     {
         public static void execute()
         {
-            string dir = @"Z:\C#PROJECTS\PhoneApps\codetitans";
+            string dir = @"c:\users\semih\documents\visual studio 2013\Projects\App1\";
 
             //var app = new AsyncAnalysis(@"C:\Users\Semih\Desktop\facebook-windows-phone-sample-master","facebook");
             MSBuildWorkspace workspace = MSBuildWorkspace.Create();
@@ -20,12 +20,9 @@ namespace Test
                 int a = 0;
                 foreach (var project in solution.Projects)
                 {
-                    a++;
-                    Console.WriteLine(a + " project: " + project.FilePath);
-                    if (project.Documents == null)
-                        Console.WriteLine("****************");
-                    //Document doc = project.Documents.First();
-                    //doc.LanguageServices.GetService<IExtractMethodService>();
+                    foreach (var refe in project.MetadataReferences)
+                        Console.WriteLine(refe.Display);
+                    Console.WriteLine("-----");
                 }
             }
             Console.ReadLine();

@@ -48,6 +48,12 @@ namespace Analysis
 
         protected override void VisitDocument(Document document, SyntaxNode root)
         {
+            var sloc = document.GetTextAsync().Result.Lines.Count;
+            if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
+                Result.generalResults.SLOCWP7 += sloc;
+            else
+                Result.generalResults.SLOCWP8 += sloc;
+
             SyntaxWalker walker;
             SemanticModel semanticModel = (SemanticModel)document.GetSemanticModelAsync().Result;
 

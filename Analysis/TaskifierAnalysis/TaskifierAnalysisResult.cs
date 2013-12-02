@@ -26,15 +26,30 @@ namespace Analysis
             public int NumOtherClassUsage;
         }
 
+
+        public class GeneralTaskifierResults
+        {
+            public int NumThreadUsage;
+            public int NumThreadPoolUsage;
+            public int NumBackgWorkerUsage;
+            public int NumAsyncDelegateUsage;
+            public int NumTaskUsage;
+            public int NumParallelForUsage;
+            public int NumParallelInvokeUsage;
+            public int NumParallelForEachUsage;
+
+        }
+
         public ThreadingNamespaceResults threadingNamespaceResults { get; set; }
         public TasksNamespaceResults tasksNamespaceResults { get; set; }
+        public GeneralTaskifierResults generalTaskifierResults { get; set; }
 
         public TaskifierAnalysisResult(string appName)
             : base(appName)
         {
             threadingNamespaceResults = new ThreadingNamespaceResults();
             tasksNamespaceResults = new TasksNamespaceResults();
-
+            generalTaskifierResults = new GeneralTaskifierResults();
         }
 
 
@@ -47,6 +62,11 @@ namespace Analysis
         public bool ShouldSerializetasksNamespaceResults()
         {
             return bool.Parse(ConfigurationManager.AppSettings["IsTasksUsageDetectionEnabled"]);
+        }
+
+        public bool ShouldSerializegeneralTaskifierResults()
+        {
+            return bool.Parse(ConfigurationManager.AppSettings["IsGeneralTaskifierDetectionEnabled"]);
         }
 
         public override void WriteSummaryLog()
@@ -188,12 +208,11 @@ namespace Analysis
             var results = File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json)).ToList();
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\summary.csv"))
             {
-                file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,thread,threadpool,other");
+                file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,thread,threadpool,backworker,asyncdelegate,task,parallelfor, parallelforeach, parallelinvoke");
                 foreach (var result in results)
                 {
-                    if (result.generalResults.NumTotalSLOC > 499)
-                    {
-                        file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}",
+
+                        file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}",
                             result.AppName,
                             result.generalResults.NumTotalProjects,
                             result.generalResults.NumUnanalyzedProjects,
@@ -202,16 +221,58 @@ namespace Analysis
                             result.generalResults.SLOCWP7,
                             result.generalResults.SLOCWP8,
                             result.generalResults.NumTotalSLOC,
-                            result.threadingNamespaceResults.NumThreadClassUsage,
-                            result.threadingNamespaceResults.NumThreadpoolClassUsage,
-                            result.threadingNamespaceResults.NumOtherClassUsage
+                            result.generalTaskifierResults.NumThreadUsage,
+                            result.generalTaskifierResults.NumThreadPoolUsage,
+                            result.generalTaskifierResults.NumBackgWorkerUsage,
+                            result.generalTaskifierResults.NumAsyncDelegateUsage,
+                            result.generalTaskifierResults.NumTaskUsage,
+                            result.generalTaskifierResults.NumParallelForUsage,
+                            result.generalTaskifierResults.NumParallelForEachUsage,
+                            result.generalTaskifierResults.NumParallelInvokeUsage
+
                             );
-                    }
+                    
                 }
 
             }
         
         
         }
+
+        internal void StoreDetectedAsyncUsage(Enums.AsyncDetected type)
+        {
+            if (Enums.AsyncDetected.None != type)
+            {
+                switch (type)
+                {
+                    case Enums.AsyncDetected.Thread:
+                        generalTaskifierResults.NumThreadUsage++;
+                        break;
+                    case Enums.AsyncDetected.Threadpool:
+                        generalTaskifierResults.NumThreadPoolUsage++;
+                        break;
+                    case Enums.AsyncDetected.AsyncDelegate:
+                        generalTaskifierResults.NumAsyncDelegateUsage++;
+                        break;
+                    case Enums.AsyncDetected.BackgroundWorker:
+                        generalTaskifierResults.NumBackgWorkerUsage++;
+                        break;
+                    case Enums.AsyncDetected.Task:
+                        generalTaskifierResults.NumTaskUsage++;
+                        break;
+                    case Enums.AsyncDetected.ParallelFor:
+                        generalTaskifierResults.NumParallelForUsage++;
+                        break;
+                    case Enums.AsyncDetected.ParallelInvoke:
+                        generalTaskifierResults.NumParallelInvokeUsage++;
+                        break;
+                    case Enums.AsyncDetected.ParallelForEach:
+                        generalTaskifierResults.NumParallelForEachUsage++;
+                        break;
+                }
+            }
+
+        }
+
     }
 }

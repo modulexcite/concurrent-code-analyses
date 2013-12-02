@@ -27,7 +27,8 @@ namespace Collector
 
         private static List<string> AnalyzedAppsFromJSONLog()
         {
-            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json).AppName).ToList();
+            //todo: generic the type of deserializeobject
+            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json).AppName).ToList();
         }
 
         private bool IsNotYetAnalyzed(string subdir)

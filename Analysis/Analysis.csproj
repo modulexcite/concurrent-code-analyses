@@ -89,13 +89,14 @@
     <Compile Include="TaskifierAnalysis\TaskifierAnalysis.cs" />
     <Compile Include="TaskifierAnalysis\TaskifierAnalysisResult.cs" />
     <Compile Include="TaskifierAnalysis\ThreadTaskAnalysisWalker.cs" />
+    <Compile Include="TaskifierAnalysis\Walkers\GeneralTaskifierDetectionWalker.cs" />
+    <Compile Include="TaskifierAnalysis\Walkers\SimplifierDetectionWalker.cs" />
     <Compile Include="TaskifierAnalysis\Walkers\TasksUsageDetectionWalker.cs" />
     <Compile Include="TaskifierAnalysis\Walkers\ThreadUsageDetectionWalker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="TaskifierAnalysis\.DS_Store" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">

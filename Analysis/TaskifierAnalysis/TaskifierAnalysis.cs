@@ -28,9 +28,7 @@ namespace Analysis
 
         protected override bool FilterProject(Enums.ProjectType type)
         {
-            if (type == Enums.ProjectType.WP7 || type == Enums.ProjectType.WP8)   
-                return true;
-            return false;
+            return true;
         }
 
         protected override void VisitDocument(Document document, SyntaxNode root)
@@ -46,6 +44,16 @@ namespace Analysis
             if (bool.Parse(ConfigurationManager.AppSettings["IsTasksUsageDetectionEnabled"]))
             {
                 walker = new TasksUsageDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker.Visit(root);
+            }
+            if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralTaskifierDetectionEnabled"]))
+            {
+                walker = new GeneralTaskifierDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker.Visit(root);
+            }
+            if (bool.Parse(ConfigurationManager.AppSettings["IsSimplifierDetectionEnabled"]))
+            {
+                walker = new SimplifierDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
                 walker.Visit(root);
             }
         }

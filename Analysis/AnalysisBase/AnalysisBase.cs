@@ -157,15 +157,9 @@ namespace Analysis
         {
             if (FilterDocument(document))
             {
-                //document.GetTextAsync().Result.
                 var root = (SyntaxNode)document.GetSyntaxRootAsync().Result;
                 var sloc = document.GetTextAsync().Result.Lines.Count;
                 Result.generalResults.NumTotalSLOC += sloc;
-
-                if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
-                    Result.generalResults.SLOCWP7 += sloc;
-                else
-                    Result.generalResults.SLOCWP8 += sloc;
                 try
                 {
                     VisitDocument(document, root);
@@ -173,11 +167,6 @@ namespace Analysis
                 catch (InvalidProjectFileException ex)
                 {
                     Logs.ErrorLog.Info("Document not analyzed: {0}: Reason: {1}", document.FilePath, ex.Message);
-                    Result.generalResults.NumTotalSLOC -= sloc;
-                    if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
-                        Result.generalResults.SLOCWP7 -= sloc;
-                    else
-                        Result.generalResults.SLOCWP8 -= sloc;
                 }
 
             }
