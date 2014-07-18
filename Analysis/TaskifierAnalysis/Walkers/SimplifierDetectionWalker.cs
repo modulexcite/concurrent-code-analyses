@@ -44,12 +44,16 @@ namespace Analysis
                 if(symbol.ToString().Contains("System.Threading.Tasks.Task.WaitAll"))
                 {
                     var block = node.Ancestors().OfType<BlockSyntax>().First();
+
+                    if (block.DescendantNodes().OfType<ForEachStatementSyntax>().Any() || block.DescendantNodes().OfType<ForStatementSyntax>().Any())
+                        return;
                     foreach (var invocation in block.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
                         var symbol2 = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                         if (symbol2!=null && symbol2.IsTaskCreationMethod())
                         {
                             Logs.TempLog3.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, block);
+                            break;
                         }
                     }
                     
@@ -68,11 +72,13 @@ namespace Analysis
                 var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                 if (symbol!=null && symbol.IsTaskCreationMethod())
                 {
-                    Logs.TempLog.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node);
+                    Logs.TempLog.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);
+                    break;
                 }
                 if (symbol != null && symbol.IsThreadStart())
                 {
-                    Logs.TempLog4.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node);
+                    Logs.TempLog4.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);
+                    break;
                 }
             }
 
@@ -86,11 +92,13 @@ namespace Analysis
                 var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                 if (symbol != null && symbol.IsTaskCreationMethod())
                 {
-                    Logs.TempLog2.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node);
+                    Logs.TempLog2.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);
+                    break;
                 }
                 if (symbol != null && symbol.IsThreadStart())
                 {
-                    Logs.TempLog5.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node);
+                    Logs.TempLog5.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);
+                    break;
                 }
 
             }

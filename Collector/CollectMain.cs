@@ -19,12 +19,13 @@ namespace Collector
         private static void Main(string[] args)
         {
 
-            StartAnalyze();
-            //TaskifierAnalysisResult.ExtractToCsv();
+            //StartAnalyze();
+            TaskifierAnalysisResult.ExtractToCsv();
             //Results();
             //ExtractToCsv();
             //test();
             //ExtractToCsvAsyncAwait();
+            Console.ReadLine();
         }
         private static void test()
         {

@@ -8,6 +8,7 @@ using Utilities;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using System.IO;
+using System;
 namespace Analysis
 {
     public class TaskifierAnalysisResult : AnalysisResultBase
@@ -204,6 +205,7 @@ namespace Analysis
 
         public static void ExtractToCsv()
         {
+            int i=0;
             var SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
             var results = File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json)).ToList();
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\summary.csv"))
@@ -211,6 +213,8 @@ namespace Analysis
                 file.WriteLine("name,total,unanalyzed,wp7,wp8,slocwp7,slocwp8,sloc,thread,threadpool,backworker,asyncdelegate,task,parallelfor, parallelforeach, parallelinvoke");
                 foreach (var result in results)
                 {
+                    if (result.generalTaskifierResults.NumThreadUsage > 0 && result.generalTaskifierResults.NumThreadPoolUsage > 0 && result.generalTaskifierResults.NumTaskUsage > 0)
+                        i += 1;
 
                         file.WriteLine("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15}",
                             result.AppName,
@@ -235,7 +239,7 @@ namespace Analysis
                 }
 
             }
-        
+            Console.WriteLine(i);
         
         }
 
