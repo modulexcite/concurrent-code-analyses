@@ -1,7 +1,6 @@
 ﻿using Microsoft.Build.Exceptions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -14,7 +13,7 @@ using Utilities;
 
 namespace Analysis
 {
-    internal class DispatcherDetectionWalker : SyntaxWalker
+    internal class DispatcherDetectionWalker : CSharpSyntaxWalker
     {
         public AsyncAnalysisResult Result { get; set; }
 
@@ -27,7 +26,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null && (symbol.IsDispatcherBeginInvoke()||  symbol.IsDispatcherInvoke()))
             {
@@ -71,7 +70,7 @@ namespace Analysis
                     {
                         var semanticModelForThisMethodCall = Document.Project.Solution.GetDocument(methodCall.SyntaxTree).GetSemanticModelAsync().Result;
 
-                        var methodCallSymbol = (MethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
+                        var methodCallSymbol = (IMethodSymbol)semanticModelForThisMethodCall.GetSymbolInfo(methodCall).Symbol;
 
                         if (methodCallSymbol != null)
                         {

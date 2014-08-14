@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -11,7 +10,7 @@ using Utilities;
 
 namespace Analysis
 {
-    internal class ThreadUsageDetectionWalker : SyntaxWalker
+    internal class ThreadUsageDetectionWalker : CSharpSyntaxWalker
     {
         public TaskifierAnalysisResult Result { get; set; }
 
@@ -44,7 +43,7 @@ namespace Analysis
             base.VisitObjectCreationExpression(node);
         }
 
-        private Enums.ThreadingNamespaceDetected CheckThreadingUsage(Symbol symbol)
+        private Enums.ThreadingNamespaceDetected CheckThreadingUsage(ISymbol symbol)
         {
             Enums.ThreadingNamespaceDetected type = Enums.ThreadingNamespaceDetected.None;
 
@@ -76,7 +75,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
             
             if (symbol != null)
             {

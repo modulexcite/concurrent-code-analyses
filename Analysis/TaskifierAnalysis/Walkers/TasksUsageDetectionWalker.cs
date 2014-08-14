@@ -5,14 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Utilities;
 
 namespace Analysis
 {
-    class TasksUsageDetectionWalker : SyntaxWalker
+    class TasksUsageDetectionWalker : CSharpSyntaxWalker
     {
 
         public TaskifierAnalysisResult Result { get; set; }
@@ -47,7 +46,7 @@ namespace Analysis
             base.VisitObjectCreationExpression(node);
         }
 
-        private Enums.TasksNamespaceDetected CheckTasksUsage(Symbol symbol)
+        private Enums.TasksNamespaceDetected CheckTasksUsage(ISymbol symbol)
         {
             Enums.TasksNamespaceDetected type = Enums.TasksNamespaceDetected.None;
 
@@ -79,7 +78,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null)
             {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using NLog;
 using System.Configuration;
@@ -94,7 +94,7 @@ namespace Analysis
             }
         }
 
-        internal void WriteDetectedThreadingNamespaceUsage(Enums.ThreadingNamespaceDetected type, string documentPath, Symbol symbol, CommonSyntaxNode node)
+        internal void WriteDetectedThreadingNamespaceUsage(Enums.ThreadingNamespaceDetected type, string documentPath, ISymbol symbol, SyntaxNode node)
         {
             if (Enums.ThreadingNamespaceDetected.None != type)
             {
@@ -119,7 +119,7 @@ namespace Analysis
                         break;
                 }
 
-                CommonSyntaxNode block=null;
+                SyntaxNode block=null;
                 var temp = node.Ancestors().OfType<BlockSyntax>();
                 if (temp.Any())
                     block = temp.First();
@@ -160,7 +160,7 @@ namespace Analysis
             }
         }
 
-        internal void WriteDetectedTasksNamespaceUsage(Enums.TasksNamespaceDetected type, string documentPath, Symbol symbol, CommonSyntaxNode node)
+        internal void WriteDetectedTasksNamespaceUsage(Enums.TasksNamespaceDetected type, string documentPath, ISymbol symbol, SyntaxNode node)
         {
             if (Enums.TasksNamespaceDetected.None != type)
             {
@@ -183,7 +183,7 @@ namespace Analysis
                         break;
                 }
 
-                CommonSyntaxNode block = null;
+                SyntaxNode block = null;
                 var temp = node.Ancestors().OfType<BlockSyntax>();
                 if (temp.Any())
                     block = temp.First();

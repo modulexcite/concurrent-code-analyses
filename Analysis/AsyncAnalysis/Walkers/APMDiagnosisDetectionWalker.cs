@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -9,7 +8,7 @@ using Utilities;
 
 namespace Analysis
 {
-    internal class APMDiagnosisDetectionWalker : SyntaxWalker
+    internal class APMDiagnosisDetectionWalker : CSharpSyntaxWalker
     {
         public AsyncAnalysisResult Result { get; set; }
 
@@ -19,7 +18,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null)
             {
@@ -92,24 +91,24 @@ namespace Analysis
 
 
 
-        private void APMDiagnosisDetection(MethodSymbol symbol, InvocationExpressionSyntax node)
+        private void APMDiagnosisDetection(IMethodSymbol symbol, InvocationExpressionSyntax node)
         {
             int c = GetIndexCallbackArgument(symbol);
 
             var callbackArg = node.ArgumentList.Arguments.ElementAt(c);
 
-            if (callbackArg.Expression.Kind.ToString().Contains("IdentifierName"))
-                Logs.TempLog.Info("{0} {1}", callbackArg.Expression.Kind, SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol.Kind);
+            if (callbackArg.Expression.CSharpKind().ToString().Contains("IdentifierName"))
+                Logs.TempLog.Info("{0} {1}", callbackArg.Expression.CSharpKind(), SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol.Kind);
             else
-                Logs.TempLog.Info("{0}", callbackArg.Expression.Kind);
+                Logs.TempLog.Info("{0}", callbackArg.Expression.CSharpKind());
             
            
             //PRINT ALL APM BEGIN METHODS
             Logs.APMDiagnosisLog.Info(@"Document: {0}", Document.FilePath);
             Logs.APMDiagnosisLog.Info(@"Symbol: {0}", symbol);
             Logs.APMDiagnosisLog.Info(@"Invocation: {0}", node);
-            Logs.APMDiagnosisLog.Info(@"CallbackType: {0}", callbackArg.Expression.Kind);
-            if (callbackArg.Expression.Kind.ToString().Contains("IdentifierName"))
+            Logs.APMDiagnosisLog.Info(@"CallbackType: {0}", callbackArg.Expression.CSharpKind());
+            if (callbackArg.Expression.CSharpKind().ToString().Contains("IdentifierName"))
                 Logs.APMDiagnosisLog.Info("{0}", SemanticModel.GetSymbolInfo(callbackArg.Expression).Symbol.Kind);
             Logs.APMDiagnosisLog.Info("---------------------------------------------------");
 
@@ -175,7 +174,7 @@ namespace Analysis
         }
 
 
-        private int GetIndexCallbackArgument(MethodSymbol symbol)
+        private int GetIndexCallbackArgument(IMethodSymbol symbol)
         {
             int c = 0;
             foreach (var arg in symbol.Parameters)

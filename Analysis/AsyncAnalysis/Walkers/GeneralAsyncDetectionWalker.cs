@@ -1,12 +1,11 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Utilities;
 
 namespace Analysis
 {
-    internal class GeneralAsyncDetectionWalker : SyntaxWalker
+    internal class GeneralAsyncDetectionWalker : CSharpSyntaxWalker
     {
         public AsyncAnalysisResult Result { get; set; }
 

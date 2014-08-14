@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using System.Configuration;
 using Utilities;
 
@@ -33,7 +32,7 @@ namespace Analysis
 
         protected override void VisitDocument(Document document, SyntaxNode root)
         {
-            SyntaxWalker walker;
+            CSharpSyntaxWalker walker;
             SemanticModel semanticModel = (SemanticModel)document.GetSemanticModelAsync().Result;
 
             if (bool.Parse(ConfigurationManager.AppSettings["IsThreadUsageDetectionEnabled"]))

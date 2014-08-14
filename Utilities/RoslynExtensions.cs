@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
+using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
@@ -55,7 +55,7 @@ namespace Utilities
                 return Enums.ProjectType.NETOther;
         }
 
-        public static string ToStringWithReturnType(this MethodSymbol symbol)
+        public static string ToStringWithReturnType(this IMethodSymbol symbol)
         {
             var methodCallString = symbol.ToString();
             if (symbol.ReturnsVoid)
@@ -115,7 +115,7 @@ namespace Utilities
         }
 
         // (1) MAIN PATTERNS: TAP, EAP, APM
-        public static bool IsTAPMethod(this MethodSymbol symbol)
+        public static bool IsTAPMethod(this IMethodSymbol symbol)
         {
             return (symbol.ReturnTask() && symbol.DeclaringSyntaxReferences.Count() == 0 && !symbol.ToString().StartsWith("System.Threading.Tasks"))
                 || (symbol.ReturnTask() && symbol.ToString().Contains("FromAsync"));
@@ -131,13 +131,13 @@ namespace Utilities
                                                                            .Any(a => a.Left.ToString().ToLower().EndsWith("completed")));
         }
 
-        public static bool IsAPMBeginMethod(this MethodSymbol symbol)
+        public static bool IsAPMBeginMethod(this IMethodSymbol symbol)
         {
             return !IsAsyncDelegate(symbol) && symbol.Parameters.ToString().Contains("AsyncCallback") && !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
         }
 
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
-        public static bool IsTaskCreationMethod(this MethodSymbol symbol)
+        public static bool IsTaskCreationMethod(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("System.Threading.Tasks.Task.Start") 
                 || symbol.ToString().Contains("System.Threading.Tasks.Task.Run")
@@ -147,36 +147,36 @@ namespace Utilities
 
         }
 
-        public static bool IsThreadPoolQueueUserWorkItem(this MethodSymbol symbol)
+        public static bool IsThreadPoolQueueUserWorkItem(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("ThreadPool.QueueUserWorkItem");
         }
 
-        public static bool IsBackgroundWorkerMethod(this MethodSymbol symbol)
+        public static bool IsBackgroundWorkerMethod(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("BackgroundWorker.RunWorkerAsync");
         }
 
-        public static bool IsThreadStart(this MethodSymbol symbol)
+        public static bool IsThreadStart(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Thread.Start");
         }
 
-        public static bool IsParallelFor(this MethodSymbol symbol)
+        public static bool IsParallelFor(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Parallel.For");
         }
-        public static bool IsParallelForEach(this MethodSymbol symbol)
+        public static bool IsParallelForEach(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Parallel.ForEach");
         }
 
-        public static bool IsParallelInvoke(this MethodSymbol symbol)
+        public static bool IsParallelInvoke(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Parallel.Invoke");
         }
 
-        public static bool IsAsyncDelegate(this MethodSymbol symbol)
+        public static bool IsAsyncDelegate(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Invoke") &&
                 !(symbol.ReturnsVoid) && symbol.ReturnType.ToString().Contains("IAsyncResult");
@@ -184,34 +184,34 @@ namespace Utilities
 
         // (3) WAYS OF UPDATING GUI: CONTROL.BEGININVOKE, DISPATCHER.BEGININVOKE, ISYNCHRONIZE.BEGININVOKE
 
-        public static bool IsISynchronizeInvokeMethod(this MethodSymbol symbol)
+        public static bool IsISynchronizeInvokeMethod(this IMethodSymbol symbol)
         {
             return symbol.ToString().StartsWith("System.ComponentModel.ISynchronizeInvoke");
         }
 
-        public static bool IsControlBeginInvoke(this MethodSymbol symbol)
+        public static bool IsControlBeginInvoke(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Control.BeginInvoke");
         }
 
-        public static bool IsDispatcherBeginInvoke(this MethodSymbol symbol)
+        public static bool IsDispatcherBeginInvoke(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Dispatcher.BeginInvoke");
         }
 
-        public static bool IsDispatcherInvoke(this MethodSymbol symbol)
+        public static bool IsDispatcherInvoke(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("Dispatcher.Invoke");
         }
 
         // END
 
-        public static bool IsAPMEndMethod(this MethodSymbol symbol)
+        public static bool IsAPMEndMethod(this IMethodSymbol symbol)
         {
             return symbol.ToString().Contains("IAsyncResult") && symbol.Name.StartsWith("End");
         }
 
-        public static bool ReturnTask(this MethodSymbol symbol)
+        public static bool ReturnTask(this IMethodSymbol symbol)
         {
             return !symbol.ReturnsVoid && symbol.ReturnType.ToString().StartsWith("System.Threading.Tasks.Task");
         }
@@ -232,7 +232,7 @@ namespace Utilities
             return method.Modifiers.ToString().Contains("async");
         }
 
-        public static MethodDeclarationSyntax FindMethodDeclarationNode(this MethodSymbol methodCallSymbol)
+        public static MethodDeclarationSyntax FindMethodDeclarationNode(this IMethodSymbol methodCallSymbol)
         {
             if (methodCallSymbol == null)
                 return null;
@@ -266,7 +266,7 @@ namespace Utilities
             //}
         }
 
-        public static Enums.SyncDetected DetectSynchronousUsages(this MethodSymbol methodCallSymbol, SemanticModel semanticModel)
+        public static Enums.SyncDetected DetectSynchronousUsages(this IMethodSymbol methodCallSymbol, SemanticModel semanticModel)
         {
             var list = semanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
                                 includeReducedExtensionMethods: true);

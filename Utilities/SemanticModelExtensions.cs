@@ -1,6 +1,7 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Semantics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
+﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using NLog;
 using System;
 
@@ -17,7 +18,7 @@ namespace Utilities
             NumMethodSymbolLookups = 0;
         }
 
-        public static MethodSymbol LookupMethodSymbol(this SemanticModel model, InvocationExpressionSyntax invocation)
+        public static IMethodSymbol LookupMethodSymbol(this SemanticModel model, InvocationExpressionSyntax invocation)
         {
             if (model == null) throw new ArgumentNullException("model");
             if (invocation == null) throw new ArgumentNullException("invocation");
@@ -28,7 +29,7 @@ namespace Utilities
 
             var symbol = model.GetSymbolInfo(expression).Symbol;
 
-            var methodSymbol = symbol as MethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             if (methodSymbol != null)
             {
                 NumMethodSymbolLookups++;
@@ -38,7 +39,7 @@ namespace Utilities
             throw new MethodSymbolMissingException(invocation);
         }
 
-        public static MethodSymbol LookupMethodSymbol(this SemanticModel model, IdentifierNameSyntax identifier)
+        public static IMethodSymbol LookupMethodSymbol(this SemanticModel model, IdentifierNameSyntax identifier)
         {
             if (model == null) throw new ArgumentNullException("model");
             if (identifier == null) throw new ArgumentNullException("identifier");
@@ -49,7 +50,7 @@ namespace Utilities
 
             var symbol = model.GetSymbolInfo(expression).Symbol;
 
-            var methodSymbol = symbol as MethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             if (methodSymbol != null)
             {
                 NumMethodSymbolLookups++;
@@ -59,7 +60,7 @@ namespace Utilities
             throw new MethodSymbolMissingException(expression);
         }
 
-        public static MethodSymbol LookupMethodSymbol(this SemanticModel model, MemberAccessExpressionSyntax memberAccess)
+        public static IMethodSymbol LookupMethodSymbol(this SemanticModel model, MemberAccessExpressionSyntax memberAccess)
         {
             if (model == null) throw new ArgumentNullException("model");
             if (memberAccess == null) throw new ArgumentNullException("memberAccess");
@@ -70,7 +71,7 @@ namespace Utilities
 
             var symbol = model.GetSymbolInfo(expression).Symbol;
 
-            var methodSymbol = symbol as MethodSymbol;
+            var methodSymbol = symbol as IMethodSymbol;
             if (methodSymbol != null)
             {
                 NumMethodSymbolLookups++;

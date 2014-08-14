@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -54,7 +53,7 @@ namespace Analysis
             else
                 Result.generalResults.SLOCWP8 += sloc;
 
-            SyntaxWalker walker;
+            CSharpSyntaxWalker walker;
             SemanticModel semanticModel = (SemanticModel)document.GetSemanticModelAsync().Result;
 
             if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralAsyncDetectionEnabled"]))

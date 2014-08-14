@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
@@ -8,7 +7,7 @@ using Utilities;
 
 namespace Analysis
 {
-    internal class SyncUsageDetectionWalker : SyntaxWalker
+    internal class SyncUsageDetectionWalker : CSharpSyntaxWalker
     {
         public AsyncAnalysisResult Result { get; set; }
 
@@ -18,13 +17,13 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null)
             {
-                var synctype = DetectSynchronousUsages((MethodSymbol)symbol.OriginalDefinition);
+                var synctype = DetectSynchronousUsages((IMethodSymbol)symbol.OriginalDefinition);
                 Result.StoreDetectedSyncUsage(synctype);
-                Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (MethodSymbol)symbol.OriginalDefinition);
+                Result.WriteDetectedSyncUsage(synctype, Document.FilePath, (IMethodSymbol)symbol.OriginalDefinition);
                 if (synctype != Utilities.Enums.SyncDetected.None
                         && node.Ancestors().OfType<MethodDeclarationSyntax>().Any(method => method.HasAsyncModifier()))
                 {
@@ -34,7 +33,7 @@ namespace Analysis
             }
         }
 
-        public Enums.SyncDetected DetectSynchronousUsages(MethodSymbol methodCallSymbol)
+        public Enums.SyncDetected DetectSynchronousUsages(IMethodSymbol methodCallSymbol)
         {
             var list = SemanticModel.LookupSymbols(0, methodCallSymbol.ContainingType, includeReducedExtensionMethods:true);
 

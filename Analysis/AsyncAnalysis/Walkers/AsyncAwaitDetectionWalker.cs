@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -13,7 +12,7 @@ using Utilities;
 
 namespace Analysis
 {
-    internal class AsyncAwaitDetectionWalker : SyntaxWalker
+    internal class AsyncAwaitDetectionWalker : CSharpSyntaxWalker
     {
         public AsyncAnalysisResult Result { get; set; }
 
@@ -155,11 +154,11 @@ namespace Analysis
 
             foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                var methodCallSymbol = (MethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
+                var methodCallSymbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(methodCall).Symbol;
 
                 if (methodCallSymbol != null)
                 {
-                    var synctype = ((MethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                    var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
                     if (synctype != Utilities.Enums.SyncDetected.None)
                     {
@@ -187,7 +186,7 @@ namespace Analysis
                         {
                             foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                             {
-                                var methodCallSymbol = (MethodSymbol)semanticModel.GetSymbolInfo(methodCall).Symbol;
+                                var methodCallSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(methodCall).Symbol;
 
                                 if (methodCallSymbol != null)
                                 {
@@ -260,11 +259,11 @@ namespace Analysis
 
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var methodCallSymbol = (MethodSymbol)semanticModel.GetSymbolInfo(methodCall).Symbol;
+                        var methodCallSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(methodCall).Symbol;
 
                         if (methodCallSymbol != null)
                         {
-                            var synctype = ((MethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                            var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
                             if (synctype != Utilities.Enums.SyncDetected.None)
                             {

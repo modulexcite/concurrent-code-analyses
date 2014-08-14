@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -11,7 +10,7 @@ using Utilities;
 
 namespace Analysis
 {
-    class SimplifierDetectionWalker : SyntaxWalker
+    class SimplifierDetectionWalker : CSharpSyntaxWalker
     {
 
 
@@ -37,7 +36,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null)
             {
@@ -49,7 +48,7 @@ namespace Analysis
                         return;
                     foreach (var invocation in block.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
-                        var symbol2 = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
+                        var symbol2 = (IMethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                         if (symbol2!=null && symbol2.IsTaskCreationMethod())
                         {
                             Logs.TempLog3.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, block);
@@ -69,7 +68,7 @@ namespace Analysis
         {
             foreach (var invocation in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
+                var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                 if (symbol!=null && symbol.IsTaskCreationMethod())
                 {
                     Logs.TempLog.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);
@@ -89,7 +88,7 @@ namespace Analysis
         {
             foreach (var invocation in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
+                var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
                 if (symbol != null && symbol.IsTaskCreationMethod())
                 {
                     Logs.TempLog2.Info("{0}\r\n{1}\r\n--------------------------", Document.FilePath, node.Parent);

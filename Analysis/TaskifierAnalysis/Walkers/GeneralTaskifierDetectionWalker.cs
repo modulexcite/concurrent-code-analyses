@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
@@ -10,7 +9,7 @@ using System.Linq;
 using Utilities;
 namespace Analysis
 {
-    class GeneralTaskifierDetectionWalker:SyntaxWalker
+    class GeneralTaskifierDetectionWalker : CSharpSyntaxWalker
     {
 
 
@@ -36,7 +35,7 @@ namespace Analysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (MethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
             if (symbol != null)
             {
@@ -50,7 +49,7 @@ namespace Analysis
 
 
 
-        private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, MethodSymbol methodCallSymbol)
+        private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, IMethodSymbol methodCallSymbol)
         {
             var methodCallName = methodCall.Expression.ToString().ToLower();
 

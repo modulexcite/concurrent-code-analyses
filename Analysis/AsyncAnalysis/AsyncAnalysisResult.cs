@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using System;
 using System.Configuration;
@@ -128,7 +129,7 @@ namespace Analysis
         public void WriteNodeToCallTrace(MethodDeclarationSyntax node, int n)
         {
             var path = node.SyntaxTree.FilePath;
-            var start = node.GetLocation().GetLineSpan(true).StartLinePosition;
+            var start = node.GetLocation().GetLineSpan().StartLinePosition;
 
             string message = "";
             for (var i = 0; i < n; i++)
@@ -137,7 +138,7 @@ namespace Analysis
             Logs.CallTraceLog.Info(message);
         }
 
-        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, MethodSymbol symbol)
+        internal void WriteDetectedAsyncToCallTrace(Enums.AsyncDetected type, IMethodSymbol symbol)
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -146,7 +147,7 @@ namespace Analysis
             }
         }
 
-        internal void WriteDetectedAsyncUsage(Enums.AsyncDetected type, string documentPath, MethodSymbol symbol)
+        internal void WriteDetectedAsyncUsage(Enums.AsyncDetected type, string documentPath, IMethodSymbol symbol)
         {
             if (Enums.AsyncDetected.None != type)
             {
@@ -163,7 +164,7 @@ namespace Analysis
                 if (!symbol.ReturnsVoid)
                     returntype = symbol.ReturnType.OriginalDefinition.ToString();
 
-                Logs.AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((MethodSymbol)symbol.OriginalDefinition).Parameters);
+                Logs.AsyncClassifierOriginalLog.Info(@"{0};{1};{2};{3};{4};{5};{6};{7}", AppName, documentPath, type.ToString(), returntype, symbol.OriginalDefinition.ContainingNamespace, symbol.OriginalDefinition.ContainingType, symbol.OriginalDefinition.Name, ((IMethodSymbol)symbol.OriginalDefinition).Parameters);
             }
         }
 
@@ -173,7 +174,7 @@ namespace Analysis
                 syncUsageResults.NumSyncReplacableUsages++;
         }
 
-        internal void WriteDetectedSyncUsage(Enums.SyncDetected type, string documentPath, MethodSymbol symbol)
+        internal void WriteDetectedSyncUsage(Enums.SyncDetected type, string documentPath, IMethodSymbol symbol)
         {
             if (Enums.SyncDetected.None != type)
             {
@@ -187,14 +188,14 @@ namespace Analysis
             }
         }
 
-        internal void WriteDetectedAsyncUsageToTable(Enums.AsyncDetected type, Microsoft.CodeAnalysis.Document Document, MethodSymbol symbol, InvocationExpressionSyntax node)
+        internal void WriteDetectedAsyncUsageToTable(Enums.AsyncDetected type, Microsoft.CodeAnalysis.Document Document, IMethodSymbol symbol, InvocationExpressionSyntax node)
         {
             if (Enums.AsyncDetected.None != type)
             {
                 string resultfile = @"C:\Users\Semih\Desktop\Tables\" + (int)type + ".txt";
                 string delimStr = "/";
                 char[] delimiter = delimStr.ToCharArray();
-                var location = node.GetLocation().GetLineSpan(false);
+                var location = node.GetLocation().GetLineSpan();
                 var app= AppName.Replace("+","/");
 
                 string filepathWithLineNumbers = "http://www.github.com/"+ app +"/blob/" + commit +"/"+
@@ -216,7 +217,7 @@ namespace Analysis
                 string resultfile = @"C:\Users\Semih\Desktop\MisuseTables\" + type + ".txt";
                 string delimStr = "/";
                 char[] delimiter = delimStr.ToCharArray();
-                var location = node.GetLocation().GetLineSpan(false);
+                var location = node.GetLocation().GetLineSpan();
                 var app = AppName.Replace("+", "/");
 
                 var methodName= node.Modifiers.ToString()+ " "+ node.ReturnType.ToString()+ " "+ node.Identifier.ToString() + " "+ node.ParameterList.ToString();
