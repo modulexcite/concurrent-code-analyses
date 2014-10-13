@@ -93,7 +93,7 @@ namespace Analysis
                 catch (Exception ex)
                 {
 
-                    Logs.Log.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
+                    Logs.Console.Warn("Caught exception while processing method call node: {0} @ {1}", node, ex.Message);
 
                     if (!(ex is InvalidProjectFileException ||
                           ex is FormatException ||

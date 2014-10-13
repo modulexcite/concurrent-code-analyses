@@ -45,8 +45,8 @@ namespace Analysis
         public TasksNamespaceResults tasksNamespaceResults { get; set; }
         public GeneralTaskifierResults generalTaskifierResults { get; set; }
 
-        public TaskifierAnalysisResult(string appName)
-            : base(appName)
+        public TaskifierAnalysisResult(string solutionPath, string appName)
+            : base(solutionPath, appName)
         {
             threadingNamespaceResults = new ThreadingNamespaceResults();
             tasksNamespaceResults = new TasksNamespaceResults();

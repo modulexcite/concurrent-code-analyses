@@ -19,10 +19,10 @@ namespace Analysis
             get { return result; }
         }
 
-        public TaskifierAnalysis(string dirName, string appName)
-            : base(dirName, appName)
+        public TaskifierAnalysis(string solutionPath, string appName)
+            : base(solutionPath, appName)
         {
-            result = new TaskifierAnalysisResult(appName);
+            result = new TaskifierAnalysisResult(solutionPath, appName);
         }
 
         protected override bool FilterProject(Enums.ProjectType type)

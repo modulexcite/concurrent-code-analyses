@@ -15,47 +15,74 @@ namespace Collector
     {
         private static string AppsPath = ConfigurationManager.AppSettings["AppsPath"];
         private static string SubsetApps = ConfigurationManager.AppSettings["SubsetApps"];
+        private static string SolutionFiles = ConfigurationManager.AppSettings["SolutionFiles"];
+
 
         private static void Main(string[] args)
         {
-
-            //StartBatchAnalysis();
-            //TaskifierAnalysisResult.ExtractToCsv();
-            //Results();
-            //ExtractToCsv();
-            //test();
-            //ExtractToCsvAsyncAwait();
+            PerformAnalysis();
+            Console.WriteLine("**************FINISHED***************");
             Console.ReadLine();
         }
-        private static void test()
+
+        private static void PerformAnalysis()
+        {
+            // FindSolutionFiles(AppsPath);
+            StartBatchAnalysis();
+
+            //ExtractToCsv();
+
+            //Test();
+
+            // ***CONVERT JSON TO CSV***
+            //TaskifierAnalysisResult.ExtractToCsv();
+            //ExtractToCsvAsyncAwait();
+        }
+
+        private static void Test()
         {
             var app = new AsyncAnalysis(@"D:\CodeCorpus\WPApps\Digillect+mvvm-wp", "temp");
             app.Analyze();
-
-            Console.WriteLine("finished");
-            Console.ReadLine();
         }
 
         private static void StartBatchAnalysis()
         {
-
             string[] appsToAnalyze;
-            if (bool.Parse(ConfigurationManager.AppSettings["OnlyAnalyzeSubsetApps"]))
-                appsToAnalyze = File.ReadAllLines(SubsetApps).Select(appName => AppsPath + appName).ToArray<string>();
+            if (bool.Parse(ConfigurationManager.AppSettings["AnalyzeOSS"]))
+            {
+                if (bool.Parse(ConfigurationManager.AppSettings["OnlyAnalyzeSubsetApps"]))
+                    appsToAnalyze = File.ReadAllLines(SubsetApps).Select(appName => AppsPath + appName).ToArray<string>();
+                else
+                    appsToAnalyze = Directory.GetDirectories(AppsPath).ToArray<string>();
+            }
             else
-                appsToAnalyze = Directory.GetDirectories(AppsPath).ToArray<string>();
-
-            var collector = new Collector(appsToAnalyze, 2000);
+            {
+                appsToAnalyze = File.ReadAllLines(SolutionFiles);     
+            }
+            var collector = new Collector(appsToAnalyze, 100);
             collector.Run();
-
-            
-
-            Console.WriteLine(@"Program finished. Press any key to quit ...");
-            Console.ReadLine();
         }
 
+        private static void FindSolutionFiles(string mainDir)
+        {
+            try
+            {
+                foreach (string d in Directory.GetDirectories(mainDir))
+                {
+                    foreach (string f in Directory.GetFiles(d, "*.sln"))
+                    {
+                        Logs.SolutionFiles.Info(f);
+                    }
+                    FindSolutionFiles(d);
+                }
+            }
+            catch (System.Exception excpt)
+            {
+                Console.WriteLine(excpt.Message);
+            }
+        }
 
-        private static void Results()
+        private static void FilterSummaryForSubSetAnalysis()
         {
             var SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
             var results= File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json)).ToList();
@@ -68,17 +95,10 @@ namespace Collector
                         file.WriteLine("{0}", result.AppName);
                 }
             }
-            
-
-            //Console.WriteLine(results.Where(a => a.generalResults.NumTotalSLOC > 1000 ).Select(a=> a.asyncUsageResults.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.APM]).Sum());
-
-
-            Console.WriteLine(@"Program finished. Press any key to quit ...");
-            Console.ReadKey();
-        
+            //Console.WriteLine(results.Where(a => a.generalResults.NumTotalSLOC > 1000 ).Select(a=> a.asyncUsageResults.NumAsyncProgrammingUsages[(int)Enums.AsyncDetected.APM]).Sum());        
         }
 
-        private static void ExtractToCsv()
+        private static void ExtractToCsvForAsyncAnalysisResult()
         {
             var SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
             var results = File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json)).ToList();

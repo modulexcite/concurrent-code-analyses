@@ -5,6 +5,7 @@ namespace Analysis
 {
     public abstract class AnalysisResultBase
     {
+        public string SolutionPath;
         public string AppName;
         public Enums.ProjectType CurrentAnalyzedProjectType;
 
@@ -24,9 +25,10 @@ namespace Analysis
 
         public GeneralResults generalResults { get; set; }
 
-        public AnalysisResultBase(string appName)
+        public AnalysisResultBase(string solutionPath, string appName)
         {
             generalResults = new GeneralResults();
+            SolutionPath = solutionPath;
             AppName = appName;
         }
 

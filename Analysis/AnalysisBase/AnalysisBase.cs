@@ -13,7 +13,7 @@ namespace Analysis
 {
     public abstract class AnalysisBase
     {
-        private readonly string _dirName;
+        private readonly string _solutionPath;
         private readonly string _appName;
 
         protected MSBuildWorkspace workspace;
@@ -27,17 +27,30 @@ namespace Analysis
 
         public abstract AnalysisResultBase ResultObject { get; }
 
-        protected AnalysisBase(string dirName, string appName)
+        protected AnalysisBase(string solutionPath, string appName)
         {
-            _dirName = dirName;
+            _solutionPath = solutionPath;
             _appName = appName;
             workspace = MSBuildWorkspace.Create();
-            
         }
 
         public void Analyze()
         {
-            var solutionPaths = from f in Directory.GetFiles(_dirName, "*.sln", SearchOption.AllDirectories)
+            CurrentSolution = TryLoadSolution(_solutionPath);
+            if ((CurrentSolution = TryLoadSolution(_solutionPath)) != null)
+            {
+                foreach (var project in CurrentSolution.Projects)
+                {
+                    AnalyzeProject(project);
+                }
+            }
+            workspace.CloseSolution();
+            OnAnalysisCompleted();
+        }
+
+        public void AnalyzeOSS()
+        {
+            var solutionPaths = from f in Directory.GetFiles(_solutionPath, "*.sln", SearchOption.AllDirectories)
                                 let directoryName = Path.GetDirectoryName(f)
                                 where !directoryName.Contains(@"\tags") &&
                                       !directoryName.Contains(@"\branches")
@@ -45,18 +58,19 @@ namespace Analysis
 
             foreach (var solutionPath in solutionPaths)
             {
-
-                CurrentSolution = TryLoadSolution(solutionPath);
-
                 if ((CurrentSolution = TryLoadSolution(solutionPath)) != null)
+                {
                     foreach (var project in CurrentSolution.Projects)
+                    {
                         AnalyzeProject(project);
+                    }
+                }
                 workspace.CloseSolution();
             }
 
             if (Result.generalResults.NumTotalProjects == 0)
             {
-                var projectPaths = from f in Directory.GetFiles(_dirName, "*.csproj", SearchOption.AllDirectories)
+                var projectPaths = from f in Directory.GetFiles(_solutionPath, "*.csproj", SearchOption.AllDirectories)
                                     let directoryName = Path.GetDirectoryName(f)
                                     where !directoryName.Contains(@"\tags") &&
                                           !directoryName.Contains(@"\branches")
@@ -84,8 +98,6 @@ namespace Analysis
                     }
                 }
             }
-            
-
             OnAnalysisCompleted();
         }
 

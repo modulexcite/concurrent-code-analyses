@@ -13,44 +13,39 @@ namespace Collector
     {
         private static string SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
 
-        private readonly List<string> _analyzedApps;
         private readonly IEnumerable<string> _appsToAnalyze;
 
         public Collector(String[] apps, int batchSize)
         {
-            _analyzedApps = File.Exists(SummaryJSONLogPath)
+            var analyzedApps = File.Exists(SummaryJSONLogPath)
                 ? Collector.AnalyzedAppsFromJSONLog()
                 : new List<string>();
 
-            _appsToAnalyze = apps.Where(IsNotYetAnalyzed).OrderBy(s => s).Take(batchSize);
+            _appsToAnalyze = apps.Where(s=> IsNotYetAnalyzed(s, analyzedApps)).OrderBy(s => s).Take(batchSize);
         }
 
         private static List<string> AnalyzedAppsFromJSONLog()
         {
-            //todo: generic the type of deserializeobject
-            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json).AppName).ToList();
+            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json).SolutionPath).ToList();
         }
 
-        private bool IsNotYetAnalyzed(string subdir)
+        private static bool IsNotYetAnalyzed(string name, List<string> analyzedApps)
         {
-            return !_analyzedApps.Any(s => subdir.Split('\\').Last().Equals(s));
+            return !analyzedApps.Contains(name);
         }
 
         public void Run()
         {
             var index = 1;
-
-            foreach (var subdir in _appsToAnalyze)
+            foreach (var solutionPath in _appsToAnalyze)
             {
-                var appName = subdir.Split('\\').Last();
+                var appName = solutionPath.Split('\\').Last().Split('.').First();
 
                 //var app = new AsyncAnalysis(subdir, appName);
-                var app = new TaskifierAnalysis(subdir, appName);
+                var app = new TaskifierAnalysis(solutionPath, appName);
 
-                Logs.Log.Info(@"{0}: {1}", index, appName);
-
+                Logs.Console.Info(@"{0}: {1}", index, solutionPath);
                 app.Analyze();
-
                 index++;
             }
         }

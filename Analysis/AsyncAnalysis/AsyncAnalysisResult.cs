@@ -63,8 +63,8 @@ namespace Analysis
         public AsyncUsageResults asyncUsageResults_WP8 { get; set; }
 
         public string commit;
-        public AsyncAnalysisResult(string appName)
-            : base(appName)
+        public AsyncAnalysisResult(string solutionPath, string appName)
+            : base(solutionPath, appName)
         {
             generalAsyncResults = new GeneralAsyncResults();
             asyncAwaitResults = new AsyncAwaitResults();

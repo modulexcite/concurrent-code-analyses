@@ -27,10 +27,10 @@ namespace Analysis
             get { return result; }
         }
 
-        public AsyncAnalysis(string dirName, string appName)
-            : base(dirName, appName)
+        public AsyncAnalysis(string solutionPath, string appName)
+            : base(solutionPath, appName)
         {
-            result = new AsyncAnalysisResult(appName);
+            result = new AsyncAnalysisResult(solutionPath, appName);
             AnalyzedMethods = new List<String>();
             AnalyzedMethodsDict = new Dictionary<string, int>();
         }
