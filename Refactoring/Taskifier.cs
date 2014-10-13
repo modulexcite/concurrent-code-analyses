@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NLog;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Utilities;
+using Refactoring.RefactoringExtensions;
 
 namespace Refactoring
 {
@@ -57,17 +57,17 @@ namespace Refactoring
             var callbackExpression = callbackArgument.Expression;
 
             CompilationUnitSyntax rewrittenSyntax;
-            switch (callbackExpression.Kind)
+            switch (callbackExpression.CSharpKind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
                     var lambda = (SimpleLambdaExpressionSyntax)callbackExpression;
 
-                    switch (lambda.Body.Kind)
+                    switch (lambda.Body.CSharpKind())
                     {
                         case SyntaxKind.Block:
                             var stateArgument = FindAsyncStateInvocationArgument(model, beginXxxCall);
 
-                            switch (stateArgument.Expression.Kind)
+                            switch (stateArgument.Expression.CSharpKind())
                             {
                                 case SyntaxKind.NullLiteralExpression:
                                     Logger.Info("Refactoring:\n{0}", beginXxxCall.ContainingMethod());
@@ -94,7 +94,7 @@ namespace Refactoring
                             message = String
                                 .Format(
                                     "Unsupported lambda body kind: {0}: method:\n{1}",
-                                    lambda.Body.Kind,
+                                    lambda.Body.CSharpKind(),
                                     beginXxxCall.ContainingMethod()
                                 );
 
@@ -162,7 +162,7 @@ namespace Refactoring
                 default:
                     message = String.Format(
                         "Unsupported actual argument syntax node kind: {0}: callback argument: {1}: in method:\n{2}",
-                        callbackExpression.Kind,
+                        callbackExpression.CSharpKind(),
                         callbackArgument,
                         beginXxxCall.ContainingMethod()
                     );

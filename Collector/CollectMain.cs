@@ -19,8 +19,8 @@ namespace Collector
         private static void Main(string[] args)
         {
 
-            //StartAnalyze();
-            TaskifierAnalysisResult.ExtractToCsv();
+            //StartBatchAnalysis();
+            //TaskifierAnalysisResult.ExtractToCsv();
             //Results();
             //ExtractToCsv();
             //test();
@@ -36,7 +36,7 @@ namespace Collector
             Console.ReadLine();
         }
 
-        private static void StartAnalyze()
+        private static void StartBatchAnalysis()
         {
 
             string[] appsToAnalyze;
@@ -59,8 +59,6 @@ namespace Collector
         {
             var SummaryJSONLogPath = ConfigurationManager.AppSettings["SummaryJSONLogPath"];
             var results= File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<AsyncAnalysisResult>(json)).ToList();
-
-            
 
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\Users\semih\Desktop\subsetApps.txt"))
             {

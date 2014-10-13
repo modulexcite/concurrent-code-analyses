@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Xml;
