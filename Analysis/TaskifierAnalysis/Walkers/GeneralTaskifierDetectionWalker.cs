@@ -31,8 +31,6 @@ namespace Analysis
                 base.VisitClassDeclaration(node);
         }
 
-
-
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
@@ -43,11 +41,8 @@ namespace Analysis
                 Result.StoreDetectedAsyncUsage(type);
             }
 
-
             base.VisitInvocationExpression(node);
         }
-
-
 
         private Enums.AsyncDetected DetectAsynchronousUsages(InvocationExpressionSyntax methodCall, IMethodSymbol methodCallSymbol)
         {
