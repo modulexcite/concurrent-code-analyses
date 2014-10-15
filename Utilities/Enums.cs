@@ -8,6 +8,8 @@ namespace Utilities
 
         public enum AsyncDetected { APM = 0, EAP = 1, TAP = 2, Thread = 3, Threadpool = 4, AsyncDelegate = 5, BackgroundWorker = 6, Task = 7, ISynchronizeInvoke = 8, ControlInvoke = 9, Dispatcher = 10, ParallelFor=11, ParallelForEach=12, ParallelInvoke=13,None };
 
+
+
         [Flags]
         public enum SyncDetected
         {

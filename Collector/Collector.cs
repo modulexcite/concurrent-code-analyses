@@ -1,4 +1,5 @@
 ﻿using Analysis;
+using ConsultingAnalysis;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace Collector
 
         private static List<string> AnalyzedAppsFromJSONLog()
         {
-            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<TaskifierAnalysisResult>(json).SolutionPath).ToList();
+            return File.ReadAllLines(SummaryJSONLogPath).Select(json => JsonConvert.DeserializeObject<ConsultingAnalysisResult>(json).SolutionPath).ToList();
         }
 
         private static bool IsNotYetAnalyzed(string name, List<string> analyzedApps)
@@ -39,10 +40,9 @@ namespace Collector
             var index = 1;
             foreach (var solutionPath in _appsToAnalyze)
             {
-                var appName = solutionPath.Split('\\').Last().Split('.').First();
+                var appName = solutionPath.Split('\\').Last().Split(new string[] { ".csproj" }, StringSplitOptions.None).First();
 
-                //var app = new AsyncAnalysis(subdir, appName);
-                var app = new TaskifierAnalysis(solutionPath, appName);
+                var app = new ConsultingAnalysis.ConsultingAnalysis(solutionPath, appName);
 
                 Logs.Console.Info(@"{0}: {1}", index, solutionPath);
                 app.Analyze();

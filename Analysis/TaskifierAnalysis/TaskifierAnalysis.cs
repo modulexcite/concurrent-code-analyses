@@ -35,6 +35,12 @@ namespace Analysis
             CSharpSyntaxWalker walker;
             SemanticModel semanticModel = (SemanticModel)document.GetSemanticModelAsync().Result;
 
+
+            if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralTaskifierDetectionEnabled"]))
+            {
+                walker = new GeneralTaskifierDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker.Visit(root);
+            }
             if (bool.Parse(ConfigurationManager.AppSettings["IsThreadUsageDetectionEnabled"]))
             {
                 walker = new ThreadUsageDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
@@ -43,11 +49,6 @@ namespace Analysis
             if (bool.Parse(ConfigurationManager.AppSettings["IsTasksUsageDetectionEnabled"]))
             {
                 walker = new TasksUsageDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
-                walker.Visit(root);
-            }
-            if (bool.Parse(ConfigurationManager.AppSettings["IsGeneralTaskifierDetectionEnabled"]))
-            {
-                walker = new GeneralTaskifierDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
                 walker.Visit(root);
             }
             if (bool.Parse(ConfigurationManager.AppSettings["IsSimplifierDetectionEnabled"]))

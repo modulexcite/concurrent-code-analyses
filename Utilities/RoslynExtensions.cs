@@ -139,11 +139,13 @@ namespace Utilities
         // (2) WAYS OF OFFLOADING THE WORK TO ANOTHER THREAD: TPL, THREADING, THREADPOOL, ACTION/FUNC.BEGININVOKE,  BACKGROUNDWORKER
         public static bool IsTaskCreationMethod(this IMethodSymbol symbol)
         {
-            return symbol.ToString().Contains("System.Threading.Tasks.Task.Start") 
+            return symbol.ToString().Contains("System.Threading.Tasks.Task.Start")
                 || symbol.ToString().Contains("System.Threading.Tasks.Task.Run")
                 || symbol.ToString().Contains("System.Threading.Tasks.TaskFactory.StartNew")
                 || symbol.ToString().Contains("System.Threading.Tasks.TaskEx.RunEx")
-                || symbol.ToString().Contains("System.Threading.Tasks.TaskEx.Run");
+                || symbol.ToString().Contains("System.Threading.Tasks.TaskEx.Run")
+                || symbol.ToString().Contains("StartNewTask")
+                || symbol.ToString().Contains("StartNewTaskWithoutExceptionHandling");
 
         }
 
@@ -164,16 +166,19 @@ namespace Utilities
 
         public static bool IsParallelFor(this IMethodSymbol symbol)
         {
-            return symbol.ToString().Contains("Parallel.For");
+            return symbol.ToString().Contains("Parallel.For") ||
+                   symbol.ToString().Contains("ParallelWithMember.For");
         }
         public static bool IsParallelForEach(this IMethodSymbol symbol)
         {
-            return symbol.ToString().Contains("Parallel.ForEach");
+            return symbol.ToString().Contains("Parallel.ForEach") ||
+                   symbol.ToString().Contains("ParallelWithMember.ForEach");
         }
 
         public static bool IsParallelInvoke(this IMethodSymbol symbol)
         {
-            return symbol.ToString().Contains("Parallel.Invoke");
+            return symbol.ToString().Contains("Parallel.Invoke") ||
+                   symbol.ToString().Contains("ParallelLoader.Invoke");
         }
 
         public static bool IsAsyncDelegate(this IMethodSymbol symbol)
@@ -274,6 +279,10 @@ namespace Utilities
             var name = methodCallSymbol.Name;
             Enums.SyncDetected type = Enums.SyncDetected.None;
 
+            if (name.Equals("Sleep"))
+            {
+                type |= Enums.SyncDetected.TAPReplacable;
+            }
 
             foreach (var tmp in list)
             {

@@ -9,6 +9,9 @@ namespace Utilities
 
         public static readonly Logger SolutionFiles = LogManager.GetLogger("SolutionFiles");
 
+        public static readonly Logger AsyncMisuse = LogManager.GetLogger("AsyncMisuse");
+
+
         public static readonly Logger SummaryJSONLog = LogManager.GetLogger("SummaryJSONLog");
         public static readonly Logger phoneProjectListLog = LogManager.GetLogger("PhoneProjectListLog");
         public static readonly Logger phoneSolutionListLog = LogManager.GetLogger("PhoneSolutionListLog");

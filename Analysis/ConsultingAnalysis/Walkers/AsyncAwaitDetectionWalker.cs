@@ -2,104 +2,104 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Utilities;
+using Analysis;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Analysis
+namespace ConsultingAnalysis
 {
     internal class AsyncAwaitDetectionWalker : CSharpSyntaxWalker
     {
-        public AsyncAnalysisResult Result { get; set; }
+        public ConsultingAnalysisResult Result { get; set; }
 
         public SemanticModel SemanticModel { get; set; }
 
         public Document Document { get; set; }
-
         public List<String> AnalyzedMethods { get; set; }
+        private static string[] BlockingMethodCalls = { "WaitAll", "WaitAny", "Wait", "Sleep" };
 
-        private static string[] BlockingMethodCalls = { "WaitAll", "WaitAny", "Wait", "Sleep"};
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            if ((node.BaseList != null) && (node.BaseList.ToString().Contains("ClientBase") || node.BaseList.ToString().Contains("ChannelBase")))
+            {
+                // IGNORE WCF SERVICES WHICH ARE GENERATED AUTOMATICALLY
+            }
+            else
+                base.VisitClassDeclaration(node);
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
+            
+            if (symbol != null)
+            {
+                var type = DetectIOAsynchronousUsages(node, symbol);
+                Result.StoreDetectedIOAsyncUsage(type);
+
+                if (type == Enums.AsyncDetected.EAP)
+                    Logs.TempLog2.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+
+                if (type == Enums.AsyncDetected.TAP)
+                    Logs.TempLog3.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+
+                if (type == Enums.AsyncDetected.APM)
+                    Logs.TempLog4.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+
+            }
+
+            base.VisitInvocationExpression(node);
+        }
+
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-
-            //if (node.HasAsyncModifier() && !node.ToString().Contains("await"))
-            //{
-            //    Logs.TempLog5.Info("NotHavingAwait {0}\r\n{1}\r\n------------------------------", Document.FilePath, node);
-            //}
-            if (node.HasAsyncModifier() && node.ToString().Contains("await"))
+            if (!node.HasAsyncModifier())
             {
-                if (Result.CurrentAnalyzedProjectType == Enums.ProjectType.WP7)
-                    Result.asyncAwaitResults.NumAsyncAwaitMethods_WP7++;
-                else
-                    Result.asyncAwaitResults.NumAsyncAwaitMethods_WP8++;
+                base.VisitMethodDeclaration(node);
+                return;
+            }
 
-                if (node.ReturnType.ToString().Equals("void"))
+            if (node.ToString().Contains("await"))
+            {
+                Result.asyncAwaitResults.NumAsyncMethods++;
+
+                Logs.TempLog.Info(@"{0}{1}**********************************************", Document.FilePath, node.ToLog());
+
+                if (!node.ReturnType.ToString().Equals("void"))
                 {
-                    if (node.HasEventArgsParameter())
-                        Result.asyncAwaitResults.NumAsyncVoidEventHandlerMethods++;
-                    else
-                        Result.asyncAwaitResults.NumAsyncVoidNonEventHandlerMethods++;
-                }
-                else
                     Result.asyncAwaitResults.NumAsyncTaskMethods++;
-
-
-
+                }
 
                 if (IsFireForget(node))
-                    Result.WriteDetectedMisuseAsyncUsageToTable(1, Document, node);
+                    Result.StoreDetectedAsyncMisuse(1, Document, node);
 
                 if (IsUnnecessaryAsyncAwait(node))
-                    Result.WriteDetectedMisuseAsyncUsageToTable(2, Document, node);
+                    Result.StoreDetectedAsyncMisuse(2, Document, node);
 
-                if(IsThereLongRunning(node))
-                    Result.WriteDetectedMisuseAsyncUsageToTable(3, Document, node);
+                if (IsThereLongRunning(node))
+                    Result.StoreDetectedAsyncMisuse(3, Document, node);
 
                 if (IsUnnecessarilyCaptureContext(node, 0))
-                    Result.WriteDetectedMisuseAsyncUsageToTable(4,Document,node);
+                    Result.StoreDetectedAsyncMisuse(4, Document, node);
 
-                    //Logs.TempLog.Info("ConfigureAwaitUse {0}\r\n{1}\r\n------------------------------",Document.FilePath,node);
-
-                //var endTime = DateTime.UtcNow;
-                //Logs.TempLog5.Info(endTime.Subtract(startTime).Milliseconds);
-
-
-
-
-                //if (node.Body.ToString().Contains("ConfigureAwait"))
-                //{
-
-                //    Result.asyncAwaitResults.NumAsyncMethodsHavingConfigureAwait++;
-                //    Logs.TempLog5.Info("ConfigureAwait {0}\r\n{1}\r\n------------------------------", Document.FilePath, node);
-                //}
-
-
-
-                //foreach (var loop in node.DescendantNodes().Where(a => a is ForEachStatementSyntax || a is ForStatementSyntax || a is WhileStatementSyntax))
-                //{
-                //    foreach (var tap in loop.DescendantNodes().OfType<InvocationExpressionSyntax>())
-                //    {
-                //        MethodSymbol sym = (MethodSymbol)SemanticModel.GetSymbolInfo(tap).Symbol;
-                //        if (sym != null && sym.IsTAPMethod())
-                //            Logs.TempLog2.Info("ExpensiveAwaits {0} {1}\r\n{2}\r\n-----------------------", sym, Document.FilePath, node);
-                //    }
-                //}
 
                 //var symbol = SemanticModel.GetDeclaredSymbol(node);
                 //bool isThereAnyCaller = false;
                 //if (symbol != null)
                 //{
+                    
                 //    foreach (var refs in SymbolFinder.FindReferencesAsync(symbol, Document.Project.Solution).Result)
                 //    {
                 //        foreach (var locs in refs.Locations)
                 //        {
                 //            isThereAnyCaller = true;
-                //            var caller = locs.Document.GetTextAsync().Result.Lines.ElementAt(locs.Location.GetLineSpan(false).StartLinePosition.Line).ToString();
+                //            var caller = locs.Document.GetTextAsync().Result.Lines.ElementAt(locs.Location.GetLineSpan().StartLinePosition.Line).ToString();
                 //            if (caller.Contains(".Result") || caller.Contains(".Wait"))
                 //                Logs.TempLog5.Info("BlockingCaller {0}\r\n{1}\r\n{2}\r\n-----------------------", Document.FilePath, node, caller);
 
@@ -107,19 +107,26 @@ namespace Analysis
                 //    }
                 //}
             }
+            else
+                Logs.AsyncMisuse.Info(@"{0} - {1}{2}**********************************************", Document.FilePath, "No Await", node.ToLog());
 
-            //if (node.HasEventArgsParameter())
-            //{
-            //    var arg = node.ParameterList.Parameters.Where(param => param.Type.ToString().EndsWith("EventArgs")).First();
-
-            //    var type = SemanticModel.GetTypeInfo(arg.Type).Type;
-
-            //    if (type.ToString().StartsWith("System.Windows"))
-            //    {
-            //        ProcessMethodCallsInMethod(node, 0, node.Identifier.ToString() + node.ParameterList.ToString());
-            //    }
-            //}
             base.VisitMethodDeclaration(node);
+        }
+
+
+        private Enums.AsyncDetected DetectIOAsynchronousUsages(InvocationExpressionSyntax methodCall, IMethodSymbol methodCallSymbol)
+        {
+            var methodCallName = methodCall.Expression.ToString().ToLower();
+
+            // DETECT PATTERNS
+            if (methodCallSymbol.IsAPMBeginMethod())
+                return Enums.AsyncDetected.APM;
+            else if (methodCall.IsEAPMethod())
+                return Enums.AsyncDetected.EAP;
+            else if (methodCallSymbol.IsTAPMethod())
+                return Enums.AsyncDetected.TAP;
+            else
+                return Enums.AsyncDetected.None;
         }
 
 
@@ -174,7 +181,7 @@ namespace Analysis
                 return false;
             else
             {
-                bool result=true;
+                bool result = true;
                 {
                     var newMethods = new List<MethodDeclarationSyntax>();
                     try
@@ -189,17 +196,17 @@ namespace Analysis
                                 if (methodCallSymbol != null)
                                 {
                                     var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();
-                                    if (methodDeclarationNode != null && n<10)
+                                    if (methodDeclarationNode != null && n < 10)
                                         newMethods.Add(methodDeclarationNode);
                                 }
                             }
                         }
                         foreach (var newMethod in newMethods)
-                            result = result && IsUnnecessarilyCaptureContext(newMethod, n+1);
+                            result = result && IsUnnecessarilyCaptureContext(newMethod, n + 1);
                     }
                     catch (Exception ex)
                     {
-                        
+
                     }
                 }
                 return result;
@@ -219,8 +226,8 @@ namespace Analysis
                     if (symbol.ToString().StartsWith("System.Windows.") || symbol.ToString().StartsWith("Microsoft.Phone."))
                         return true;
                 }
-            
-            
+
+
             }
             return false;
         }
@@ -245,14 +252,14 @@ namespace Analysis
 
                     foreach (var blocking in node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Where(a => BlockingMethodCalls.Any(b => b.Equals(a.Name.ToString()))))
                     {
-                        Logs.TempLog2.Info("BLOCKING {0} {1} {2}\r\n{3} \r\n{4}\r\n{5}\r\n--------------------------",asyncFlag, n, blocking, Document.FilePath, topAncestor, node);
+                        Logs.TempLog2.Info("BLOCKING {0} {1} {2}\r\n{3} \r\n{4}\r\n{5}\r\n--------------------------", asyncFlag, n, blocking, Document.FilePath, topAncestor, node);
                     }
 
                     foreach (var blocking in node.DescendantNodes().OfType<MemberAccessExpressionSyntax>().Where(a => a.Name.ToString().Equals("Result")))
                     {
                         var s = semanticModel.GetSymbolInfo(blocking).Symbol;
-                        if(s!=null && s.ToString().Contains("System.Threading.Tasks"))
-                             Logs.TempLog2.Info("BLOCKING {0} {1} {2}\r\n{3} \r\n{4}\r\n{5}\r\n--------------------------",asyncFlag, n, blocking, Document.FilePath, topAncestor, node);
+                        if (s != null && s.ToString().Contains("System.Threading.Tasks"))
+                            Logs.TempLog2.Info("BLOCKING {0} {1} {2}\r\n{3} \r\n{4}\r\n{5}\r\n--------------------------", asyncFlag, n, blocking, Document.FilePath, topAncestor, node);
                     }
 
                     foreach (var methodCall in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -266,7 +273,7 @@ namespace Analysis
                             if (synctype != Utilities.Enums.SyncDetected.None)
                             {
                                 if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
-                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------",asyncFlag, n, methodCallSymbol, Document.FilePath, synctype, topAncestor, node);
+                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------", asyncFlag, n, methodCallSymbol, Document.FilePath, synctype, topAncestor, node);
                                 Logs.TempLog3.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
                             }
 

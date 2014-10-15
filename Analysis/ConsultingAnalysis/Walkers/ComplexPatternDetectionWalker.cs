@@ -8,13 +8,13 @@ using System.IO;
 using System.Linq;
 using Utilities;
 
-namespace Analysis
+namespace ConsultingAnalysis
 {
-    class SimplifierDetectionWalker : CSharpSyntaxWalker
+    class ComplexPatternDetectionWalker : CSharpSyntaxWalker
     {
 
 
-        public TaskifierAnalysisResult Result { get; set; }
+        public ConsultingAnalysisResult Result { get; set; }
 
         public SemanticModel SemanticModel { get; set; }
 
@@ -40,7 +40,7 @@ namespace Analysis
 
             if (symbol != null)
             {
-                if(symbol.ToString().Contains("System.Threading.Tasks.Task.WaitAll"))
+                if (symbol.ToString().Contains("System.Threading.Tasks.Task.WaitAll"))
                 {
                     var block = node.Ancestors().OfType<BlockSyntax>().First();
 
@@ -49,13 +49,13 @@ namespace Analysis
                     foreach (var invocation in block.DescendantNodes().OfType<InvocationExpressionSyntax>())
                     {
                         var symbol2 = (IMethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
-                        if (symbol2!=null && symbol2.IsTaskCreationMethod())
+                        if (symbol2 != null && symbol2.IsTaskCreationMethod())
                         {
                             Logs.TempLog3.Info("{0}{1}--------------------------", Document.FilePath, block.ToLog());
                             break;
                         }
                     }
-                    
+
                 }
 
             }
@@ -69,7 +69,7 @@ namespace Analysis
             foreach (var invocation in node.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
                 var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(invocation).Symbol;
-                if (symbol!=null && symbol.IsTaskCreationMethod())
+                if (symbol != null && symbol.IsTaskCreationMethod())
                 {
                     Logs.TempLog.Info("{0}{1}--------------------------", Document.FilePath, node.Parent.ToLog());
                     break;

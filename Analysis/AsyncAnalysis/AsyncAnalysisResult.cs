@@ -230,8 +230,6 @@ namespace Analysis
                 {
                     sw.WriteLine(row);
                 }
-
-            
         }
     }
 }

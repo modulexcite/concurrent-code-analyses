@@ -34,17 +34,29 @@ namespace Analysis
             workspace = MSBuildWorkspace.Create();
         }
 
+        // SolutionPath actually represents the csproj file temporarily. 
         public void Analyze()
         {
-            CurrentSolution = TryLoadSolution(_solutionPath);
-            if ((CurrentSolution = TryLoadSolution(_solutionPath)) != null)
+            try
             {
-                foreach (var project in CurrentSolution.Projects)
-                {
-                    AnalyzeProject(project);
-                }
+                var project = workspace.OpenProjectAsync(_solutionPath).Result;
+                AnalyzeProject(project);
             }
-            workspace.CloseSolution();
+            catch (Exception ex)
+            {
+                if (ex is InvalidProjectFileException ||
+                    ex is FormatException ||
+                    ex is ArgumentException ||
+                    ex is PathTooLongException ||
+                    ex is AggregateException || 
+                    ex is NullReferenceException
+                    )
+                {
+                    Logs.ErrorLog.Info("Project not analyzed: {0}: Reason: {1}", _solutionPath, ex.Message);
+                }
+                else
+                    throw;
+            }
             OnAnalysisCompleted();
         }
 

@@ -7,6 +7,11 @@ namespace Utilities
 {
     public static class SyntaxNodeExtensions
     {
+        public static string ToLog(this SyntaxNode node)
+        {
+            return System.Environment.NewLine+ node.ToString() + System.Environment.NewLine;
+        }
+
         /// <summary>
         /// Replace all old nodes in the given pairs with their corresponding new nodes.
         /// </summary>

@@ -98,6 +98,12 @@
     <Compile Include="AsyncAnalysis\Walkers\AsyncUsageDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\Walkers\SyncUsageDetectionWalker.cs" />
     <Compile Include="AsyncAnalysis\Walkers\GeneralAsyncDetectionWalker.cs" />
+    <Compile Include="ConsultingAnalysis\ConsultingAnalysis.cs" />
+    <Compile Include="ConsultingAnalysis\ConsultingAnalysisResult.cs" />
+    <Compile Include="ConsultingAnalysis\Walkers\AsyncAwaitDetectionWalker.cs" />
+    <Compile Include="ConsultingAnalysis\Walkers\AsyncLibraryDetectionWalker.cs" />
+    <Compile Include="ConsultingAnalysis\Walkers\CPUAsyncDetectionWalker.cs" />
+    <Compile Include="ConsultingAnalysis\Walkers\ComplexPatternDetectionWalker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskifierAnalysis\TaskifierAnalysis.cs" />
     <Compile Include="TaskifierAnalysis\TaskifierAnalysisResult.cs" />
