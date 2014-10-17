@@ -197,19 +197,16 @@ namespace ConsultingAnalysis
                             result.asyncAwaitResults.NumFireForget,
                             result.asyncAwaitResults.NumUnnecessaryAsync,
                             result.asyncAwaitResults.NumUnnecessaryContext,
-                            result.asyncAwaitResults.NumLongRunning
-                            );
+                            result.asyncAwaitResults.NumLongRunning);
                 }
             }
 
-            var keys = libraryUsage.Keys.ToList();
-            keys.Sort();
-            foreach (var key in keys)
-            {
-                Logs.TempLog.Info("{0},{1}", key, libraryUsage[key]);
-            }
-            
-            Console.WriteLine(i);
+            //var keys = libraryUsage.Keys.ToList();
+            //keys.Sort();
+            //foreach (var key in keys)
+            //{
+            //    Logs.TempLog.Info("{0},{1}", key, libraryUsage[key]);
+            //}
         }
     }
 }

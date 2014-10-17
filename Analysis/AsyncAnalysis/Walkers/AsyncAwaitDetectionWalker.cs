@@ -156,9 +156,9 @@ namespace Analysis
 
                 if (methodCallSymbol != null)
                 {
-                    var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                    var replacement = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
-                    if (synctype != Utilities.Enums.SyncDetected.None)
+                    if (replacement != "None")
                     {
                         if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
                             return true;
@@ -261,13 +261,13 @@ namespace Analysis
 
                         if (methodCallSymbol != null)
                         {
-                            var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                            var replacement = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
-                            if (synctype != Utilities.Enums.SyncDetected.None)
+                            if (replacement != "None")
                             {
                                 if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
-                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------",asyncFlag, n, methodCallSymbol, Document.FilePath, synctype, topAncestor, node);
-                                Logs.TempLog3.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
+                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------",asyncFlag, n, methodCallSymbol, Document.FilePath, replacement, topAncestor, node);
+                                Logs.TempLog3.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, replacement);
                             }
 
                             var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();

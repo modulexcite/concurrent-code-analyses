@@ -48,9 +48,7 @@ namespace Analysis
                     ex is FormatException ||
                     ex is ArgumentException ||
                     ex is PathTooLongException ||
-                    ex is AggregateException || 
-                    ex is NullReferenceException
-                    )
+                    ex is AggregateException)
                 {
                     Logs.ErrorLog.Info("Project not analyzed: {0}: Reason: {1}", _solutionPath, ex.Message);
                 }

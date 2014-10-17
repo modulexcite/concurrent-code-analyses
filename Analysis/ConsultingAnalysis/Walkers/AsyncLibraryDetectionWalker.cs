@@ -33,18 +33,24 @@ namespace ConsultingAnalysis
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol.OriginalDefinition;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
-            IsAsyncLibraryConstruct(symbol);
-            
+            if (symbol != null)
+            {
+                IsAsyncLibraryConstruct(symbol.OriginalDefinition);
+            }
+
             base.VisitInvocationExpression(node);
         }
 
         public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
         {
-            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol.OriginalDefinition;
+            var symbol = (IMethodSymbol)SemanticModel.GetSymbolInfo(node).Symbol;
 
-            IsAsyncLibraryConstruct(symbol);
+            if (symbol != null)
+            {
+                IsAsyncLibraryConstruct(symbol.OriginalDefinition);
+            }
 
             base.VisitObjectCreationExpression(node);
         }

@@ -117,7 +117,7 @@ namespace Utilities
         // (1) MAIN PATTERNS: TAP, EAP, APM
         public static bool IsTAPMethod(this IMethodSymbol symbol)
         {
-            return (symbol.ReturnTask() && symbol.DeclaringSyntaxReferences.Count() == 0 && !symbol.ToString().StartsWith("System.Threading.Tasks"))
+            return (symbol.ReturnTask() && symbol.DeclaringSyntaxReferences.Count() == 0 && !symbol.ToString().StartsWith("System.Threading.Tasks") && !symbol.IsTaskCreationMethod())
                 || (symbol.ReturnTask() && symbol.ToString().Contains("FromAsync"));
                 
         }
@@ -271,33 +271,31 @@ namespace Utilities
             //}
         }
 
-        public static Enums.SyncDetected DetectSynchronousUsages(this IMethodSymbol methodCallSymbol, SemanticModel semanticModel)
+        public static string DetectSynchronousUsages(this IMethodSymbol methodCallSymbol, SemanticModel semanticModel)
         {
             var list = semanticModel.LookupSymbols(0, container: methodCallSymbol.ContainingType,
                                 includeReducedExtensionMethods: true);
 
             var name = methodCallSymbol.Name;
-            Enums.SyncDetected type = Enums.SyncDetected.None;
 
             if (name.Equals("Sleep"))
             {
-                type |= Enums.SyncDetected.TAPReplacable;
+                return "Task.Delay";
             }
 
             foreach (var tmp in list)
             {
-                if (tmp.Name.Equals("Begin" + name))
-                {
-                    type |= Enums.SyncDetected.APMReplacable;
-                }
+                //if (tmp.Name.Equals("Begin" + name))
+                //{
+                //    return tmp.Name;
+                //}
                 if (tmp.Name.Equals(name + "Async"))
                 {
-                    type |= Enums.SyncDetected.TAPReplacable;
+                    if(!name.Equals("Invoke"))
+                        return tmp.Name;
                 }
             }
-
-
-            return type;
+            return "None";
         }
 
 

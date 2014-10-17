@@ -42,14 +42,17 @@ namespace ConsultingAnalysis
                 var type = DetectIOAsynchronousUsages(node, symbol);
                 Result.StoreDetectedIOAsyncUsage(type);
 
-                if (type == Enums.AsyncDetected.EAP)
-                    Logs.TempLog2.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+                //DetectBlockingOperations(node, symbol);
+
+                //if (type == Enums.AsyncDetected.EAP)
+                //    Logs.TempLog2.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
 
                 if (type == Enums.AsyncDetected.TAP)
-                    Logs.TempLog3.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+                    //Logs.TempLog3.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+                    Logs.TempLog3.Info("{0}", symbol);
 
-                if (type == Enums.AsyncDetected.APM)
-                    Logs.TempLog4.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
+                //if (type == Enums.AsyncDetected.APM)
+                //    Logs.TempLog4.Info("{0}{1}*****************************************", Document.FilePath, node.FirstAncestorOrSelf<MethodDeclarationSyntax>().ToLog());
 
             }
 
@@ -90,19 +93,20 @@ namespace ConsultingAnalysis
 
 
                 //var symbol = SemanticModel.GetDeclaredSymbol(node);
-                //bool isThereAnyCaller = false;
                 //if (symbol != null)
                 //{
-                    
+
                 //    foreach (var refs in SymbolFinder.FindReferencesAsync(symbol, Document.Project.Solution).Result)
                 //    {
-                //        foreach (var locs in refs.Locations)
+                //        foreach (var loc in refs.Locations)
                 //        {
-                //            isThereAnyCaller = true;
-                //            var caller = locs.Document.GetTextAsync().Result.Lines.ElementAt(locs.Location.GetLineSpan().StartLinePosition.Line).ToString();
+                //            var caller = loc.Document.GetTextAsync().Result.Lines.ElementAt(loc.Location.GetLineSpan().StartLinePosition.Line).ToString();
                 //            if (caller.Contains(".Result") || caller.Contains(".Wait"))
-                //                Logs.TempLog5.Info("BlockingCaller {0}\r\n{1}\r\n{2}\r\n-----------------------", Document.FilePath, node, caller);
-
+                //                Logs.TempLog5.Info("{0}{1}{2}{3}************************************",
+                //                    System.Environment.NewLine + "Blocking Caller: '" + caller.Trim() + "' from this file: " + loc.Document.FilePath + System.Environment.NewLine,
+                //                    System.Environment.NewLine + "Async method Callee: " + System.Environment.NewLine,
+                //                    node.ToLog(),
+                //                    "From this file: " + Document.FilePath + System.Environment.NewLine + System.Environment.NewLine);
                 //        }
                 //    }
                 //}
@@ -113,6 +117,24 @@ namespace ConsultingAnalysis
             base.VisitMethodDeclaration(node);
         }
 
+        private void DetectBlockingOperations(InvocationExpressionSyntax methodCall, IMethodSymbol methodCallSymbol)
+        {
+
+            var methodDeclaration = methodCall.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+            var replacement = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+
+            if (methodDeclaration != null)
+            {
+                if (replacement != "None")
+                {
+                    Logs.TempLog6.Info(@"{0}{1}{2}{3}**********************************************",
+                                        Document.FilePath,
+                                        System.Environment.NewLine + System.Environment.NewLine + "BLOCKING METHODCALL: " + methodCallSymbol.ToString(),
+                                        System.Environment.NewLine + System.Environment.NewLine + "REPLACE IT WITH: " + replacement,
+                                        methodDeclaration.ToLog());
+                }
+            }
+        }
 
         private Enums.AsyncDetected DetectIOAsynchronousUsages(InvocationExpressionSyntax methodCall, IMethodSymbol methodCallSymbol)
         {
@@ -163,9 +185,9 @@ namespace ConsultingAnalysis
 
                 if (methodCallSymbol != null)
                 {
-                    var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                    var replacement = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
-                    if (synctype != Utilities.Enums.SyncDetected.None)
+                    if (replacement != "None")
                     {
                         if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
                             return true;
@@ -268,13 +290,13 @@ namespace ConsultingAnalysis
 
                         if (methodCallSymbol != null)
                         {
-                            var synctype = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
+                            var replacement = ((IMethodSymbol)methodCallSymbol.OriginalDefinition).DetectSynchronousUsages(SemanticModel);
 
-                            if (synctype != Utilities.Enums.SyncDetected.None)
+                            if (replacement != "None")
                             {
                                 if (!methodCallSymbol.Name.ToString().Equals("Invoke"))
-                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------", asyncFlag, n, methodCallSymbol, Document.FilePath, synctype, topAncestor, node);
-                                Logs.TempLog3.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, synctype);
+                                    Logs.TempLog2.Info("LONGRUNNING {0} {1} {2} {3}\r\n{4} {5}\r\n{6}\r\n--------------------------", asyncFlag, n, methodCallSymbol, Document.FilePath, replacement, topAncestor, node);
+                                Logs.TempLog3.Info("{0} {1}", methodCallSymbol.ContainingType, methodCallSymbol, replacement);
                             }
 
                             var methodDeclarationNode = methodCallSymbol.FindMethodDeclarationNode();

@@ -9,7 +9,7 @@ namespace Utilities
     {
         public static string ToLog(this SyntaxNode node)
         {
-            return System.Environment.NewLine+ node.ToString() + System.Environment.NewLine;
+            return System.Environment.NewLine + System.Environment.NewLine + node.ToString() + System.Environment.NewLine + System.Environment.NewLine;
         }
 
         /// <summary>
