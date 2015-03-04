@@ -208,8 +208,6 @@ namespace Analysis
 
         private bool CheckUIElementAccess(MethodDeclarationSyntax node)
         {
-
-
             foreach (var identifier in node.Body.DescendantNodes().OfType<IdentifierNameSyntax>())
             {
                 var symbol = SemanticModel.GetSymbolInfo(identifier).Symbol;

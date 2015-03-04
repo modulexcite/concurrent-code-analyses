@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.22310.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Utilities.csproj", "{D943C4FB-5AF0-4965-95A6-7DD36977B63B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{62A4D5A4-C0CF-491C-A8C5-1D2DF0B89785}"
@@ -10,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{62A4D5
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Collector", "Collector\Collector.csproj", "{52C90E5C-2B8E-43F7-AE43-E839FF181CA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalysisRunner", "Collector\AnalysisRunner.csproj", "{52C90E5C-2B8E-43F7-AE43-E839FF181CA1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{91AC1624-494B-4AB7-A7ED-B2F2B2866959} = {91AC1624-494B-4AB7-A7ED-B2F2B2866959}
 		{D943C4FB-5AF0-4965-95A6-7DD36977B63B} = {D943C4FB-5AF0-4965-95A6-7DD36977B63B}
@@ -30,6 +32,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Challenges", "Challenges\Challenges.csproj", "{3FDF6F25-2725-4AEC-B8A9-A3C2C9FE6FE8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Refactoring-BatchTool", "Refactoring-BatchTool\Refactoring-BatchTool.csproj", "{99E0521C-3588-48E6-881A-B2445B1296C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoslynUtilities", "..\RoslynUtilities\RoslynUtilities\RoslynUtilities.csproj", "{B22FB367-898D-496F-B6BD-B79EE49B35BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,6 +125,18 @@ Global
 		{99E0521C-3588-48E6-881A-B2445B1296C6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{99E0521C-3588-48E6-881A-B2445B1296C6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{99E0521C-3588-48E6-881A-B2445B1296C6}.Release|x86.ActiveCfg = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Debug|x86.Build.0 = Debug|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|x86.ActiveCfg = Release|Any CPU
+		{B22FB367-898D-496F-B6BD-B79EE49B35BA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using Utilities;
 
-namespace ConsultingAnalysis
+namespace Analysis
 {
     class CPUAsyncDetectionWalker : CSharpSyntaxWalker
     {

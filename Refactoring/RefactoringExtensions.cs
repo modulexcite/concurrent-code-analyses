@@ -566,10 +566,6 @@ namespace Refactoring
 
         public static CompilationUnitSyntax RefactorSimpleLambdaInstance(CompilationUnitSyntax syntax, InvocationExpressionSyntax beginXxxCall, SemanticModel model, Workspace workspace, ArgumentSyntax callbackArgument)
         {
-            if (syntax == null) throw new ArgumentNullException("syntax");
-            if (beginXxxCall == null) throw new ArgumentNullException("beginXxxCall");
-            if (model == null) throw new ArgumentNullException("model");
-
             var lambda = (SimpleLambdaExpressionSyntax)callbackArgument.Expression;
 
             if (lambda.Body.CSharpKind() != SyntaxKind.Block)

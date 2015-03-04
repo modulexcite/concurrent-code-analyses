@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Analysis
 {
-    public class AsyncAnalysisResult : AnalysisResultBase
+    public class AsyncAnalysisResult : AnalysisResult
     {
         public class GeneralAsyncResults
         {

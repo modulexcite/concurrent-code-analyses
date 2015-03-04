@@ -2,15 +2,14 @@
 using Microsoft.CodeAnalysis.CSharp;
 using System.Configuration;
 using Utilities;
-using Analysis;
 
-namespace ConsultingAnalysis
+namespace Analysis
 {
     public class ConsultingAnalysis : AnalysisBase
     {
         private ConsultingAnalysisResult result;
 
-        public override AnalysisResultBase ResultObject
+        public override AnalysisResult ResultObject
         {
             get { return result; }
         }
@@ -45,7 +44,7 @@ namespace ConsultingAnalysis
 
             if (bool.Parse(ConfigurationManager.AppSettings["IsAsyncAwaitDetectionEnabled"]))
             {
-                walker = new AsyncAwaitDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
+                walker = new AsyncAwaitConsultingDetectionWalker { Result = Result, SemanticModel = semanticModel, Document = document };
                 walker.Visit(root);
             }
 

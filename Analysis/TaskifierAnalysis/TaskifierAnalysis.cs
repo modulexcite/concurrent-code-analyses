@@ -9,7 +9,7 @@ namespace Analysis
     {
         private TaskifierAnalysisResult result;
 
-        public override AnalysisResultBase ResultObject
+        public override AnalysisResult ResultObject
         {
             get { return result; }
         }

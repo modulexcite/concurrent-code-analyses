@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Utilities;
-using Analysis;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace ConsultingAnalysis
+namespace Analysis
 {
-    internal class AsyncAwaitDetectionWalker : CSharpSyntaxWalker
+    internal class AsyncAwaitConsultingDetectionWalker : CSharpSyntaxWalker
     {
         public ConsultingAnalysisResult Result { get; set; }
 

@@ -17,7 +17,7 @@ namespace Analysis
 
         private Dictionary<String,int> AnalyzedMethodsDict;
 
-        public override AnalysisResultBase ResultObject
+        public override AnalysisResult ResultObject
         {
             get { return result; }
         }

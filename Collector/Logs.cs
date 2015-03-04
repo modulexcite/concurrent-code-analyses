@@ -1,6 +1,6 @@
 ﻿using NLog;
 
-namespace Utilities
+namespace AnalysisRunner
 {
     public class Logs
     {

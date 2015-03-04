@@ -8,12 +8,10 @@ using System.IO;
 using System.Linq;
 using Utilities;
 
-namespace ConsultingAnalysis
+namespace Analysis
 {
     class ComplexPatternDetectionWalker : CSharpSyntaxWalker
     {
-
-
         public ConsultingAnalysisResult Result { get; set; }
 
         public SemanticModel SemanticModel { get; set; }

@@ -11,7 +11,7 @@ using System.IO;
 using System;
 namespace Analysis
 {
-    public class TaskifierAnalysisResult : AnalysisResultBase
+    public class TaskifierAnalysisResult : AnalysisResult
     {
         public class ThreadingNamespaceResults
         {

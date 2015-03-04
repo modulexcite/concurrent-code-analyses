@@ -9,12 +9,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using System.IO;
 using System;
-using Analysis;
 using System.Collections.Generic;
 
-namespace ConsultingAnalysis
+namespace Analysis
 {
-    public class ConsultingAnalysisResult : AnalysisResultBase
+    public class ConsultingAnalysisResult : AnalysisResult
     {
         public class CPUAsyncResults
         {
